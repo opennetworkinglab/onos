@@ -124,7 +124,6 @@ public class DefaultKubevirtNodeHandler implements KubevirtNodeHandler {
     private static final long SLEEP_SHORT_MS = 1000; // we wait 1s
     private static final long SLEEP_MID_MS = 2000; // we wait 2s
     private static final long SLEEP_LONG_MS = 5000; // we wait 5s
-    private static final IpAddress DNS_SERVER_IP = IpAddress.valueOf("169.254.25.10");
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;

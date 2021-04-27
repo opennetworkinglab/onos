@@ -15,6 +15,7 @@
  */
 package org.onosproject.kubevirtnetworking.impl;
 
+import org.onlab.packet.EthType;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cfg.ConfigProperty;
@@ -57,21 +58,15 @@ import java.util.concurrent.Executors;
 
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.kubevirtnetworking.api.Constants.ACL_EGRESS_TABLE;
-import static org.onosproject.kubevirtnetworking.api.Constants.ACL_INGRESS_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.ARP_TABLE;
-import static org.onosproject.kubevirtnetworking.api.Constants.DEFAULT_GATEWAY_MAC;
 import static org.onosproject.kubevirtnetworking.api.Constants.DHCP_TABLE;
-import static org.onosproject.kubevirtnetworking.api.Constants.FLAT_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.FORWARDING_TABLE;
-import static org.onosproject.kubevirtnetworking.api.Constants.JUMP_TABLE;
+import static org.onosproject.kubevirtnetworking.api.Constants.GW_DROP_TABLE;
+import static org.onosproject.kubevirtnetworking.api.Constants.GW_ENTRY_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.KUBEVIRT_NETWORKING_APP_ID;
-import static org.onosproject.kubevirtnetworking.api.Constants.PRE_FLAT_TABLE;
-import static org.onosproject.kubevirtnetworking.api.Constants.ROUTING_TABLE;
+import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_ARP_DEFAULT_RULE;
 import static org.onosproject.kubevirtnetworking.api.Constants.STAT_INBOUND_TABLE;
-import static org.onosproject.kubevirtnetworking.api.Constants.STAT_OUTBOUND_TABLE;
-import static org.onosproject.kubevirtnetworking.api.Constants.VTAG_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.VTAP_INBOUND_TABLE;
-import static org.onosproject.kubevirtnetworking.api.Constants.VTAP_OUTBOUND_TABLE;
 import static org.onosproject.kubevirtnetworking.impl.OsgiPropertyConstants.PROVIDER_NETWORK_ONLY;
 import static org.onosproject.kubevirtnetworking.impl.OsgiPropertyConstants.PROVIDER_NETWORK_ONLY_DEFAULT;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.getPropertyValueAsBoolean;
@@ -95,9 +90,6 @@ public class KubevirtFlowRuleManager implements KubevirtFlowRuleService {
 
     private static final int DROP_PRIORITY = 0;
     private static final int LOW_PRIORITY = 10000;
-    private static final int MID_PRIORITY = 20000;
-    private static final int HIGH_PRIORITY = 30000;
-    private static final int TIMEOUT_SNAT_RULE = 60;
 
     /** Use provider network only. */
     private boolean providerNetworkOnly = PROVIDER_NETWORK_ONLY_DEFAULT;
@@ -194,17 +186,14 @@ public class KubevirtFlowRuleManager implements KubevirtFlowRuleService {
 
         treatment.drop();
 
-        FlowRule flowRule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(DROP_PRIORITY)
-                .fromApp(appId)
-                .makePermanent()
-                .forTable(table)
-                .build();
-
-        applyRule(flowRule, true);
+        this.setRule(
+                appId,
+                deviceId,
+                selector.build(),
+                treatment.build(),
+                DROP_PRIORITY,
+                table,
+                true);
     }
 
     @Override
@@ -214,17 +203,14 @@ public class KubevirtFlowRuleManager implements KubevirtFlowRuleService {
 
         treatment.transition(toTable);
 
-        FlowRule flowRule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(DROP_PRIORITY)
-                .fromApp(appId)
-                .makePermanent()
-                .forTable(fromTable)
-                .build();
-
-        applyRule(flowRule, true);
+        this.setRule(
+                appId,
+                deviceId,
+                selector.build(),
+                treatment.build(),
+                DROP_PRIORITY,
+                fromTable,
+                true);
     }
 
     private void applyRule(FlowRule flowRule, boolean install) {
@@ -246,24 +232,14 @@ public class KubevirtFlowRuleManager implements KubevirtFlowRuleService {
     }
 
     protected void initializeGatewayNodePipeline(DeviceId deviceId) {
-        // for inbound table transition
-        connectTables(deviceId, STAT_INBOUND_TABLE, VTAG_TABLE);
+        // for inbound to gateway entry table transition
+        connectTables(deviceId, STAT_INBOUND_TABLE, GW_ENTRY_TABLE);
 
-        if (getProviderNetworkOnlyFlag()) {
-            // we directly transit from vTag table to PRE_FLAT table for provider
-            // network only mode, because there is no need to differentiate ARP
-            // and IP packets on this mode
-            connectTables(deviceId, VTAG_TABLE, PRE_FLAT_TABLE);
-        } else {
-            // for vTag and ARP table transition
-            connectTables(deviceId, VTAG_TABLE, ARP_TABLE);
-        }
+        // for gateway entry to gateway drop table transition
+        connectTables(deviceId, GW_ENTRY_TABLE, GW_DROP_TABLE);
 
-        // for PRE_FLAT and FLAT table transition
-        connectTables(deviceId, PRE_FLAT_TABLE, FLAT_TABLE);
-
-        // for setting up default FLAT table behavior which is drop
-        setupGatewayNodeFlatTable(deviceId);
+        // for setting up default gateway drop table
+        setupGatewayNodeDropTable(deviceId);
 
         // for setting up default Forwarding table behavior which is NORMAL
         setupForwardingTable(deviceId);
@@ -273,80 +249,34 @@ public class KubevirtFlowRuleManager implements KubevirtFlowRuleService {
         connectTables(deviceId, STAT_INBOUND_TABLE, VTAP_INBOUND_TABLE);
         connectTables(deviceId, VTAP_INBOUND_TABLE, DHCP_TABLE);
 
-        // for DHCP and vTag table transition
-        connectTables(deviceId, DHCP_TABLE, VTAG_TABLE);
+        // for DHCP and ARP table transition
+        connectTables(deviceId, DHCP_TABLE, ARP_TABLE);
 
-        if (getProviderNetworkOnlyFlag()) {
-            // we directly transit from vTag table to PRE_FLAT table for provider
-            // network only mode, because there is no need to differentiate ARP
-            // and IP packets on this mode
-            connectTables(deviceId, VTAG_TABLE, PRE_FLAT_TABLE);
-        } else {
-            // for vTag and ARP table transition
-            connectTables(deviceId, VTAG_TABLE, ARP_TABLE);
-        }
+        // for ARP table and ACL egress table transition
+        connectTables(deviceId, ARP_TABLE, ACL_EGRESS_TABLE);
 
-        // for PRE_FLAT and FLAT table transition
-        connectTables(deviceId, PRE_FLAT_TABLE, FLAT_TABLE);
-
-        // for FLAT table and ACL table transition
-        connectTables(deviceId, FLAT_TABLE, ACL_EGRESS_TABLE);
-
-        // for ARP and ACL table transition
-        connectTables(deviceId, ARP_TABLE, ACL_INGRESS_TABLE);
-
-        // for ACL and JUMP table transition
-        connectTables(deviceId, ACL_EGRESS_TABLE, JUMP_TABLE);
-
-        // for outbound table transition
-        connectTables(deviceId, STAT_OUTBOUND_TABLE, VTAP_OUTBOUND_TABLE);
-        connectTables(deviceId, VTAP_OUTBOUND_TABLE, FORWARDING_TABLE);
-
-        // for JUMP table transition
-        // we need JUMP table for bypassing routing table which contains large
-        // amount of flow rules which might cause performance degradation during
-        // table lookup
-        setupJumpTable(deviceId);
+        // for setting up default ARP table behavior
+        setupArpTable(deviceId);
 
         // for setting up default Forwarding table behavior which is NORMAL
         setupForwardingTable(deviceId);
     }
 
-    private void setupJumpTable(DeviceId deviceId) {
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+    private void setupArpTable(DeviceId deviceId) {
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
+        sBuilder.matchEthType(EthType.EtherType.ARP.ethType().toShort());
 
-        selector.matchEthDst(DEFAULT_GATEWAY_MAC);
-        treatment.transition(ROUTING_TABLE);
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+        tBuilder.transition(FORWARDING_TABLE);
 
-        FlowRule flowRule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(HIGH_PRIORITY)
-                .fromApp(appId)
-                .makePermanent()
-                .forTable(JUMP_TABLE)
-                .build();
-
-        applyRule(flowRule, true);
-
-        selector = DefaultTrafficSelector.builder();
-        treatment = DefaultTrafficTreatment.builder();
-
-        treatment.transition(STAT_OUTBOUND_TABLE);
-
-        flowRule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(DROP_PRIORITY)
-                .fromApp(appId)
-                .makePermanent()
-                .forTable(JUMP_TABLE)
-                .build();
-
-        applyRule(flowRule, true);
+        this.setRule(
+                appId,
+                deviceId,
+                sBuilder.build(),
+                tBuilder.build(),
+                PRIORITY_ARP_DEFAULT_RULE,
+                ARP_TABLE,
+                true);
     }
 
     private void setupForwardingTable(DeviceId deviceId) {
@@ -354,36 +284,29 @@ public class KubevirtFlowRuleManager implements KubevirtFlowRuleService {
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder()
                 .setOutput(PortNumber.NORMAL);
 
-        FlowRule flowRule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(LOW_PRIORITY)
-                .fromApp(appId)
-                .makePermanent()
-                .forTable(FORWARDING_TABLE)
-                .build();
-
-        applyRule(flowRule, true);
+        this.setRule(
+                appId,
+                deviceId,
+                selector.build(),
+                treatment.build(),
+                LOW_PRIORITY,
+                FORWARDING_TABLE,
+                true);
     }
 
-    private void setupGatewayNodeFlatTable(DeviceId deviceId) {
+    private void setupGatewayNodeDropTable(DeviceId deviceId) {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder()
                 .drop();
 
-        FlowRule flowRule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(DROP_PRIORITY)
-                .fromApp(appId)
-                .makePermanent()
-                .forTable(FLAT_TABLE)
-                .build();
-
-        applyRule(flowRule, true);
-
+        this.setRule(
+                appId,
+                deviceId,
+                selector.build(),
+                treatment.build(),
+                DROP_PRIORITY,
+                GW_DROP_TABLE,
+                true);
     }
 
     private boolean getProviderNetworkOnlyFlag() {

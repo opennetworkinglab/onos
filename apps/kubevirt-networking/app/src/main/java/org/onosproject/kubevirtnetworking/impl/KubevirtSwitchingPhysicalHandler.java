@@ -47,10 +47,10 @@ import java.util.stream.Collectors;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.kubevirtnetworking.api.Constants.ACL_INGRESS_TABLE;
+import static org.onosproject.kubevirtnetworking.api.Constants.ARP_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.KUBEVIRT_NETWORKING_APP_ID;
-import static org.onosproject.kubevirtnetworking.api.Constants.PRE_FLAT_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_FORWARDING_RULE;
-import static org.onosproject.kubevirtnetworking.api.Constants.VTAG_TABLE;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.structurePortName;
 import static org.onosproject.kubevirtnode.api.Constants.INTEGRATION_TO_PHYSICAL_PREFIX;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
@@ -107,14 +107,14 @@ public class KubevirtSwitchingPhysicalHandler {
         return intPatchPorts.contains(portName);
     }
 
-    private void setFlatJumpRuleForPatchPort(DeviceId deviceId,
-                                             PortNumber portNumber,
-                                             boolean install) {
+    private void setIngressRuleForPatchPort(DeviceId deviceId,
+                                            PortNumber portNumber,
+                                            boolean install) {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder()
                 .matchInPort(portNumber);
 
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder()
-                .transition(PRE_FLAT_TABLE);
+                .transition(ACL_INGRESS_TABLE);
 
         flowRuleService.setRule(
                 appId,
@@ -122,7 +122,7 @@ public class KubevirtSwitchingPhysicalHandler {
                 selector.build(),
                 treatment.build(),
                 PRIORITY_FORWARDING_RULE,
-                VTAG_TABLE,
+                ARP_TABLE,
                 install);
     }
 
@@ -168,14 +168,14 @@ public class KubevirtSwitchingPhysicalHandler {
             if (!isRelevantHelper(event)) {
                 return;
             }
-            setFlatJumpRuleForPatchPort(event.subject().id(),
+            setIngressRuleForPatchPort(event.subject().id(),
                     event.port().number(), true);
         }
         private void processPortRemoval(DeviceEvent event) {
             if (!isRelevantHelper(event)) {
                 return;
             }
-            setFlatJumpRuleForPatchPort(event.subject().id(),
+            setIngressRuleForPatchPort(event.subject().id(),
                     event.port().number(), false);
         }
     }

@@ -86,8 +86,8 @@ import static org.onlab.packet.ICMP.TYPE_ECHO_REPLY;
 import static org.onlab.packet.ICMP.TYPE_ECHO_REQUEST;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.kubevirtnetworking.api.Constants.FORWARDING_TABLE;
+import static org.onosproject.kubevirtnetworking.api.Constants.GW_ENTRY_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.KUBEVIRT_NETWORKING_APP_ID;
-import static org.onosproject.kubevirtnetworking.api.Constants.PRE_FLAT_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_ARP_DEFAULT_RULE;
 import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_ARP_GATEWAY_RULE;
 import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_DHCP_RULE;
@@ -400,7 +400,7 @@ public class KubevirtNetworkHandler {
 
         // security group related rules
         setTenantIngressTransitionRule(network, network.tenantDeviceId(node.hostname()), true);
-        setEgressTransitionRule(network.tenantDeviceId(node.hostname()), true);
+        setTenantEgressTransitionRule(network.tenantDeviceId(node.hostname()), true);
 
         log.info("Install default flow rules for tenant bridge {}", network.tenantBridgeName());
     }
@@ -468,9 +468,9 @@ public class KubevirtNetworkHandler {
             case FLAT:
             case VLAN:
                 setGatewayArpRuleForProviderInternalNetwork(router, network,
-                        PRE_FLAT_TABLE, electedGateway.intgBridge(), install);
+                        GW_ENTRY_TABLE, electedGateway.intgBridge(), install);
                 setGatewayIcmpRuleForProviderInternalNetwork(router, network,
-                        PRE_FLAT_TABLE, electedGateway.intgBridge(), install);
+                        GW_ENTRY_TABLE, electedGateway.intgBridge(), install);
                 setGatewayProviderInterNetworkRoutingWithinSameRouter(network,
                         router, electedGateway, install);
                 break;
@@ -555,7 +555,7 @@ public class KubevirtNetworkHandler {
         );
     }
 
-    private void setEgressTransitionRule(DeviceId deviceId, boolean install) {
+    private void setTenantEgressTransitionRule(DeviceId deviceId, boolean install) {
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
         sBuilder.matchEthType(EthType.EtherType.IPV4.ethType().toShort());
 
@@ -791,7 +791,7 @@ public class KubevirtNetworkHandler {
                     sBuilder.build(),
                     treatment,
                     PRIORITY_INTERNAL_ROUTING_RULE,
-                    PRE_FLAT_TABLE,
+                    GW_ENTRY_TABLE,
                     install);
         } else {
             KubevirtNetwork dstNetwork = kubevirtNetworkService.network(dstPort.networkId());

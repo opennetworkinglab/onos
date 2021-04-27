@@ -26,12 +26,15 @@ import org.onosproject.net.device.DeviceService;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.onosproject.kubevirtnode.api.Constants.DEFAULT_CLUSTER_NAME;
 import static org.onosproject.kubevirtnode.api.Constants.GENEVE;
 import static org.onosproject.kubevirtnode.api.Constants.GRE;
+import static org.onosproject.kubevirtnode.api.Constants.INTEGRATION_TO_PHYSICAL_PREFIX;
 import static org.onosproject.kubevirtnode.api.Constants.VXLAN;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 
@@ -42,6 +45,7 @@ public class DefaultKubevirtNode implements KubevirtNode {
 
     private static final String NOT_NULL_MSG = "Node % cannot be null";
     private static final String OVSDB = "ovsdb:";
+    private static final int PORT_NAME_MAX_LENGTH = 15;
 
     private final String clusterName;
     private final String hostname;
@@ -189,6 +193,20 @@ public class DefaultKubevirtNode implements KubevirtNode {
     }
 
     @Override
+    public Set<PortNumber> physPatchPorts() {
+        Set<PortNumber> portNumbers = new HashSet<>();
+        for (KubevirtPhyInterface phyIntf : this.phyIntfs()) {
+            String portName = structurePortName(
+                    INTEGRATION_TO_PHYSICAL_PREFIX + phyIntf.network());
+            PortNumber portNumber = patchPort(portName);
+            if (portNumber != null) {
+                portNumbers.add(portNumber);
+            }
+        }
+        return portNumbers;
+    }
+
+    @Override
     public PortNumber vxlanPort() {
         return tunnelPort(VXLAN);
     }
@@ -218,6 +236,32 @@ public class DefaultKubevirtNode implements KubevirtNode {
                         Objects.equals(p.annotations().value(PORT_NAME), tunnelType))
                 .findAny().orElse(null);
         return port != null ? port.number() : null;
+    }
+
+    private PortNumber patchPort(String portName) {
+        DeviceService deviceService = DefaultServiceDirectory.getService(DeviceService.class);
+        Port port = deviceService.getPorts(intgBridge).stream()
+                .filter(p -> p.isEnabled() &&
+                        Objects.equals(p.annotations().value(PORT_NAME), portName))
+                .findAny().orElse(null);
+        return port != null ? port.number() : null;
+    }
+
+    /**
+     * Re-structures the OVS port name.
+     * The length of OVS port name should be not large than 15.
+     *
+     * @param portName  original port name
+     * @return re-structured OVS port name
+     */
+    private String structurePortName(String portName) {
+
+        // The size of OVS port name should not be larger than 15
+        if (portName.length() > PORT_NAME_MAX_LENGTH) {
+            return StringUtils.substring(portName, 0, PORT_NAME_MAX_LENGTH);
+        }
+
+        return portName;
     }
 
     /**

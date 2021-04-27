@@ -21,8 +21,8 @@ import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
-import org.onlab.packet.VlanId;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cfg.ConfigProperty;
@@ -33,7 +33,6 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.kubevirtnetworking.api.KubevirtFlowRuleService;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetwork;
-import org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetworkEvent;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetworkListener;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetworkService;
@@ -53,6 +52,7 @@ import org.onosproject.kubevirtnode.api.KubevirtNodeListener;
 import org.onosproject.kubevirtnode.api.KubevirtNodeService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -81,7 +81,12 @@ import java.util.stream.Collectors;
 import static java.lang.Thread.sleep;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.kubevirtnetworking.api.Constants.ACL_CT_TABLE;
+import static org.onosproject.kubevirtnetworking.api.Constants.ACL_EGRESS_TABLE;
+import static org.onosproject.kubevirtnetworking.api.Constants.ACL_INGRESS_TABLE;
+import static org.onosproject.kubevirtnetworking.api.Constants.ACL_RECIRC_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.ERROR_TABLE;
+import static org.onosproject.kubevirtnetworking.api.Constants.FORWARDING_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.KUBEVIRT_NETWORKING_APP_ID;
 import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_ACL_INGRESS_RULE;
 import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_ACL_RULE;
@@ -93,10 +98,8 @@ import static org.onosproject.kubevirtnetworking.api.Constants.TENANT_ACL_EGRESS
 import static org.onosproject.kubevirtnetworking.api.Constants.TENANT_ACL_INGRESS_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.TENANT_ACL_RECIRC_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.TENANT_FORWARDING_TABLE;
-import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.GENEVE;
-import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.GRE;
+import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.FLAT;
 import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.VLAN;
-import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.VXLAN;
 import static org.onosproject.kubevirtnetworking.impl.OsgiPropertyConstants.USE_SECURITY_GROUP;
 import static org.onosproject.kubevirtnetworking.impl.OsgiPropertyConstants.USE_SECURITY_GROUP_DEFAULT;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.getPropertyValueAsBoolean;
@@ -260,19 +263,28 @@ public class KubevirtSecurityGroupHandler {
         return getPropertyValueAsBoolean(properties, USE_SECURITY_GROUP);
     }
 
-    private void initializeConnTrackTable(DeviceId deviceId, boolean install) {
+    private void initializeProviderConnTrackTable(DeviceId deviceId, boolean install) {
+        initializeConnTrackTable(deviceId, ACL_CT_TABLE, FORWARDING_TABLE, install);
+    }
+
+    private void initializeTenantConnTrackTable(DeviceId deviceId, boolean install) {
+        initializeConnTrackTable(deviceId, TENANT_ACL_CT_TABLE, TENANT_FORWARDING_TABLE, install);
+    }
+
+    private void initializeConnTrackTable(DeviceId deviceId, int ctTable,
+                                            int forwardTable, boolean install) {
 
         // table={ACL_INGRESS_TABLE(44)},ip,ct_state=-trk, actions=ct(table:{ACL_CT_TABLE(45)})
         long ctState = computeCtStateFlag(false, false, false);
         long ctMask = computeCtMaskFlag(true, false, false);
-        setConnTrackRule(deviceId, ctState, ctMask, CT_NO_COMMIT, (short) TENANT_ACL_CT_TABLE,
+        setConnTrackRule(deviceId, ctState, ctMask, CT_NO_COMMIT, (short) ctTable,
                 ACTION_NONE, PRIORITY_CT_HOOK_RULE, install);
 
         //table={ACL_CT_TABLE(45)},ip,nw_dst=10.10.0.2,ct_state=+trk+est,action=goto_table:{NORMAL_TABLE(80)}
         ctState = computeCtStateFlag(true, false, true);
         ctMask = computeCtMaskFlag(true, false, true);
         setConnTrackRule(deviceId, ctState, ctMask, CT_NO_COMMIT, CT_NO_RECIRC,
-                TENANT_FORWARDING_TABLE, PRIORITY_CT_RULE, install);
+                forwardTable, PRIORITY_CT_RULE, install);
 
         //table={ACL_CT_TABLE(45)},ip,nw_dst=10.10.0.2,ct_state=+trk+new,action=drop
         ctState = computeCtStateFlag(true, true, false);
@@ -281,7 +293,23 @@ public class KubevirtSecurityGroupHandler {
                 ACTION_DROP, PRIORITY_CT_DROP_RULE, install);
     }
 
-    private void initializeAclTable(DeviceId deviceId, boolean install) {
+    private void initializeProviderAclTable(KubevirtNode node,
+                                            DeviceId deviceId, boolean install) {
+        // FIXME: we need to use group table to multi-cast traffic to all
+        // physPatchPorts later, we only choose one of the physPatchPorts to
+        // stream the outbound traffic for now
+        node.physPatchPorts().stream().findFirst().ifPresent(p ->
+                    initializeAclTable(deviceId, ACL_RECIRC_TABLE, p, install));
+    }
+
+    private void initializeTenantAclTable(KubevirtNetwork network,
+                                            DeviceId deviceId, boolean install) {
+        PortNumber patchPort = network.tenantToTunnelPort(deviceId);
+        initializeAclTable(deviceId, TENANT_ACL_RECIRC_TABLE, patchPort, install);
+    }
+
+    private void initializeAclTable(DeviceId deviceId, int recircTable,
+                                    PortNumber outport, boolean install) {
 
         ExtensionTreatment ctTreatment =
                 niciraConnTrackTreatmentBuilder(driverService, deviceId)
@@ -293,31 +321,68 @@ public class KubevirtSecurityGroupHandler {
 
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
         tBuilder.extension(ctTreatment, deviceId)
-                .transition(TENANT_FORWARDING_TABLE);
+                .setOutput(outport);
 
         flowRuleService.setRule(appId,
                 deviceId,
                 sBuilder.build(),
                 tBuilder.build(),
                 PRIORITY_ACL_INGRESS_RULE,
-                TENANT_ACL_RECIRC_TABLE,
+                recircTable,
                 install);
     }
 
-    private void initializeEgressTable(DeviceId deviceId, boolean install) {
+    private void initializeProviderEgressTable(DeviceId deviceId, boolean install) {
+        initializeEgressTable(deviceId, ACL_EGRESS_TABLE, FORWARDING_TABLE, install);
+    }
+
+    private void initializeTenantEgressTable(DeviceId deviceId, boolean install) {
+        initializeEgressTable(deviceId, TENANT_ACL_EGRESS_TABLE, TENANT_FORWARDING_TABLE, install);
+    }
+
+    private void initializeEgressTable(DeviceId deviceId, int egressTable,
+                                        int forwardTable, boolean install) {
         if (install) {
             flowRuleService.setUpTableMissEntry(deviceId, TENANT_ACL_EGRESS_TABLE);
         } else {
-            flowRuleService.connectTables(deviceId, TENANT_ACL_EGRESS_TABLE, TENANT_FORWARDING_TABLE);
+            flowRuleService.connectTables(deviceId, egressTable, forwardTable);
         }
     }
 
-    private void initializeIngressTable(DeviceId deviceId, boolean install) {
+    private void initializeProviderIngressTable(DeviceId deviceId, boolean install) {
+        initializeIngressTable(deviceId, ACL_INGRESS_TABLE, FORWARDING_TABLE, install);
+    }
+
+    private void initializeTenantIngressTable(DeviceId deviceId, boolean install) {
+        initializeIngressTable(deviceId, TENANT_ACL_INGRESS_TABLE, TENANT_FORWARDING_TABLE, install);
+    }
+
+    private void initializeIngressTable(DeviceId deviceId, int ingressTable,
+                                        int forwardTable, boolean install) {
         if (install) {
-            flowRuleService.setUpTableMissEntry(deviceId, TENANT_ACL_INGRESS_TABLE);
+            flowRuleService.setUpTableMissEntry(deviceId, ingressTable);
         } else {
-            flowRuleService.connectTables(deviceId, TENANT_ACL_INGRESS_TABLE, TENANT_FORWARDING_TABLE);
+            flowRuleService.connectTables(deviceId, ingressTable, forwardTable);
         }
+    }
+
+    private void initializeProviderPipeline(KubevirtNode node, boolean install) {
+        initializeProviderIngressTable(node.intgBridge(), install);
+        initializeProviderEgressTable(node.intgBridge(), install);
+        initializeProviderConnTrackTable(node.intgBridge(), install);
+        initializeProviderAclTable(node, node.intgBridge(), install);
+    }
+
+    private void initializeTenantPipeline(KubevirtNetwork network,
+                                          KubevirtNode node, boolean install) {
+        DeviceId deviceId = network.tenantDeviceId(node.hostname());
+        if (deviceId == null) {
+            return;
+        }
+        initializeTenantIngressTable(deviceId, install);
+        initializeTenantEgressTable(deviceId, install);
+        initializeTenantConnTrackTable(deviceId, install);
+        initializeTenantAclTable(network, deviceId, install);
     }
 
     private void updateSecurityGroupRule(KubevirtPort port,
@@ -384,10 +449,12 @@ public class KubevirtSecurityGroupHandler {
 
         DeviceId deviceId = port.isTenant() ? port.tenantDeviceId() : port.deviceId();
 
-        Set<TrafficSelector> selectors = buildSelectors(sgRule,
+        Set<TrafficSelector> ctSelectors = buildSelectors(
+                sgRule,
                 Ip4Address.valueOf(port.ipAddress().toInetAddress()),
+                port.macAddress(),
                 remoteIp, port.networkId());
-        if (selectors == null || selectors.isEmpty()) {
+        if (ctSelectors == null || ctSelectors.isEmpty()) {
             return;
         }
 
@@ -405,18 +472,32 @@ public class KubevirtSecurityGroupHandler {
 
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
 
+        KubevirtNetwork net = networkService.network(port.networkId());
+
         int aclTable;
         if (sgRule.direction().equalsIgnoreCase(EGRESS)) {
-            aclTable = TENANT_ACL_EGRESS_TABLE;
+
+            if (net.type() == FLAT || net.type() == VLAN) {
+                aclTable = ACL_EGRESS_TABLE;
+            } else {
+                aclTable = TENANT_ACL_EGRESS_TABLE;
+            }
+
             tBuilder.transition(TENANT_ACL_RECIRC_TABLE);
         } else {
-            aclTable = TENANT_ACL_INGRESS_TABLE;
+
+            if (net.type() == FLAT || net.type() == VLAN) {
+                aclTable = ACL_INGRESS_TABLE;
+            } else {
+                aclTable = TENANT_ACL_INGRESS_TABLE;
+            }
+
             tBuilder.extension(ctTreatment, deviceId)
                     .transition(TENANT_FORWARDING_TABLE);
         }
 
         int finalAclTable = aclTable;
-        selectors.forEach(selector -> {
+        ctSelectors.forEach(selector -> {
             flowRuleService.setRule(appId,
                     deviceId,
                     selector, tBuilder.build(),
@@ -424,6 +505,23 @@ public class KubevirtSecurityGroupHandler {
                     finalAclTable,
                     install);
         });
+
+        TrafficSelector tSelector = DefaultTrafficSelector.builder()
+                        .matchEthType(Ethernet.TYPE_IPV4)
+                        .matchEthDst(port.macAddress())
+                        .matchIPDst(IpPrefix.valueOf(port.ipAddress(), 32))
+                        .build();
+        TrafficTreatment tTreatment = DefaultTrafficTreatment.builder()
+                        .transition(TENANT_ACL_INGRESS_TABLE)
+                        .build();
+
+        flowRuleService.setRule(appId,
+                    deviceId,
+                    tSelector,
+                    tTreatment,
+                    PRIORITY_ACL_RULE,
+                    TENANT_ACL_RECIRC_TABLE,
+                    install);
     }
 
     /**
@@ -512,6 +610,7 @@ public class KubevirtSecurityGroupHandler {
 
     private Set<TrafficSelector> buildSelectors(KubevirtSecurityGroupRule sgRule,
                                                 Ip4Address vmIp,
+                                                MacAddress vmMac,
                                                 IpPrefix remoteIp,
                                                 String netId) {
         if (remoteIp != null && remoteIp.equals(IpPrefix.valueOf(vmIp, VM_IP_PREFIX))) {
@@ -529,7 +628,7 @@ public class KubevirtSecurityGroupHandler {
             portRangeMatchMap.forEach((key, value) -> {
 
                 TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
-                buildMatches(sBuilder, sgRule, vmIp, remoteIp, netId);
+                buildMatches(sBuilder, sgRule, vmIp, vmMac, remoteIp);
 
                 if (sgRule.protocol().equalsIgnoreCase(PROTO_TCP) ||
                         sgRule.protocol().equals(PROTO_TCP_NUM)) {
@@ -583,7 +682,7 @@ public class KubevirtSecurityGroupHandler {
         } else {
 
             TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
-            buildMatches(sBuilder, sgRule, vmIp, remoteIp, netId);
+            buildMatches(sBuilder, sgRule, vmIp, vmMac, remoteIp);
 
             selectorSet.add(sBuilder.build());
         }
@@ -593,10 +692,9 @@ public class KubevirtSecurityGroupHandler {
 
     private void buildMatches(TrafficSelector.Builder sBuilder,
                               KubevirtSecurityGroupRule sgRule, Ip4Address vmIp,
-                              IpPrefix remoteIp, String netId) {
-        buildTunnelId(sBuilder, netId);
+                              MacAddress vmMac, IpPrefix remoteIp) {
         buildMatchEthType(sBuilder, sgRule.etherType());
-        buildMatchDirection(sBuilder, sgRule.direction(), vmIp);
+        buildMatchDirection(sBuilder, sgRule.direction(), vmIp, vmMac);
         buildMatchProto(sBuilder, sgRule.protocol());
         buildMatchPort(sBuilder, sgRule.protocol(), sgRule.direction(),
                 sgRule.portRangeMin() == null ? 0 : sgRule.portRangeMin(),
@@ -606,36 +704,16 @@ public class KubevirtSecurityGroupHandler {
         buildMatchRemoteIp(sBuilder, remoteIp, sgRule.direction());
     }
 
-    private void buildTunnelId(TrafficSelector.Builder sBuilder, String netId) {
-        KubevirtNetwork network = networkService.network(netId);
-
-        if (network == null) {
-            log.warn("Network {} not found!", netId);
-            return;
-        }
-
-        String segId = network.segmentId();
-        Type netType = network.type();
-
-        if (netType == VLAN) {
-            sBuilder.matchVlanId(VlanId.vlanId(segId));
-        } else if (netType == VXLAN || netType == GRE || netType == GENEVE) {
-            // sBuilder.matchTunnelId(Long.parseLong(segId));
-            log.trace("{} typed match rules are installed for security group", netType);
-        } else {
-            log.debug("Cannot tag the VID as it is unsupported vnet type {}", netType);
-        }
-
-
-    }
-
     private void buildMatchDirection(TrafficSelector.Builder sBuilder,
                                      String direction,
-                                     Ip4Address vmIp) {
+                                     Ip4Address vmIp,
+                                     MacAddress vmMac) {
         if (direction.equalsIgnoreCase(EGRESS)) {
             sBuilder.matchIPSrc(IpPrefix.valueOf(vmIp, VM_IP_PREFIX));
+            sBuilder.matchEthSrc(vmMac);
         } else {
             sBuilder.matchIPDst(IpPrefix.valueOf(vmIp, VM_IP_PREFIX));
+            sBuilder.matchEthDst(vmMac);
         }
     }
 
@@ -735,16 +813,10 @@ public class KubevirtSecurityGroupHandler {
 
         if (getUseSecurityGroupFlag()) {
             nodeService.completeNodes(WORKER).forEach(node -> {
-                initializeEgressTable(node.intgBridge(), true);
-                initializeConnTrackTable(node.intgBridge(), true);
-                initializeAclTable(node.intgBridge(), true);
-                initializeIngressTable(node.intgBridge(), true);
+                initializeProviderPipeline(node, true);
 
                 for (KubevirtNetwork network : networkService.tenantNetworks()) {
-                    initializeEgressTable(network.tenantDeviceId(node.hostname()), true);
-                    initializeIngressTable(network.tenantDeviceId(node.hostname()), true);
-                    initializeConnTrackTable(network.tenantDeviceId(node.hostname()), true);
-                    initializeAclTable(network.tenantDeviceId(node.hostname()), true);
+                    initializeTenantPipeline(network, node, true);
                 }
             });
 
@@ -752,16 +824,10 @@ public class KubevirtSecurityGroupHandler {
                     securityGroup.rules().forEach(this::securityGroupRuleAdded));
         } else {
             nodeService.completeNodes(WORKER).forEach(node -> {
-                initializeEgressTable(node.intgBridge(), false);
-                initializeConnTrackTable(node.intgBridge(), false);
-                initializeAclTable(node.intgBridge(), false);
-                initializeIngressTable(node.intgBridge(), false);
+                initializeProviderPipeline(node, false);
 
                 for (KubevirtNetwork network : networkService.tenantNetworks()) {
-                    initializeEgressTable(network.tenantDeviceId(node.hostname()), false);
-                    initializeIngressTable(network.tenantDeviceId(node.hostname()), false);
-                    initializeConnTrackTable(network.tenantDeviceId(node.hostname()), false);
-                    initializeAclTable(network.tenantDeviceId(node.hostname()), false);
+                    initializeTenantPipeline(network, node, false);
                 }
             });
 
@@ -901,7 +967,7 @@ public class KubevirtSecurityGroupHandler {
                     updateSecurityGroupRule(event.subject(), sgRule, true);
                 });
                 log.info("Added security group {} to port {}",
-                        event.securityGroupId(), event.subject().macAddress());
+                        sg.id(), event.subject().macAddress());
             }
         }
     }
@@ -944,10 +1010,7 @@ public class KubevirtSecurityGroupHandler {
                 }
 
                 for (KubevirtNode node : nodes) {
-                    initializeEgressTable(network.tenantDeviceId(node.hostname()), true);
-                    initializeIngressTable(network.tenantDeviceId(node.hostname()), true);
-                    initializeConnTrackTable(network.tenantDeviceId(node.hostname()), true);
-                    initializeAclTable(network.tenantDeviceId(node.hostname()), true);
+                    initializeTenantPipeline(network, node, true);
                 }
             }
         }
@@ -1027,37 +1090,32 @@ public class KubevirtSecurityGroupHandler {
                 return;
             }
 
+            // FIXME: we wait all port get its deviceId updated
+            try {
+                sleep(SLEEP_MS);
+            } catch (InterruptedException e) {
+                log.error("Failed to install security group default rules.");
+            }
+
             resetSecurityGroupRulesByNode(node);
         }
 
         private void resetSecurityGroupRulesByNode(KubevirtNode node) {
             if (getUseSecurityGroupFlag()) {
-                initializeEgressTable(node.intgBridge(), true);
-                initializeConnTrackTable(node.intgBridge(), true);
-                initializeAclTable(node.intgBridge(), true);
-                initializeIngressTable(node.intgBridge(), true);
+                initializeProviderPipeline(node, true);
 
                 for (KubevirtNetwork network : networkService.tenantNetworks()) {
-                    initializeEgressTable(network.tenantDeviceId(node.hostname()), true);
-                    initializeIngressTable(network.tenantDeviceId(node.hostname()), true);
-                    initializeConnTrackTable(network.tenantDeviceId(node.hostname()), true);
-                    initializeAclTable(network.tenantDeviceId(node.hostname()), true);
+                    initializeTenantPipeline(network, node, true);
                 }
 
                 securityGroupService.securityGroups().forEach(securityGroup ->
                         securityGroup.rules().forEach(
                                 KubevirtSecurityGroupHandler.this::securityGroupRuleAdded));
             } else {
-                initializeEgressTable(node.intgBridge(), false);
-                initializeConnTrackTable(node.intgBridge(), false);
-                initializeAclTable(node.intgBridge(), false);
-                initializeIngressTable(node.intgBridge(), false);
+                initializeProviderPipeline(node, false);
 
                 for (KubevirtNetwork network : networkService.tenantNetworks()) {
-                    initializeEgressTable(network.tenantDeviceId(node.hostname()), false);
-                    initializeIngressTable(network.tenantDeviceId(node.hostname()), false);
-                    initializeConnTrackTable(network.tenantDeviceId(node.hostname()), false);
-                    initializeAclTable(network.tenantDeviceId(node.hostname()), false);
+                    initializeTenantPipeline(network, node, false);
                 }
 
                 securityGroupService.securityGroups().forEach(securityGroup ->

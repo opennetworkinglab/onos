@@ -20,6 +20,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * Representation of a KubeVirt node used in kubevirt networking service.
@@ -139,6 +140,13 @@ public interface KubevirtNode {
      * @return physical interfaces
      */
     Collection<KubevirtPhyInterface> phyIntfs();
+
+    /**
+     * Returns a set of integration to physnet patch port number.
+     *
+     * @return a set of patch port numbers
+     */
+    Set<PortNumber> physPatchPorts();
 
     /**
      * Returns the VXLAN tunnel port.

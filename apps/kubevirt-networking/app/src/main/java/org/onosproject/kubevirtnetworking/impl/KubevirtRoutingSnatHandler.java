@@ -69,10 +69,10 @@ import java.util.concurrent.ExecutorService;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.kubevirtnetworking.api.Constants.DEFAULT_GATEWAY_MAC;
-import static org.onosproject.kubevirtnetworking.api.Constants.FLAT_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.FORWARDING_TABLE;
+import static org.onosproject.kubevirtnetworking.api.Constants.GW_DROP_TABLE;
+import static org.onosproject.kubevirtnetworking.api.Constants.GW_ENTRY_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.KUBEVIRT_NETWORKING_APP_ID;
-import static org.onosproject.kubevirtnetworking.api.Constants.PRE_FLAT_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_ARP_GATEWAY_RULE;
 import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_FORWARDING_RULE;
 import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_STATEFUL_SNAT_RULE;
@@ -237,7 +237,7 @@ public class KubevirtRoutingSnatHandler {
                 selector,
                 treatment,
                 PRIORITY_ARP_GATEWAY_RULE,
-                PRE_FLAT_TABLE,
+                GW_ENTRY_TABLE,
                 install);
     }
 
@@ -282,7 +282,7 @@ public class KubevirtRoutingSnatHandler {
                 selector.build(),
                 tBuilder.build(),
                 PRIORITY_STATEFUL_SNAT_RULE,
-                PRE_FLAT_TABLE,
+                GW_ENTRY_TABLE,
                 install);
     }
 
@@ -315,7 +315,7 @@ public class KubevirtRoutingSnatHandler {
                 sBuilder.build(),
                 tBuilder.build(),
                 PRIORITY_STATEFUL_SNAT_RULE,
-                FLAT_TABLE,
+                GW_DROP_TABLE,
                 install);
 
         if (network.type() == VXLAN || network.type() == GENEVE || network.type() == GRE) {
@@ -403,7 +403,7 @@ public class KubevirtRoutingSnatHandler {
                 .niciraConnTrackTreatmentBuilder(driverService, gatewayNode.intgBridge())
                 .commit(false)
                 .natAction(true)
-                .table((short) FLAT_TABLE)
+                .table((short) GW_DROP_TABLE)
                 .build();
 
         tBuilder.setEthSrc(routerMacAddress)
@@ -415,7 +415,7 @@ public class KubevirtRoutingSnatHandler {
                 sBuilder.build(),
                 tBuilder.build(),
                 PRIORITY_STATEFUL_SNAT_RULE,
-                PRE_FLAT_TABLE,
+                GW_ENTRY_TABLE,
                 install);
     }
 
