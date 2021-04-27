@@ -37,18 +37,14 @@ public final class Constants {
     // provider and VLAN integration bridge flow table index
     public static final int STAT_INBOUND_TABLE = 0;
     public static final int VTAP_INBOUND_TABLE = 1;
-    public static final int STAT_FLAT_OUTBOUND_TABLE = 10;
     public static final int DHCP_TABLE = 5;
-    public static final int VTAG_TABLE = 30;
-    public static final int PRE_FLAT_TABLE = 31;
-    public static final int FLAT_TABLE = 32;
+    public static final int GW_ENTRY_TABLE = 31;
+    public static final int GW_DROP_TABLE = 32;
     public static final int ARP_TABLE = 35;
     public static final int ACL_EGRESS_TABLE = 40;
     public static final int ACL_RECIRC_TABLE = 43;
     public static final int ACL_INGRESS_TABLE = 44;
     public static final int ACL_CT_TABLE = 45;
-    public static final int JUMP_TABLE = 50;
-    public static final int ROUTING_TABLE = 60;
     public static final int STAT_OUTBOUND_TABLE = 70;
     public static final int VTAP_OUTBOUND_TABLE = 71;
     public static final int FORWARDING_TABLE = 80;
