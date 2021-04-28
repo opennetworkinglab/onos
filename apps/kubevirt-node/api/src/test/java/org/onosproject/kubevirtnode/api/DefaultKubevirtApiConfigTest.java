@@ -56,6 +56,9 @@ public final class DefaultKubevirtApiConfigTest {
     private static final String SERVICE_FQDN_1 = "kubevirt.edgestack.svc.cluster.local";
     private static final String SERVICE_FQDN_2 = "sona.edgestack.svc.cluster.local";
 
+    private static final String API_SERVER_FQDN_1 = "kubernetes.default.svc.cluster.local";
+    private static final String API_SERVER_FQDN_2 = "kubernetes.default.svc.cluster.sona";
+
     private KubevirtApiConfig config1;
     private KubevirtApiConfig sameAsConfig1;
     private KubevirtApiConfig config2;
@@ -83,6 +86,7 @@ public final class DefaultKubevirtApiConfigTest {
                 .clientCertData(CLIENT_CERT_DATA_1)
                 .clientKeyData(CLIENT_KEY_DATA_1)
                 .serviceFqdn(SERVICE_FQDN_1)
+                .apiServerFqdn(API_SERVER_FQDN_1)
                 .build();
 
         sameAsConfig1 = DefaultKubevirtApiConfig.builder()
@@ -95,6 +99,7 @@ public final class DefaultKubevirtApiConfigTest {
                 .clientCertData(CLIENT_CERT_DATA_1)
                 .clientKeyData(CLIENT_KEY_DATA_1)
                 .serviceFqdn(SERVICE_FQDN_1)
+                .apiServerFqdn(API_SERVER_FQDN_1)
                 .build();
 
         config2 = DefaultKubevirtApiConfig.builder()
@@ -107,6 +112,7 @@ public final class DefaultKubevirtApiConfigTest {
                 .clientCertData(CLIENT_CERT_DATA_2)
                 .clientKeyData(CLIENT_KEY_DATA_2)
                 .serviceFqdn(SERVICE_FQDN_2)
+                .apiServerFqdn(API_SERVER_FQDN_2)
                 .build();
     }
 
@@ -136,5 +142,6 @@ public final class DefaultKubevirtApiConfigTest {
         assertEquals(CLIENT_CERT_DATA_1, config.clientCertData());
         assertEquals(CLIENT_KEY_DATA_1, config.clientKeyData());
         assertEquals(SERVICE_FQDN_1, config.serviceFqdn());
+        assertEquals(API_SERVER_FQDN_1, config.apiServerFqdn());
     }
 }

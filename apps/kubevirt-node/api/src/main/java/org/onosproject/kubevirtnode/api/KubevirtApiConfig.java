@@ -89,6 +89,22 @@ public interface KubevirtApiConfig {
     KubevirtApiConfig updateState(State newState);
 
     /**
+     * Returns the new KubeVirt API config instance with the given IP address.
+     *
+     * @param ipAddress updated IP address
+     * @return updated kubernetes API config
+     */
+    KubevirtApiConfig updateIpAddress(IpAddress ipAddress);
+
+    /**
+     * Returns the new KubeVirt API config instance with the given port.
+     *
+     * @param port updated port
+     * @return updated kubernetes API config
+     */
+    KubevirtApiConfig updatePort(int port);
+
+    /**
      * Returns the token used for authenticating to API server.
      *
      * @return token value
@@ -119,9 +135,16 @@ public interface KubevirtApiConfig {
     /**
      * Returns the Fully Qualified Domain Name (FQDN) of the service.
      *
-     * @return service Fqdn
+     * @return service FQDN
      */
     String serviceFqdn();
+
+    /**
+     * Returns the Fully Qualified Domain Name (FQDN) of the API server.
+     *
+     * @return API server FQDN
+     */
+    String apiServerFqdn();
 
     /**
      * Builder of new API config entity.
@@ -200,11 +223,19 @@ public interface KubevirtApiConfig {
         Builder clientKeyData(String clientKeyData);
 
         /**
-         * Returns KUbevirt API server config builder with supplied service Fqdn.
+         * Returns Kubevirt API server config builder with supplied service Fqdn.
          *
          * @param serviceFqdn service FQDN
          * @return KubeVirt API config builder
          */
         Builder serviceFqdn(String serviceFqdn);
+
+        /**
+         * Returns Kubevirt API server config builder with the supplied API server Fqdn.
+         *
+         * @param apiServerFqdn API server FQDN
+         * @return Kubevirt API config builder
+         */
+        Builder apiServerFqdn(String apiServerFqdn);
     }
 }

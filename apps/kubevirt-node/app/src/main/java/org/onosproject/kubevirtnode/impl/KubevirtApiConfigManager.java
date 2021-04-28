@@ -16,6 +16,7 @@
 package org.onosproject.kubevirtnode.impl;
 
 import com.google.common.base.Strings;
+import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.core.ApplicationId;
@@ -43,6 +44,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.kubevirtnode.util.KubevirtNodeUtil.endpoint;
+import static org.onosproject.kubevirtnode.util.KubevirtNodeUtil.resolveHostname;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -57,6 +59,8 @@ public class KubevirtApiConfigManager
         implements KubevirtApiConfigService, KubevirtApiConfigAdminService {
 
     private final Logger log = getLogger(getClass());
+
+    private static final int API_SERVER_PORT = 443;
 
     private static final String MSG_CONFIG = "KubeVirt API config %s %s";
     private static final String MSG_CREATED = "created";
@@ -114,8 +118,19 @@ public class KubevirtApiConfigManager
         checkNotNull(config, ERR_NULL_CONFIG);
         checkArgument(configStore.apiConfigs().size() == 0, ERR_UNIQUE_CONFIG);
 
-        configStore.createApiConfig(config);
-        log.info(String.format(MSG_CONFIG, endpoint(config), MSG_CREATED));
+        KubevirtApiConfig newConfig = config;
+        if (config.apiServerFqdn() != null) {
+            IpAddress apiServerIp = resolveHostname(config.apiServerFqdn());
+            if (apiServerIp != null) {
+                newConfig = config.updateIpAddress(apiServerIp);
+                newConfig = newConfig.updatePort(API_SERVER_PORT);
+            } else {
+                log.warn("API server IP is not resolved for host {}", config.apiServerFqdn());
+            }
+        }
+
+        configStore.createApiConfig(newConfig);
+        log.info(String.format(MSG_CONFIG, endpoint(newConfig), MSG_CREATED));
     }
 
     @Override
