@@ -6,5 +6,6 @@
   "caCertData": "caCertData",
   "clientCertData": "clientCertData",
   "clientKeyData": "clientKeyData",
-  "serviceFqdn": "kubevirt.edgestack.svc.cluster.local"
+  "serviceFqdn": "kubevirt.edgestack.svc.cluster.local",
+  "apiServerFqdn": "kubernetes.default.svc.cluster.local"
 }

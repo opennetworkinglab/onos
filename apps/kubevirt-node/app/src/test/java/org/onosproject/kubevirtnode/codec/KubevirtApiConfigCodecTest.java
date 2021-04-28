@@ -87,6 +87,7 @@ public class KubevirtApiConfigCodecTest {
                 .clientCertData("clientCertData")
                 .clientKeyData("clientKeyData")
                 .serviceFqdn("kubevirt.edgestack.svc.cluster.local")
+                .apiServerFqdn("kubernetes.default.svc.cluster.local")
                 .build();
         ObjectNode configJson = kubevirtApiConfigCodec.encode(config, context);
         assertThat(configJson, matchesKubevirtApiConfig(config));
@@ -109,6 +110,7 @@ public class KubevirtApiConfigCodecTest {
         assertEquals("clientCertData", config.clientCertData());
         assertEquals("clientKeyData", config.clientKeyData());
         assertEquals("kubevirt.edgestack.svc.cluster.local", config.serviceFqdn());
+        assertEquals("kubernetes.default.svc.cluster.local", config.apiServerFqdn());
     }
 
     private KubevirtApiConfig getKubevirtApiConfig(String resourceName) throws IOException {

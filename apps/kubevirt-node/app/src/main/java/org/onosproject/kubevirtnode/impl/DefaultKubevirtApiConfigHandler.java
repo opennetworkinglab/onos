@@ -51,8 +51,6 @@ public class DefaultKubevirtApiConfigHandler {
 
     private final Logger log = getLogger(getClass());
 
-    private static final long SLEEP_MS = 10000; // we wait 10s
-
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
