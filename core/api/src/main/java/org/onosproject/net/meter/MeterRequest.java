@@ -16,6 +16,8 @@
 package org.onosproject.net.meter;
 
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.Annotated;
+import org.onosproject.net.Annotations;
 import org.onosproject.net.DeviceId;
 
 import java.util.Collection;
@@ -24,7 +26,7 @@ import java.util.Optional;
 /**
  * Represents a generalized meter request to be deployed on a device.
  */
-public interface MeterRequest {
+public interface MeterRequest extends Annotated {
 
     enum Type {
         ADD,
@@ -127,6 +129,14 @@ public interface MeterRequest {
          * @return this
          */
         Builder withContext(MeterContext context);
+
+        /**
+         * Sets the annotations.
+         *
+         * @param annotations annotations
+         * @return builder object
+         */
+        Builder withAnnotations(Annotations annotations);
 
         /**
          * Requests the addition of a meter.

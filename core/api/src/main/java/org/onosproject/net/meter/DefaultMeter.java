@@ -18,6 +18,8 @@ package org.onosproject.net.meter;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.AbstractAnnotated;
+import org.onosproject.net.Annotations;
 import org.onosproject.net.DeviceId;
 
 import java.util.Collection;
@@ -30,7 +32,7 @@ import static org.onosproject.net.meter.MeterCellId.MeterCellType.INDEX;
 /**
  * A default implementation of a meter.
  */
-public final class DefaultMeter implements Meter, MeterEntry  {
+public final class DefaultMeter extends AbstractAnnotated implements Meter, MeterEntry {
 
 
     private final MeterCellId cellId;
@@ -47,7 +49,9 @@ public final class DefaultMeter implements Meter, MeterEntry  {
     private long bytes;
 
     private DefaultMeter(DeviceId deviceId, MeterCellId cellId, ApplicationId appId,
-                         Unit unit, boolean burst, Collection<Band> bands) {
+                         Unit unit, boolean burst, Collection<Band> bands,
+                         Annotations... annotations) {
+        super(annotations);
         this.deviceId = deviceId;
         this.cellId = cellId;
         this.appId = appId;
@@ -158,7 +162,9 @@ public final class DefaultMeter implements Meter, MeterEntry  {
                 .add("unit", unit)
                 .add("isBurst", burst)
                 .add("state", state)
-                .add("bands", bands).toString();
+                .add("bands", bands)
+                .add("annotations", annotations())
+                .toString();
     }
 
     @Override
@@ -189,6 +195,7 @@ public final class DefaultMeter implements Meter, MeterEntry  {
         private boolean burst = false;
         private Collection<Band> bands;
         private DeviceId deviceId;
+        private Annotations annotations;
 
         @Override
         public Meter.Builder forDevice(DeviceId deviceId) {
@@ -233,13 +240,20 @@ public final class DefaultMeter implements Meter, MeterEntry  {
         }
 
         @Override
+        public Builder withAnnotations(Annotations anns) {
+            this.annotations = anns;
+            return this;
+        }
+
+        @Override
         public DefaultMeter build() {
             checkNotNull(deviceId, "Must specify a device");
             checkNotNull(bands, "Must have bands.");
             checkArgument(!bands.isEmpty(), "Must have at least one band.");
             checkNotNull(appId, "Must have an application id");
             checkArgument(cellId != null, "Must specify a cell id.");
-            return new DefaultMeter(deviceId, cellId, appId, unit, burst, bands);
+            return new DefaultMeter(deviceId, cellId, appId, unit, burst, bands,
+                                    annotations);
         }
 
 

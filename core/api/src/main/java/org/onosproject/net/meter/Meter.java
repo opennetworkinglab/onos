@@ -16,6 +16,8 @@
 package org.onosproject.net.meter;
 
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.Annotated;
+import org.onosproject.net.Annotations;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.pi.service.PiTranslatable;
 
@@ -24,7 +26,7 @@ import java.util.Collection;
 /**
  * Represents a generalized meter cell configuration to be deployed on a device.
  */
-public interface Meter extends PiTranslatable {
+public interface Meter extends PiTranslatable, Annotated {
 
     enum Unit {
         /**
@@ -188,6 +190,14 @@ public interface Meter extends PiTranslatable {
          * @return this
          */
         Builder withBands(Collection<Band> bands);
+
+        /**
+         * Sets the annotations.
+         *
+         * @param annotations annotations
+         * @return builder object
+         */
+        Builder withAnnotations(Annotations annotations);
 
         /**
          * Builds the meter based on the specified parameters.
