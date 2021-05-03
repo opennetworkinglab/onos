@@ -18,6 +18,7 @@ package org.onosproject.net.meter;
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.AbstractAnnotated;
 import org.onosproject.net.DeviceId;
 
 import java.util.Collection;
@@ -67,7 +68,7 @@ public class MeterOperationTest {
         assertThat(op.meter(), is(m1));
     }
 
-    private static final class TestMeter implements Meter {
+    private static final class TestMeter extends AbstractAnnotated implements Meter {
 
         @Override
         public DeviceId deviceId() {
