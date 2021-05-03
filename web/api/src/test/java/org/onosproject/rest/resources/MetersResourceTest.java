@@ -34,6 +34,7 @@ import org.onosproject.codec.impl.MeterCodec;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.DefaultApplicationId;
+import org.onosproject.net.AbstractAnnotated;
 import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -104,7 +105,7 @@ public class MetersResourceTest extends ResourceTest {
     /**
      * Mock class for a meter.
      */
-    private static class MockMeter implements Meter {
+    private static class MockMeter extends AbstractAnnotated implements Meter {
 
         final DeviceId deviceId;
         final ApplicationId appId;

@@ -242,6 +242,9 @@ public class MeterManager
         if (request.isBurst()) {
             mBuilder.burst();
         }
+        if (request.annotations() != null && !request.annotations().keys().isEmpty()) {
+            mBuilder.withAnnotations(request.annotations());
+        }
         DefaultMeter m = (DefaultMeter) mBuilder.build();
         m.setState(MeterState.PENDING_ADD);
         store.storeMeter(m).whenComplete((result, error) ->
