@@ -262,6 +262,9 @@ public class MeterManager
         if (request.isBurst()) {
             mBuilder.burst();
         }
+        if (request.annotations() != null && !request.annotations().keys().isEmpty()) {
+            mBuilder.withAnnotations(request.annotations());
+        }
         DefaultMeter m = (DefaultMeter) mBuilder.build();
         // Meter installation logic (happy ending case)
         // PENDING -> stats -> ADDED -> future completes

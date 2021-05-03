@@ -17,6 +17,8 @@ package org.onosproject.net.meter;
 
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.AbstractAnnotated;
+import org.onosproject.net.Annotations;
 import org.onosproject.net.DeviceId;
 
 import java.util.Collection;
@@ -29,7 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * A default implementation of a meter.
  */
-public final class DefaultMeterRequest implements MeterRequest {
+public final class DefaultMeterRequest extends AbstractAnnotated implements MeterRequest {
 
 
 
@@ -44,7 +46,8 @@ public final class DefaultMeterRequest implements MeterRequest {
     private DefaultMeterRequest(DeviceId deviceId, ApplicationId appId,
                                 Meter.Unit unit, boolean burst,
                                 Collection<Band> bands, MeterContext context,
-                                Type op) {
+                                Type op, Annotations... annotations) {
+        super(annotations);
         this.deviceId = deviceId;
         this.appId = appId;
         this.unit = unit;
@@ -98,7 +101,9 @@ public final class DefaultMeterRequest implements MeterRequest {
                 .add("appId", appId.name())
                 .add("unit", unit)
                 .add("isBurst", burst)
-                .add("bands", bands).toString();
+                .add("bands", bands)
+                .add("annotations", annotations())
+                .toString();
     }
 
     public static final class Builder implements MeterRequest.Builder {
@@ -110,6 +115,7 @@ public final class DefaultMeterRequest implements MeterRequest {
         private DeviceId deviceId;
         private MeterContext context;
         private Optional<MeterId> desiredId = Optional.empty();
+        private Annotations annotations;
 
 
         @Override
@@ -149,17 +155,23 @@ public final class DefaultMeterRequest implements MeterRequest {
         }
 
         @Override
+        public MeterRequest.Builder withAnnotations(Annotations annotations) {
+            this.annotations = annotations;
+            return this;
+        }
+
+        @Override
         public MeterRequest add() {
             validate();
             return new DefaultMeterRequest(deviceId, appId, unit, burst, bands,
-                                           context, Type.ADD);
+                                           context, Type.ADD, annotations);
         }
 
         @Override
         public MeterRequest remove() {
             validate();
             return new DefaultMeterRequest(deviceId, appId, unit, burst, bands,
-                                           context, Type.REMOVE);
+                                           context, Type.REMOVE, annotations);
         }
 
         private void validate() {
