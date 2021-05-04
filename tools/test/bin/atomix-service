@@ -39,11 +39,19 @@ else
     nodes=$(find_node ${1:-$OCI})
 fi
 
+# Define the java options for atomix
+# FIXME atomix-agent already provides a gc algorithm. Once we fix atomix-agent we can allow this
+# JAVA_OPTS="${JAVA_OPTS:--XX:+UseG1GC -XX:MaxGCPauseMillis=200}"
+if [ ! -z "$ONOS_YOURKIT" ]; then
+    #JAVA_OPTS+=" -agentpath:$ATOMIX_INSTALL_DIR/libyjpagent.so=listen=all"
+    JAVA_OPTS="${JAVA_OPTS:--agentpath:$ATOMIX_INSTALL_DIR/libyjpagent.so=listen=all}"
+fi
+
 case $2 in
     start)
         # Execute the remote commands
         for node in $nodes; do
-            ssh $ONOS_USER@${node} "nohup $ATOMIX_INSTALL_DIR/bin/atomix-agent -c $ATOMIX_INSTALL_DIR/atomix.json >/dev/null 2>&1 &"
+            ssh $ONOS_USER@${node} "JAVA_OPTS=\"${JAVA_OPTS}\" nohup $ATOMIX_INSTALL_DIR/bin/atomix-agent -c $ATOMIX_INSTALL_DIR/atomix.json >/dev/null 2>&1 &"
         done
     ;;
     stop)

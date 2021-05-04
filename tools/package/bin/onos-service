@@ -10,15 +10,20 @@
 # Do modify the keystore location/password and truststore location/password accordingly
 #export JAVA_OPTS="${JAVA_OPTS:--Dio.atomix.enableNettyTLS=true -Djavax.net.ssl.keyStore=/home/ubuntu/onos.jks -Djavax.net.ssl.keyStorePassword=222222 -Djavax.net.ssl.trustStore=/home/ubuntu/onos.jks -Djavax.net.ssl.trustStorePassword=222222}"
 
-export JAVA_OPTS=${JAVA_OPTS:--XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Dkaraf.log.console=INFO -Dds.lock.timeout.milliseconds=10000}
-
-set -e  # exit on error
-set -u  # exit on undefined variable
-
 # If ONOS_HOME is set, respect its value.
 # If ONOS_HOME is not set (e.g. in the init or service environment),
 # set it based on this script's path.
 ONOS_HOME=${ONOS_HOME:-$(cd $(dirname $0)/.. >/dev/null 2>&1 && pwd)}
+
+JAVA_OPTS="${JAVA_OPTS:--XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Dkaraf.log.console=INFO -Dds.lock.timeout.milliseconds=10000}"
+if [ ! -z "$ONOS_YOURKIT" ]; then
+  JAVA_OPTS+=" -agentpath:$ONOS_HOME/libyjpagent.so=listen=all"
+fi
+export JAVA_OPTS=${JAVA_OPTS}
+
+set -e  # exit on error
+set -u  # exit on undefined variable
+
 KARAF_ARGS=server
 SYS_APPS=drivers
 ONOS_APPS=${ONOS_APPS:-gui2}  # Activate GUI2 unless specific apps were named

@@ -48,6 +48,15 @@ ssh -tt $remote "
 
     sudo mkdir -p $ATOMIX_INSTALL_DIR && sudo chown ${ONOS_USER}:${ONOS_GROUP} $ATOMIX_INSTALL_DIR
     tar -xvf /tmp/atomix.tar.gz -C $ATOMIX_INSTALL_DIR
+
+    if [ ! -z "$ONOS_YOURKIT" ]; then
+        sudo apt-get install unzip
+        cd /tmp
+        wget -N https://www.yourkit.com/download/YourKit-JavaProfiler-${ONOS_YOURKIT}.zip
+        unzip -o YourKit-JavaProfiler-${ONOS_YOURKIT}.zip
+        rm YourKit-JavaProfiler-${ONOS_YOURKIT}.zip
+        mv /tmp/YourKit-JavaProfiler-$(echo $ONOS_YOURKIT | sed 's/\(.*\)-.*/\1/')/bin/linux-x86-64/libyjpagent.so $ATOMIX_INSTALL_DIR/libyjpagent.so
+    fi
 "
 
 # Configure the ONOS installation
