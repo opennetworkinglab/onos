@@ -412,4 +412,22 @@ public class SimpleMastershipStore
             future.whenComplete((event, error) -> notifyDelegate(event));
         });
     }
+
+    @Override
+    public void demote(NodeId instance, DeviceId deviceId) {
+        if (instance == null) {
+            return;
+        }
+        NodeId master = masterMap.get(deviceId);
+        if (master.equals(instance)) {
+            return;
+        }
+        List<NodeId> stbys = backups.getOrDefault(deviceId, new ArrayList<>());
+        if (!stbys.contains(instance)) {
+            return;
+        }
+        stbys.remove(instance);
+        stbys.add(instance);
+        backups.put(deviceId, stbys);
+    }
 }

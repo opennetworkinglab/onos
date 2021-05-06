@@ -91,6 +91,11 @@ public class DefaultLeaderElector extends Synchronous<AsyncLeaderElector> implem
     }
 
     @Override
+    public boolean demote(String topic, NodeId nodeId) {
+        return complete(asyncElector.demote(topic, nodeId));
+    }
+
+    @Override
     public void addStatusChangeListener(Consumer<Status> listener) {
         asyncElector.addStatusChangeListener(listener);
     }

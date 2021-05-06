@@ -204,6 +204,11 @@ public class VirtualNetworkMastershipManager
         Futures.getUnchecked(balanceRolesFuture);
     }
 
+    @Override
+    public void demote(NodeId instance, DeviceId deviceId) {
+        throw new UnsupportedOperationException("VN mastership does not support promote api.");
+    }
+
     public class InternalDelegate implements MastershipStoreDelegate {
         @Override
         public void notify(MastershipEvent event) {

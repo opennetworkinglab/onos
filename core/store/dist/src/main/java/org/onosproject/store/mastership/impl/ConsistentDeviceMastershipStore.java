@@ -300,6 +300,12 @@ public class ConsistentDeviceMastershipStore
         // Noop. LeadershipService already takes care of detecting and purging stale locks.
     }
 
+    @Override
+    public void demote(NodeId instance, DeviceId deviceId) {
+        String leadershipTopic = createDeviceMastershipTopic(deviceId);
+        leadershipAdminService.demote(leadershipTopic, instance);
+    }
+
     private MastershipInfo buildMastershipFromLeadership(Leadership leadership) {
         ImmutableMap.Builder<NodeId, MastershipRole> builder = ImmutableMap.builder();
         if (leadership.leaderNodeId() != null) {

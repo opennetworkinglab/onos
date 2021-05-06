@@ -144,4 +144,16 @@ public interface AsyncLeaderElector extends DistributedPrimitive {
     default LeaderElector asLeaderElector() {
         return asLeaderElector(DistributedPrimitive.DEFAULT_OPERATION_TIMEOUT_MILLIS);
     }
+
+    /**
+     * Attempts to demote a node to the bottom of the candidate list. It is not allowed
+     * to demote the current leader
+     *
+     * @param topic leadership topic
+     * @param nodeId identifier of node to be demoted
+     * @return CompletableFuture that is completed with a boolean when the operation is done. Boolean is true if
+     * node is now the bottom candidate. This operation can fail (i.e. return false) if the node
+     * is not registered to run for election for the topic or it is leader
+     */
+    CompletableFuture<Boolean> demote(String topic, NodeId nodeId);
 }

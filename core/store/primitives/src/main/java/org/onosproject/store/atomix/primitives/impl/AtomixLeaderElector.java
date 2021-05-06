@@ -105,6 +105,11 @@ public class AtomixLeaderElector implements AsyncLeaderElector {
         return CompletableFuture.completedFuture(null);
     }
 
+    @Override
+    public CompletableFuture<Boolean> demote(String topic, NodeId nodeId) {
+        return adaptFuture(atomixElector.demote(topic, nodeId));
+    }
+
     private Leadership toLeadership(String topic, io.atomix.core.election.Leadership<NodeId> leadership) {
         return leadership != null
             ? new Leadership(topic, toLeader(leadership.leader()), leadership.candidates())

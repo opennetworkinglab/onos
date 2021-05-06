@@ -263,6 +263,11 @@ public class DistributedLeadershipStore
                         e -> new Leadership(parseTopic(e.getKey()), e.getValue().leader(), e.getValue().candidates())));
     }
 
+    @Override
+    public boolean demote(String topic, NodeId nodeId) {
+        return leaderElector.demote(getTopicFor(topic, nodeId), nodeId);
+    }
+
     /**
      * Returns a leader elector topic namespaced with the local node's version.
      *

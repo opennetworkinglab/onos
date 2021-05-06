@@ -40,11 +40,9 @@ else
 fi
 
 # Define the java options for atomix
-# FIXME atomix-agent already provides a gc algorithm. Once we fix atomix-agent we can allow this
-# JAVA_OPTS="${JAVA_OPTS:--XX:+UseG1GC -XX:MaxGCPauseMillis=200}"
+JAVA_OPTS="${JAVA_OPTS:--XX:+UseG1GC -XX:MaxGCPauseMillis=200}"
 if [ ! -z "$ONOS_YOURKIT" ]; then
-    #JAVA_OPTS+=" -agentpath:$ATOMIX_INSTALL_DIR/libyjpagent.so=listen=all"
-    JAVA_OPTS="${JAVA_OPTS:--agentpath:$ATOMIX_INSTALL_DIR/libyjpagent.so=listen=all}"
+    JAVA_OPTS+=" -agentpath:$ATOMIX_INSTALL_DIR/libyjpagent.so=listen=all"
 fi
 
 case $2 in

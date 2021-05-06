@@ -42,8 +42,8 @@ load("//tools/build/bazel:local_jar.bzl", "local_atomix", "local_jar", "local_ya
 
 # Use this to build against locally built Atomix
 #local_atomix(
-#    path = "/home/developer/atomix",
-#    version = "3.1.9-SNAPSHOT",
+#    path = "/home/sdn/atomix",
+#    version = "3.1.12-SNAPSHOT",
 #)
 
 # Use this to build against locally built YANG tools
