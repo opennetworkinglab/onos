@@ -103,6 +103,11 @@ public class LeadershipManager
     }
 
     @Override
+    public boolean demote(String topic, NodeId nodeId) {
+        return store.demote(topic, nodeId);
+    }
+
+    @Override
     public boolean transferLeadership(String topic, NodeId to) {
         return store.moveLeadership(topic, to);
     }

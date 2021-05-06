@@ -145,45 +145,45 @@ def generated_maven_jars():
     if "atomix" not in native.existing_rules():
         java_import_external(
             name = "atomix",
-            jar_sha256 = "e4700e1acf329747fc41f49279d9066c368877f1381f609fcb4c0ce63824e0c6",
+            jar_sha256 = "d5163b005977b5da5f27835af528fce4a71127a1c795f5350f05a5767324e019",
             licenses = ["notice"],
-            jar_urls = ["https://repo1.maven.org/maven2/io/atomix/atomix/3.1.9/atomix-3.1.9.jar"],        )
+            jar_urls = ["https://repo1.maven.org/maven2/io/atomix/atomix/3.1.12/atomix-3.1.12.jar"],        )
     if "atomix_cluster" not in native.existing_rules():
         java_import_external(
             name = "atomix_cluster",
-            jar_sha256 = "38c3ee00cdc48fa00012c543abbd7cf5975568233ce25dbbb7d4c422b7579b57",
+            jar_sha256 = "4e3cbd01f23414934ffe5ccfafa0b16d4009c3d497390fcf8711236f6055fda2",
             licenses = ["notice"],
-            jar_urls = ["https://repo1.maven.org/maven2/io/atomix/atomix-cluster/3.1.9/atomix-cluster-3.1.9.jar"],        )
+            jar_urls = ["https://repo1.maven.org/maven2/io/atomix/atomix-cluster/3.1.12/atomix-cluster-3.1.12.jar"],        )
     if "atomix_primary_backup" not in native.existing_rules():
         java_import_external(
             name = "atomix_primary_backup",
-            jar_sha256 = "f87527364ac10e006b714f55ce1a6d92a1f27fa27e8813de82454665876838d6",
+            jar_sha256 = "afa5191c3a1ab79e007c208c9ef44f4b7c6e0904a1d7f576200d3cacd90c3f4b",
             licenses = ["notice"],
-            jar_urls = ["https://repo1.maven.org/maven2/io/atomix/atomix-primary-backup/3.1.9/atomix-primary-backup-3.1.9.jar"],        )
+            jar_urls = ["https://repo1.maven.org/maven2/io/atomix/atomix-primary-backup/3.1.12/atomix-primary-backup-3.1.12.jar"],        )
     if "atomix_primitive" not in native.existing_rules():
         java_import_external(
             name = "atomix_primitive",
-            jar_sha256 = "12c7ff4e65ad683419906d86d320250ce4ea160fbb394b90a577116563cb81b4",
+            jar_sha256 = "a2a4002824db7b80308f8cedd83a5abe67ebdb9723b6c50fa99ab935c49c2641",
             licenses = ["notice"],
-            jar_urls = ["https://repo1.maven.org/maven2/io/atomix/atomix-primitive/3.1.9/atomix-primitive-3.1.9.jar"],        )
+            jar_urls = ["https://repo1.maven.org/maven2/io/atomix/atomix-primitive/3.1.12/atomix-primitive-3.1.12.jar"],        )
     if "atomix_raft" not in native.existing_rules():
         java_import_external(
             name = "atomix_raft",
-            jar_sha256 = "69a3188bc34d5f5629b6321be04c10ca3064faecbb6d139015c1fd5bcaac713f",
+            jar_sha256 = "9583123d7cfc60edb786964087b92f568aafdf00be1b52d4e4737a6cf9d4ca31",
             licenses = ["notice"],
-            jar_urls = ["https://repo1.maven.org/maven2/io/atomix/atomix-raft/3.1.9/atomix-raft-3.1.9.jar"],        )
+            jar_urls = ["https://repo1.maven.org/maven2/io/atomix/atomix-raft/3.1.12/atomix-raft-3.1.12.jar"],        )
     if "atomix_storage" not in native.existing_rules():
         java_import_external(
             name = "atomix_storage",
-            jar_sha256 = "a049ae8a671bcacea4cbc8db31e78aa8c4f0bca4b3871929e06644d70d33e857",
+            jar_sha256 = "d81895846ca70202f38a13c9627b8fc3674e363a3670f7f1221e5444188bbaf3",
             licenses = ["notice"],
-            jar_urls = ["https://repo1.maven.org/maven2/io/atomix/atomix-storage/3.1.9/atomix-storage-3.1.9.jar"],        )
+            jar_urls = ["https://repo1.maven.org/maven2/io/atomix/atomix-storage/3.1.12/atomix-storage-3.1.12.jar"],        )
     if "atomix_utils" not in native.existing_rules():
         java_import_external(
             name = "atomix_utils",
-            jar_sha256 = "dba1d7b0fa900f39cee3160045e3cd624ffcaf18f9756fdadadb1c876ef331e0",
+            jar_sha256 = "8d8b177488bf7665e008e892b33a5fbde92d6233dc83cf350d51f6bc3f5344d8",
             licenses = ["notice"],
-            jar_urls = ["https://repo1.maven.org/maven2/io/atomix/atomix-utils/3.1.9/atomix-utils-3.1.9.jar"],        )
+            jar_urls = ["https://repo1.maven.org/maven2/io/atomix/atomix-utils/3.1.12/atomix-utils-3.1.12.jar"],        )
     if "classgraph" not in native.existing_rules():
         java_import_external(
             name = "classgraph",
@@ -1484,13 +1484,13 @@ artifact_map = {}
 artifact_map["@aopalliance_repackaged//:aopalliance_repackaged"] = "mvn:org.glassfish.hk2.external:aopalliance-repackaged:jar:2.5.0-b42"
 artifact_map["@amqp_client//:amqp_client"] = "mvn:com.rabbitmq:amqp-client:jar:3.6.1"
 artifact_map["@asm//:asm"] = "mvn:org.ow2.asm:asm:jar:5.2"
-artifact_map["@atomix//:atomix"] = "mvn:io.atomix:atomix:jar:3.1.9"
-artifact_map["@atomix_cluster//:atomix_cluster"] = "mvn:io.atomix:atomix-cluster:jar:3.1.9"
-artifact_map["@atomix_primary_backup//:atomix_primary_backup"] = "mvn:io.atomix:atomix-primary-backup:jar:3.1.9"
-artifact_map["@atomix_primitive//:atomix_primitive"] = "mvn:io.atomix:atomix-primitive:jar:3.1.9"
-artifact_map["@atomix_raft//:atomix_raft"] = "mvn:io.atomix:atomix-raft:jar:3.1.9"
-artifact_map["@atomix_storage//:atomix_storage"] = "mvn:io.atomix:atomix-storage:jar:3.1.9"
-artifact_map["@atomix_utils//:atomix_utils"] = "mvn:io.atomix:atomix-utils:jar:3.1.9"
+artifact_map["@atomix//:atomix"] = "mvn:io.atomix:atomix:jar:3.1.12"
+artifact_map["@atomix_cluster//:atomix_cluster"] = "mvn:io.atomix:atomix-cluster:jar:3.1.12"
+artifact_map["@atomix_primary_backup//:atomix_primary_backup"] = "mvn:io.atomix:atomix-primary-backup:jar:3.1.12"
+artifact_map["@atomix_primitive//:atomix_primitive"] = "mvn:io.atomix:atomix-primitive:jar:3.1.12"
+artifact_map["@atomix_raft//:atomix_raft"] = "mvn:io.atomix:atomix-raft:jar:3.1.12"
+artifact_map["@atomix_storage//:atomix_storage"] = "mvn:io.atomix:atomix-storage:jar:3.1.12"
+artifact_map["@atomix_utils//:atomix_utils"] = "mvn:io.atomix:atomix-utils:jar:3.1.12"
 artifact_map["@classgraph//:classgraph"] = "mvn:io.github.classgraph:classgraph:jar:4.2.3"
 artifact_map["@commons_codec//:commons_codec"] = "mvn:commons-codec:commons-codec:jar:1.10"
 artifact_map["@commons_cli//:commons_cli"] = "mvn:commons-cli:commons-cli:jar:1.3"

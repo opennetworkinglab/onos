@@ -305,6 +305,15 @@ public class MastershipManager
         Futures.getUnchecked(balanceRolesFuture);
     }
 
+    @Override
+    public void demote(NodeId instance, DeviceId deviceId) {
+        checkNotNull(instance, NODE_ID_NULL);
+        checkNotNull(deviceId, DEVICE_ID_NULL);
+        checkPermission(CLUSTER_WRITE);
+
+        store.demote(instance, deviceId);
+    }
+
     /**
      * Balances the nodes specified in controllerDevices.
      *

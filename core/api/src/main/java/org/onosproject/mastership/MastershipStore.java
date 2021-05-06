@@ -129,4 +129,13 @@ public interface MastershipStore extends Store<MastershipEvent, MastershipStoreD
      * @param nodeId the controller instance identifier
      */
     void relinquishAllRole(NodeId nodeId);
+
+    /**
+     * Attempts to demote a node to the bottom of the backup list. It is not allowed
+     * to demote the current master
+     *
+     * @param instance controller instance identifier
+     * @param deviceId device identifier
+     */
+    void demote(NodeId instance, DeviceId deviceId);
 }
