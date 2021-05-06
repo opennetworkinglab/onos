@@ -16,6 +16,7 @@
 package org.onosproject.cluster;
 
 import java.util.Map;
+
 import org.onosproject.store.Store;
 
 /**
@@ -79,4 +80,15 @@ public interface LeadershipStore extends Store<LeadershipEvent, LeadershipStoreD
      * @return topic to leadership mapping
      */
     Map<String, Leadership> getLeaderships();
+
+    /**
+     * Attempts to demote a node to the bottom of the candidate list. It is not allowed
+     * to demote the current leader
+     *
+     * @param topic leadership topic
+     * @param nodeId identifier of node to be demoted
+     * @return {@code true} if nodeId is now the bottom candidate. This method returns {@code false}
+     * if {@code nodeId} is not one of the candidates for the topic or if it is the leader.
+     */
+    boolean demote(String topic, NodeId nodeId);
 }

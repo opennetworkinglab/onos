@@ -21,6 +21,7 @@ import java.util.function.Consumer;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
@@ -33,6 +34,7 @@ import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.common.event.impl.TestEventDispatcher;
+import org.onosproject.mastership.MastershipInfo;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.mastership.MastershipStore;
 import org.onosproject.mastership.MastershipTermService;
@@ -352,6 +354,32 @@ public class MastershipManagerTest {
         expectedMasters.add(NID1);
         mgr.balanceRoles();
         checkDeviceMasters(deviceIds, expectedMasters);
+    }
+
+    @Test
+    public void demote() {
+        mgr.setRole(NID1, DID1, MASTER);
+        mgr.setRole(NID2, DID1, STANDBY);
+        mgr.setRole(NID3, DID1, STANDBY);
+        List<NodeId> stdbys = Lists.newArrayList(NID2, NID3);
+        MastershipInfo mastershipInfo = mgr.getMastershipFor(DID1);
+        assertTrue(mastershipInfo.master().isPresent());
+        assertEquals("wrong role", NID1, mastershipInfo.master().get());
+        assertEquals("wrong backups", stdbys, mastershipInfo.backups());
+        // No effect, it is the master
+        mgr.demote(NID1, DID1);
+        assertEquals("wrong role", NID1, mastershipInfo.master().get());
+        assertEquals("wrong backups", stdbys, mastershipInfo.backups());
+        // No effect, it is not part of the mastership
+        mgr.demote(NID4, DID1);
+        assertEquals("wrong role", NID1, mastershipInfo.master().get());
+        assertEquals("wrong backups", stdbys, mastershipInfo.backups());
+        // Demote N2
+        mgr.demote(NID2, DID1);
+        stdbys = Lists.newArrayList(NID3, NID2);
+        mastershipInfo = mgr.getMastershipFor(DID1);
+        assertEquals("wrong role", NID1, mastershipInfo.master().get());
+        assertEquals("wrong backups", stdbys, mastershipInfo.backups());
     }
 
     private void checkDeviceMasters(Set<DeviceId> deviceIds, Set<NodeId> expectedMasters) {

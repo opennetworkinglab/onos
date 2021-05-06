@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,6 +50,8 @@ public class SimpleMastershipStoreTest {
 
     private static final NodeId N1 = new NodeId("local");
     private static final NodeId N2 = new NodeId("other");
+    private static final NodeId N3 = new NodeId("other2");
+    private static final NodeId N4 = new NodeId("other3");
 
     private SimpleMastershipStore sms;
 
@@ -168,6 +171,30 @@ public class SimpleMastershipStoreTest {
         MastershipEvent event = Futures.getUnchecked(sms.setStandby(N1, DID1));
         assertEquals("wrong event", MASTER_CHANGED, event.type());
         assertEquals("wrong master", N2, event.roleInfo().master());
+    }
+
+    @Test
+    public void demote() {
+        put(DID1, N1, true, false);
+        put(DID1, N2, false, true);
+        put(DID1, N3, false, true);
+        List<NodeId> stdbys = Lists.newArrayList(N2, N3);
+        // N1 master, N2 and N3 backups
+        assertEquals("wrong role", MASTER, sms.getRole(N1, DID1));
+        assertEquals("wrong backups", stdbys, sms.backups.getOrDefault(DID1, new ArrayList<>()));
+        // No effect, it is the master
+        sms.demote(N1, DID1);
+        assertEquals("wrong role", MASTER, sms.getRole(N1, DID1));
+        assertEquals("wrong backups", stdbys, sms.backups.getOrDefault(DID1, new ArrayList<>()));
+        // No effect, it is not part of the mastership
+        sms.demote(N4, DID1);
+        assertEquals("wrong role", MASTER, sms.getRole(N1, DID1));
+        assertEquals("wrong backups", stdbys, sms.backups.getOrDefault(DID1, new ArrayList<>()));
+        // Demote N2
+        stdbys = Lists.newArrayList(N3, N2);
+        sms.demote(N2, DID1);
+        assertEquals("wrong role", MASTER, sms.getRole(N1, DID1));
+        assertEquals("wrong backups", stdbys, sms.backups.getOrDefault(DID1, new ArrayList<>()));
     }
 
     //helper to populate master/backup structures
