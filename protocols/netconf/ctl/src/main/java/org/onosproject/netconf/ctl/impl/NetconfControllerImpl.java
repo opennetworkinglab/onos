@@ -104,6 +104,7 @@ import static org.onosproject.netconf.NetconfDeviceInfo.extractIpPortPath;
                 NETCONF_REPLY_TIMEOUT + ":Integer=" + NETCONF_REPLY_TIMEOUT_DEFAULT,
                 NETCONF_IDLE_TIMEOUT + ":Integer=" + NETCONF_IDLE_TIMEOUT_DEFAULT,
                 SSH_LIBRARY + "=" + SSH_LIBRARY_DEFAULT,
+                SSH_KEY_PATH + "=" + SSH_KEY_PATH_DEFAULT,
         })
 public class NetconfControllerImpl implements NetconfController {
 
@@ -118,6 +119,9 @@ public class NetconfControllerImpl implements NetconfController {
 
     /** SSH client library to use. */
     protected static String sshLibrary = SSH_LIBRARY_DEFAULT;
+
+    /** Private SSH Key File Path to use. */
+    protected static String sshKeyPath = SSH_KEY_PATH_DEFAULT;
 
     protected NetconfSshClientLib sshClientLib = NetconfSshClientLib.APACHE_MINA;
 
@@ -254,6 +258,7 @@ public class NetconfControllerImpl implements NetconfController {
             netconfConnectTimeout = NETCONF_CONNECT_TIMEOUT_DEFAULT;
             netconfIdleTimeout = NETCONF_IDLE_TIMEOUT_DEFAULT;
             sshLibrary = SSH_LIBRARY_DEFAULT;
+            sshKeyPath = SSH_KEY_PATH_DEFAULT;
             sshClientLib = NetconfSshClientLib.APACHE_MINA;
             log.info("No component configuration");
             return;
@@ -262,6 +267,7 @@ public class NetconfControllerImpl implements NetconfController {
         Dictionary<?, ?> properties = context.getProperties();
 
         String newSshLibrary;
+        String newSshKeyPath;
 
         int newNetconfReplyTimeout = getIntegerProperty(
                 properties, NETCONF_REPLY_TIMEOUT, netconfReplyTimeout);
@@ -271,6 +277,7 @@ public class NetconfControllerImpl implements NetconfController {
                 properties, NETCONF_IDLE_TIMEOUT, netconfIdleTimeout);
 
         newSshLibrary = get(properties, SSH_LIBRARY);
+        newSshKeyPath = get(properties, SSH_KEY_PATH);
 
         if (newNetconfConnectTimeout < 0) {
             log.warn("netconfConnectTimeout is invalid - less than 0");
@@ -290,11 +297,15 @@ public class NetconfControllerImpl implements NetconfController {
             sshLibrary = newSshLibrary;
             sshClientLib = NetconfSshClientLib.getEnum(newSshLibrary);
         }
-        log.info("Settings: {} = {}, {} = {}, {} = {}, {} = {}",
+        if (newSshKeyPath != null) {
+            sshKeyPath = newSshKeyPath;
+        }
+        log.info("Settings: {} = {}, {} = {}, {} = {}, {} = {}, {} = {}",
                  NETCONF_REPLY_TIMEOUT, netconfReplyTimeout,
                  NETCONF_CONNECT_TIMEOUT, netconfConnectTimeout,
                  NETCONF_IDLE_TIMEOUT, netconfIdleTimeout,
-                 SSH_LIBRARY, sshLibrary);
+                 SSH_LIBRARY, sshLibrary,
+                 SSH_KEY_PATH, sshKeyPath);
     }
 
     @Override
