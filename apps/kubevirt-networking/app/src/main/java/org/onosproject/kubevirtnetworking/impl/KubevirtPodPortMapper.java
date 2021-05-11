@@ -61,9 +61,6 @@ public class KubevirtPodPortMapper {
     private final Logger log = getLogger(getClass());
 
     private static final String NETWORK_STATUS_KEY = "k8s.v1.cni.cncf.io/network-status";
-    private static final String NAME = "name";
-    private static final String IPS = "ips";
-    private static final String NETWORK_PREFIX = "default/";
     private static final long SLEEP_MS = 2000; // we wait 2s
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
@@ -164,6 +161,8 @@ public class KubevirtPodPortMapper {
             KubevirtNode node = kubevirtNodeService.node(pod.getSpec().getNodeName());
 
             if (node == null) {
+                log.warn("POD scheduled node name {} is not ready, " +
+                         "we wait for a while...", pod.getSpec().getNodeName());
                 try {
                     // we wait until all k8s nodes are available
                     sleep(SLEEP_MS);

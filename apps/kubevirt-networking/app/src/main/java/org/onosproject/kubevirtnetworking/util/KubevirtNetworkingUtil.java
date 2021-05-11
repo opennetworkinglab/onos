@@ -361,7 +361,7 @@ public final class KubevirtNetworkingUtil {
                 JSONObject object = networkStatus.getJSONObject(i);
                 String name = object.getString(NAME);
                 KubevirtNetwork network = networks.stream()
-                        .filter(n -> (NETWORK_PREFIX + n.name()).equals(name))
+                        .filter(n -> (NETWORK_PREFIX + n.name()).equals(name) || (n.name()).equals(name))
                         .findAny().orElse(null);
                 if (network != null) {
                     String mac = object.getString(MAC);

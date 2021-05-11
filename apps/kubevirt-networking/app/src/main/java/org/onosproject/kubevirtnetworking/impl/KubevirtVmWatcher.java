@@ -94,6 +94,7 @@ public class KubevirtVmWatcher {
     private static final String MAC = "macAddress";
     private static final String IP = "ipAddress";
     private static final String DEFAULT = "default";
+    private static final String CNI_ZERO = "cni0";
     private static final String NETWORK_SUFFIX = "-net";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
@@ -483,7 +484,7 @@ public class KubevirtVmWatcher {
                     String network = intf.get(NAME).asText();
                     JsonNode macJson = intf.get(MAC);
 
-                    if (!DEFAULT.equals(network) && macJson != null) {
+                    if (!DEFAULT.equals(network) && !CNI_ZERO.equals(network) && macJson != null) {
                         String compact = StringUtils.substringBeforeLast(network, NETWORK_SUFFIX);
                         MacAddress mac = MacAddress.valueOf(macJson.asText());
                         result.put(mac, compact);
