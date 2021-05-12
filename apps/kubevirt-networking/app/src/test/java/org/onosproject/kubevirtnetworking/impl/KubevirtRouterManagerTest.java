@@ -18,6 +18,7 @@ package org.onosproject.kubevirtnetworking.impl;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.junit.After;
 import org.junit.Before;
@@ -32,6 +33,9 @@ import org.onosproject.event.Event;
 import org.onosproject.kubevirtnetworking.api.DefaultKubevirtFloatingIp;
 import org.onosproject.kubevirtnetworking.api.DefaultKubevirtRouter;
 import org.onosproject.kubevirtnetworking.api.KubevirtFloatingIp;
+import org.onosproject.kubevirtnetworking.api.KubevirtLoadBalancer;
+import org.onosproject.kubevirtnetworking.api.KubevirtLoadBalancerListener;
+import org.onosproject.kubevirtnetworking.api.KubevirtLoadBalancerService;
 import org.onosproject.kubevirtnetworking.api.KubevirtPeerRouter;
 import org.onosproject.kubevirtnetworking.api.KubevirtRouter;
 import org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent;
@@ -140,9 +144,11 @@ public class KubevirtRouterManagerTest {
     @Before
     public void setUp() throws Exception {
         kubevirtRouterStore = new DistributedKubevirtRouterStore();
+
         TestUtils.setField(kubevirtRouterStore, "coreService", new TestCoreService());
         TestUtils.setField(kubevirtRouterStore, "storageService", new TestStorageService());
         TestUtils.setField(kubevirtRouterStore, "eventExecutor", MoreExecutors.newDirectExecutorService());
+        TestUtils.setField(kubevirtRouterStore, "loadBalancerService", new TestLoadBalancerService());
         kubevirtRouterStore.activate();
 
         target = new KubevirtRouterManager();
@@ -498,5 +504,28 @@ public class KubevirtRouterManagerTest {
     private void validateInternalRemoval(Set<String> internal) {
         assertEquals("internal addition entries", internal, testListener.internalRemoved);
         testListener.internalRemoved.clear();
+    }
+
+    private class TestLoadBalancerService implements KubevirtLoadBalancerService {
+
+        @Override
+        public KubevirtLoadBalancer loadBalancer(String name) {
+            return null;
+        }
+
+        @Override
+        public Set<KubevirtLoadBalancer> loadBalancers() {
+            return Sets.newHashSet();
+        }
+
+        @Override
+        public void addListener(KubevirtLoadBalancerListener listener) {
+
+        }
+
+        @Override
+        public void removeListener(KubevirtLoadBalancerListener listener) {
+
+        }
     }
 }

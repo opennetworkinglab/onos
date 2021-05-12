@@ -17,12 +17,15 @@ package org.onosproject.kubevirtnetworking.impl;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
+import org.onlab.packet.IpAddress;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.kubevirtnetworking.api.DefaultKubevirtFloatingIp;
 import org.onosproject.kubevirtnetworking.api.DefaultKubevirtRouter;
 import org.onosproject.kubevirtnetworking.api.KubevirtFloatingIp;
+import org.onosproject.kubevirtnetworking.api.KubevirtLoadBalancer;
+import org.onosproject.kubevirtnetworking.api.KubevirtLoadBalancerService;
 import org.onosproject.kubevirtnetworking.api.KubevirtPeerRouter;
 import org.onosproject.kubevirtnetworking.api.KubevirtRouter;
 import org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent;
@@ -55,11 +58,14 @@ import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_FLOATING_IP_ASSOCIATED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_FLOATING_IP_CREATED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_FLOATING_IP_DISASSOCIATED;
+import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_FLOATING_IP_LB_ASSOCIATED;
+import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_FLOATING_IP_LB_DISASSOCIATED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_FLOATING_IP_REMOVED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_FLOATING_IP_UPDATED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_GATEWAY_NODE_ATTACHED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_GATEWAY_NODE_CHANGED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_GATEWAY_NODE_DETACHED;
+import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_PEER_ROUTER_MAC_RETRIEVED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_CREATED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_EXTERNAL_NETWORK_ATTACHED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_EXTERNAL_NETWORK_DETACHED;
@@ -68,6 +74,7 @@ import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KU
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_REMOVED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_UPDATED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_SNAT_STATUS_DISABLED;
+import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.getLoadBalancerSetForRouter;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -85,6 +92,8 @@ public class DistributedKubevirtRouterStore
     private static final String MSG_FLOATING_IP = "Kubevirt floating IP %s %s with %s";
     private static final String MSG_ASSOCIATED = "associated";
     private static final String MSG_DISASSOCIATED = "disassociated";
+    private static final String MSG_ASSOCIATED_LB = "associated LB VIP";
+    private static final String MSG_DISASSOCIATED_LB = "disassociated LB VIP";
 
     private static final String APP_ID = "org.onosproject.kubevirtnetwork";
 
@@ -104,6 +113,9 @@ public class DistributedKubevirtRouterStore
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected KubevirtLoadBalancerService loadBalancerService;
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
@@ -265,6 +277,15 @@ public class DistributedKubevirtRouterStore
             KubevirtRouter oldValue = event.oldValue().value();
             KubevirtRouter newValue = event.newValue().value();
 
+            if (oldValue.peerRouter() != null
+                    && oldValue.peerRouter().macAddress() == null
+                    && newValue.peerRouter() != null
+                    && newValue.peerRouter().macAddress() != null) {
+                notifyDelegate(new KubevirtRouterEvent(
+                        KUBEVIRT_PEER_ROUTER_MAC_RETRIEVED,
+                        event.newValue().value()));
+            }
+
             if (oldValue.external().size() == 0 && newValue.external().size() > 0) {
                 newValue.external().entrySet().stream().findAny()
                         .ifPresent(entry ->
@@ -411,6 +432,38 @@ public class DistributedKubevirtRouterStore
                 log.info(String.format(MSG_FLOATING_IP,
                         event.newValue().value().floatingIp(), MSG_DISASSOCIATED, oldPodName));
             }
+
+            IpAddress oldFixedIp = event.oldValue().value().fixedIp();
+            IpAddress newFixedIp = event.newValue().value().fixedIp();
+
+            getLoadBalancerSetForRouter(router, loadBalancerService)
+                    .stream()
+                    .map(KubevirtLoadBalancer::vip)
+                    .forEach(vip -> {
+                        if (oldFixedIp == null
+                                && newFixedIp != null
+                                && newFixedIp.equals(vip)) {
+                            notifyDelegate(new KubevirtRouterEvent(
+                                    KUBEVIRT_FLOATING_IP_LB_ASSOCIATED,
+                                    router,
+                                    event.newValue().value()));
+                            log.info(String.format(MSG_FLOATING_IP,
+                                    event.newValue().value().floatingIp(), MSG_ASSOCIATED_LB,
+                                    event.newValue().value().fixedIp()));
+                        }
+
+                        if (oldFixedIp != null
+                                && newFixedIp == null
+                                && oldFixedIp.equals(vip)) {
+                            notifyDelegate(new KubevirtRouterEvent(
+                                    KUBEVIRT_FLOATING_IP_LB_DISASSOCIATED,
+                                    router,
+                                    event.oldValue().value()));
+                            log.info(String.format(MSG_FLOATING_IP,
+                                    event.oldValue().value().floatingIp(), MSG_DISASSOCIATED_LB,
+                                    event.oldValue().value().fixedIp()));
+                        }
+                    });
         }
     }
 }

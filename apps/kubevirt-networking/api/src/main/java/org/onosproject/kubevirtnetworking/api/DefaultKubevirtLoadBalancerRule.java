@@ -26,6 +26,7 @@ import static com.google.common.base.Preconditions.checkArgument;
  */
 public final class DefaultKubevirtLoadBalancerRule implements KubevirtLoadBalancerRule {
     private static final String NOT_NULL_MSG = "Load Balancer Rule % cannot be null";
+    private static final String ICMP = "ICMP";
 
     private final String protocol;
     private final Integer portRangeMax;
@@ -70,9 +71,10 @@ public final class DefaultKubevirtLoadBalancerRule implements KubevirtLoadBalanc
             return false;
         }
         DefaultKubevirtLoadBalancerRule that = (DefaultKubevirtLoadBalancerRule) o;
+
         return protocol.equals(that.protocol) &&
-                portRangeMax.equals(that.portRangeMax) &&
-                portRangeMin.equals(that.portRangeMin);
+                Objects.equals(portRangeMax, that.portRangeMax) &&
+                Objects.equals(portRangeMin, that.portRangeMin);
     }
 
     @Override
@@ -107,9 +109,11 @@ public final class DefaultKubevirtLoadBalancerRule implements KubevirtLoadBalanc
         @Override
         public KubevirtLoadBalancerRule build() {
             checkArgument(protocol != null, NOT_NULL_MSG, "protocol");
-            checkArgument(portRangeMax != null, NOT_NULL_MSG, "portRangeMax");
-            checkArgument(portRangeMin != null, NOT_NULL_MSG, "portRangeMin");
 
+            if (!protocol.equalsIgnoreCase(ICMP)) {
+                checkArgument(portRangeMax != null, NOT_NULL_MSG, "portRangeMax");
+                checkArgument(portRangeMin != null, NOT_NULL_MSG, "portRangeMin");
+            }
             return new DefaultKubevirtLoadBalancerRule(protocol, portRangeMax, portRangeMin);
         }
 

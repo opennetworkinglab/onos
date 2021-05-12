@@ -68,6 +68,7 @@ public final class Constants {
     public static final int PRIORITY_ICMP_RULE = 43000;
     public static final int PRIORITY_FORWARDING_RULE = 30000;
     public static final int PRIORITY_FLOATING_GATEWAY_TUN_BRIDGE_RULE = 32000;
+    public static final int PRIORITY_LB_GATEWAY_TUN_BRIDGE_RULE = 33000;
     public static final int PRIORITY_DHCP_RULE = 42000;
     public static final int PRIORITY_ARP_GATEWAY_RULE = 41000;
     public static final int PRIORITY_ARP_DEFAULT_RULE = 40000;
@@ -104,4 +105,6 @@ public final class Constants {
     public static final int PRIORITY_STATEFUL_SNAT_RULE = 40500;
     public static final int PRIORITY_FLOATING_IP_RULE = 40800;
     public static final int PRIORITY_INTERNAL_ROUTING_RULE = 41000;
+    public static final int PRIORITY_LB_RULE = 41500;
+    public static final int PRIORITY_LB_FIP_RULE = 41500;
 }

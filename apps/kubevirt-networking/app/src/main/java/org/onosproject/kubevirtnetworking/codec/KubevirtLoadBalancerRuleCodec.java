@@ -36,6 +36,7 @@ public final class KubevirtLoadBalancerRuleCodec extends JsonCodec<KubevirtLoadB
     private static final String PROTOCOL = "protocol";
     private static final String PORT_RANGE_MAX = "portRangeMax";
     private static final String PORT_RANGE_MIN = "portRangeMin";
+    private static final String ICMP = "ICMP";
 
     private static final String MISSING_MESSAGE = " is required in KubevirtLoadBalancerRule";
 
@@ -43,10 +44,12 @@ public final class KubevirtLoadBalancerRuleCodec extends JsonCodec<KubevirtLoadB
     public ObjectNode encode(KubevirtLoadBalancerRule rule, CodecContext context) {
         checkNotNull(rule, "Kubevirt load balancer rule cannot be null");
 
-        return context.mapper().createObjectNode()
-                .put(PROTOCOL, rule.protocol())
-                .put(PORT_RANGE_MAX, rule.portRangeMax())
-                .put(PORT_RANGE_MIN, rule.portRangeMin());
+        ObjectNode result = context.mapper().createObjectNode().put(PROTOCOL, rule.protocol());
+
+        if (!rule.protocol().equalsIgnoreCase(ICMP)) {
+            result.put(PORT_RANGE_MAX, rule.portRangeMax()).put(PORT_RANGE_MIN, rule.portRangeMin());
+        }
+        return result;
     }
 
     @Override
@@ -55,14 +58,18 @@ public final class KubevirtLoadBalancerRuleCodec extends JsonCodec<KubevirtLoadB
             return null;
         }
 
-        String protocol = nullIsIllegal(json.get(PROTOCOL).asText(), PROTOCOL + MISSING_MESSAGE);
-        Integer portRangeMax = json.get(PORT_RANGE_MAX).asInt();
-        Integer portRangeMin = json.get(PORT_RANGE_MIN).asInt();
+        KubevirtLoadBalancerRule.Builder builder = DefaultKubevirtLoadBalancerRule.builder();
 
-        return DefaultKubevirtLoadBalancerRule.builder()
-                .protocol(protocol)
-                .portRangeMax(portRangeMax)
-                .portRangeMin(portRangeMin)
-                .build();
+        String protocol = nullIsIllegal(json.get(PROTOCOL).asText(), PROTOCOL + MISSING_MESSAGE);
+
+        builder.protocol(protocol);
+
+        if (!protocol.equalsIgnoreCase(ICMP)) {
+            Integer portRangeMax = json.get(PORT_RANGE_MAX).asInt();
+            Integer portRangeMin = json.get(PORT_RANGE_MIN).asInt();
+            builder.portRangeMax(portRangeMax).portRangeMin(portRangeMin);
+        }
+
+        return builder.build();
     }
 }

@@ -244,10 +244,22 @@ public class KubevirtRoutingArpHandler {
                 case KUBEVIRT_GATEWAY_NODE_DETACHED:
                     eventExecutor.execute(() -> processRouterGatewayNodeDetached(event.subject(), event.gateway()));
                     break;
+                case KUBEVIRT_GATEWAY_NODE_CHANGED:
+                    eventExecutor.execute(() -> processRouterGatewayNodeChanged(event.subject(),
+                            event.gateway()));
+                    break;
                 default:
                     //do nothing
                     break;
             }
+        }
+
+        private void processRouterGatewayNodeChanged(KubevirtRouter router, String oldGateway) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+            processRouterGatewayNodeDetached(router, oldGateway);
+            processRouterExternalNetAttachedOrGwAttached(router);
         }
 
         private void processRouterExternalNetAttachedOrGwAttached(KubevirtRouter router) {
