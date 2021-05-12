@@ -15,10 +15,16 @@
  */
 package org.onosproject.kubevirtnetworking.api;
 
+import org.onlab.packet.IpAddress;
 import org.onosproject.event.AbstractEvent;
+
+import java.util.Set;
 
 public class KubevirtLoadBalancerEvent
         extends AbstractEvent<KubevirtLoadBalancerEvent.Type, KubevirtLoadBalancer> {
+
+    private final KubevirtLoadBalancer old;
+    private final Set<IpAddress> members;
 
     /**
      * LoadBalancerEvent constructor.
@@ -28,6 +34,52 @@ public class KubevirtLoadBalancerEvent
      */
     public KubevirtLoadBalancerEvent(Type type, KubevirtLoadBalancer lb) {
         super(type, lb);
+        this.old = null;
+        this.members = null;
+    }
+
+    /**
+     * Creates and event of a given type for the specified kubevirt loadbalancer.
+     *
+     * @param type kubevirt loadbalancer event type
+     * @param lb kubevirt loadbalancer
+     * @param old old kubevirt loadbalancer
+     */
+    public KubevirtLoadBalancerEvent(Type type, KubevirtLoadBalancer lb, KubevirtLoadBalancer old) {
+        super(type, lb);
+        this.old = old;
+        this.members = null;
+    }
+
+    /**
+     * Creates and event of a given type for the specified kubevirt loadbalancer.
+     *
+     * @param type kubevirt loadbalancer event type
+     * @param lb kubevirt loadbalancer
+     * @param members kubevirt loadbalancer members
+     */
+    public KubevirtLoadBalancerEvent(Type type, KubevirtLoadBalancer lb, Set<IpAddress> members) {
+        super(type, lb);
+        this.old = null;
+        this.members = members;
+    }
+
+    /**
+     * Returns the old kubevirt loadbalancer of the event.
+     *
+     * @return old kubevirt loadbalancer
+     */
+    public KubevirtLoadBalancer oldLb() {
+        return old;
+    }
+
+    /**
+     * Returns members of kubevirt loadbalancer of the event.
+     *
+     * @return kubevirt loadbalancer members
+     */
+    public Set<IpAddress> members() {
+        return members;
     }
 
     public enum Type {
@@ -37,13 +89,23 @@ public class KubevirtLoadBalancerEvent
         KUBEVIRT_LOAD_BALANCER_CREATED,
 
         /**
-         * Signifies that a new kubevirt load balancer is removed.
+         * Signifies that a kubevirt load balancer is removed.
          */
         KUBEVIRT_LOAD_BALANCER_REMOVED,
 
         /**
-         * Signifies that a new kubevirt load balancer is updated.
+         * Signifies that a kubevirt load balancer is updated.
          */
         KUBEVIRT_LOAD_BALANCER_UPDATED,
+
+        /**
+         * Signifies that a kubevirt load balancer member is added.
+         */
+        KUBEVIRT_LOAD_BALANCER_MEMBER_ADDED,
+
+        /**
+         * Signifies that a kubevirt load balancer member is added.
+         */
+        KUBEVIRT_LOAD_BALANCER_MEMBER_REMOVED,
     }
 }

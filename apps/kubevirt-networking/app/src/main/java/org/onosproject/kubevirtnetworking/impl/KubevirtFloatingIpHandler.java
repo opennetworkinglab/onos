@@ -338,8 +338,6 @@ public class KubevirtFloatingIpHandler {
 
         KubevirtPort kubevirtPort = getKubevirtPort(floatingIp);
         if (kubevirtPort == null) {
-            log.warn("Failed to install floating Ip rules for floating ip {} " +
-                    "because there's no kubevirt port associated to it", floatingIp.floatingIp());
             return;
         }
 

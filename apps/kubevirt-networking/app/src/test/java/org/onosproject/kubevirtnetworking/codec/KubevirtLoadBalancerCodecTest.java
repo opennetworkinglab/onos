@@ -68,6 +68,10 @@ public final class KubevirtLoadBalancerCodecTest {
             .portRangeMin(8000)
             .build();
 
+    private static final KubevirtLoadBalancerRule RULE3 = DefaultKubevirtLoadBalancerRule.builder()
+            .protocol("icmp")
+            .build();
+
     final CoreService mockCoreService = createMock(CoreService.class);
     private static final String REST_APP_ID = "org.onosproject.rest";
 
@@ -97,7 +101,7 @@ public final class KubevirtLoadBalancerCodecTest {
                 .vip(IpAddress.valueOf("10.10.10.10"))
                 .members(ImmutableSet.of(IpAddress.valueOf("10.10.10.11"),
                         IpAddress.valueOf("10.10.10.12")))
-                .rules(ImmutableSet.of(RULE1, RULE2))
+                .rules(ImmutableSet.of(RULE1, RULE2, RULE3))
                 .description("network load balancer")
                 .build();
 
@@ -123,7 +127,7 @@ public final class KubevirtLoadBalancerCodecTest {
         assertThat(true, is(expectedMembers.containsAll(realMembers)));
         assertThat(true, is(realMembers.containsAll(expectedMembers)));
 
-        Set<KubevirtLoadBalancerRule> expectedRules = ImmutableSet.of(RULE1, RULE2);
+        Set<KubevirtLoadBalancerRule> expectedRules = ImmutableSet.of(RULE1, RULE2, RULE3);
         Set<KubevirtLoadBalancerRule> realRules = lb.rules();
         assertThat(true, is(expectedRules.containsAll(realRules)));
         assertThat(true, is(realRules.containsAll(expectedRules)));

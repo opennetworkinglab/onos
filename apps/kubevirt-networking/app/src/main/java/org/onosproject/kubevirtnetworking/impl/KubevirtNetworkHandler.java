@@ -1088,8 +1088,6 @@ public class KubevirtNetworkHandler {
             if (!isRelevantHelper()) {
                 return;
             }
-            log.info("###### processRouterGatewayNodeAttached called for router {} and new router is {}",
-                    router.name(), associatedGateway);
 
             KubevirtNode gatewayNode = nodeService.node(associatedGateway);
             if (gatewayNode == null) {

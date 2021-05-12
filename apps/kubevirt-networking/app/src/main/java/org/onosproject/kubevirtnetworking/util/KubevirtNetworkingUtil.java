@@ -35,6 +35,8 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.kubevirtnetworking.api.DefaultKubevirtPort;
+import org.onosproject.kubevirtnetworking.api.KubevirtLoadBalancer;
+import org.onosproject.kubevirtnetworking.api.KubevirtLoadBalancerService;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetwork;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetworkService;
 import org.onosproject.kubevirtnetworking.api.KubevirtPort;
@@ -48,6 +50,8 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.group.DefaultGroupKey;
+import org.onosproject.net.group.GroupKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xbill.DNS.Address;
@@ -633,5 +637,30 @@ public final class KubevirtNetworkingUtil {
         ethernet.setPayload(arp);
 
         return ethernet;
+    }
+
+    /**
+     * Obtains flow group key from the given id.
+     *
+     * @param groupId flow group identifier
+     * @return flow group key
+     */
+    public static GroupKey getGroupKey(int groupId) {
+        return new DefaultGroupKey((Integer.toString(groupId)).getBytes());
+    }
+
+    /**
+     * Obtains load balancer set from the given router.
+     *
+     * @param router kubevirt router
+     * @param lbService kubevirt loadbalancer service
+     * @return loadbalancer set
+     */
+    public static Set<KubevirtLoadBalancer> getLoadBalancerSetForRouter(KubevirtRouter router,
+                                                                        KubevirtLoadBalancerService lbService) {
+
+        return lbService.loadBalancers().stream()
+                .filter(lb -> router.internal().contains(lb.networkId()))
+                .collect(Collectors.toSet());
     }
 }

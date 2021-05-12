@@ -173,7 +173,7 @@ public class KubevirtRoutingSnatHandler {
     }
 
     private void initGatewayNodeSnatForRouter(KubevirtRouter router, String gateway, boolean install) {
-        if (router.electedGateway() == null) {
+        if (gateway == null) {
             log.warn("Fail to initialize gateway node snat for router {} " +
                     "because there's no gateway assigned to it", router.name());
             return;
@@ -509,7 +509,7 @@ public class KubevirtRoutingSnatHandler {
             if (!isRelevantHelper()) {
                 return;
             }
-            KubevirtNode electedGw = gatewayNodeForSpecifiedRouter(kubevirtNodeService, router);
+            KubevirtNode electedGw = kubevirtNodeService.node(router.electedGateway());
 
             if (electedGw == null) {
                 log.warn("Fail to process router external network attached gateway node snat for router {} " +

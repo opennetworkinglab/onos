@@ -225,7 +225,19 @@ public class KubevirtRouterEvent extends AbstractEvent<KubevirtRouterEvent.Type,
         /**
          * Signified that the snat status disabled for this router.
          */
-        KUBEVIRT_SNAT_STATUS_DISABLED
+        KUBEVIRT_SNAT_STATUS_DISABLED,
+        /**
+         * Signifies that the floating IP is associated to a lb VIP.
+         */
+        KUBEVIRT_FLOATING_IP_LB_ASSOCIATED,
+        /**
+         * Signifies that the floating IP is disassociated to a lb VIP.
+         */
+        KUBEVIRT_FLOATING_IP_LB_DISASSOCIATED,
+        /**
+         * Signifies the that peer router mac address is retrieved for this router.
+         */
+        KUBEVIRT_PEER_ROUTER_MAC_RETRIEVED,
     }
 
     /**

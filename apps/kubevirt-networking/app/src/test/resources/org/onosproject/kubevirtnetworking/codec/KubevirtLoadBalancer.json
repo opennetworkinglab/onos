@@ -17,6 +17,9 @@
       "protocol": "udp",
       "portRangeMax": 9000,
       "portRangeMin": 8000
+    },
+    {
+      "protocol" : "icmp"
     }
   ]
 }

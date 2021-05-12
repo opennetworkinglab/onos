@@ -16,6 +16,7 @@
 package org.onosproject.kubevirtnetworking.impl;
 
 import com.google.common.collect.ImmutableSet;
+import org.onlab.packet.IpAddress;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -42,6 +43,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
@@ -49,6 +51,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.kubevirtnetworking.api.KubevirtLoadBalancerEvent.Type.KUBEVIRT_LOAD_BALANCER_CREATED;
+import static org.onosproject.kubevirtnetworking.api.KubevirtLoadBalancerEvent.Type.KUBEVIRT_LOAD_BALANCER_MEMBER_ADDED;
+import static org.onosproject.kubevirtnetworking.api.KubevirtLoadBalancerEvent.Type.KUBEVIRT_LOAD_BALANCER_MEMBER_REMOVED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtLoadBalancerEvent.Type.KUBEVIRT_LOAD_BALANCER_REMOVED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtLoadBalancerEvent.Type.KUBEVIRT_LOAD_BALANCER_UPDATED;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -168,9 +172,7 @@ public class DistributedKubevirtLoadBalancerStore
                     break;
                 case UPDATE:
                     log.debug("Kubevirt load balancer updated");
-                    eventExecutor.execute(() ->
-                            notifyDelegate(new KubevirtLoadBalancerEvent(
-                                    KUBEVIRT_LOAD_BALANCER_UPDATED, event.newValue().value())));
+                    eventExecutor.execute(() -> processLoadBalancerMapUpdate(event));
                     break;
                 case REMOVE:
                     log.debug("Kubevirt load balancer removed");
@@ -182,6 +184,42 @@ public class DistributedKubevirtLoadBalancerStore
                     // do nothing
                     break;
             }
+        }
+
+        private void processLoadBalancerMapUpdate(MapEvent<String, KubevirtLoadBalancer> event) {
+            KubevirtLoadBalancer oldLb = event.oldValue().value();
+            KubevirtLoadBalancer newLb = event.newValue().value();
+
+            Set<IpAddress> added = new HashSet<>(newLb.members());
+            Set<IpAddress> oldSet = oldLb.members();
+
+            added.removeAll(oldSet);
+
+            if (added.size() > 0) {
+                notifyDelegate(new KubevirtLoadBalancerEvent(
+                        KUBEVIRT_LOAD_BALANCER_MEMBER_ADDED,
+                        newLb,
+                        added
+                ));
+            }
+
+            Set<IpAddress> removed = new HashSet<>(oldLb.members());
+            Set<IpAddress> newSet = newLb.members();
+            removed.removeAll(newSet);
+
+            if (removed.size() > 0) {
+                notifyDelegate(new KubevirtLoadBalancerEvent(
+                        KUBEVIRT_LOAD_BALANCER_MEMBER_REMOVED,
+                        newLb,
+                        removed
+                ));
+            }
+
+            notifyDelegate(new KubevirtLoadBalancerEvent(
+                    KUBEVIRT_LOAD_BALANCER_UPDATED,
+                    newLb,
+                    oldLb
+            ));
         }
     }
 }
