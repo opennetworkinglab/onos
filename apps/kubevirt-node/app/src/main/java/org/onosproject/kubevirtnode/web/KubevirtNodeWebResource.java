@@ -43,9 +43,13 @@ import java.io.InputStream;
 import java.util.Set;
 
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
+import static java.lang.Thread.sleep;
 import static javax.ws.rs.core.Response.created;
 import static org.onlab.util.Tools.nullIsIllegal;
 import static org.onlab.util.Tools.readTreeFromStream;
+import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.WORKER;
+import static org.onosproject.kubevirtnode.api.KubevirtNodeState.COMPLETE;
+import static org.onosproject.kubevirtnode.api.KubevirtNodeState.INIT;
 
 /**
  * Handles REST API call of KubeVirt node config.
@@ -62,10 +66,12 @@ public class KubevirtNodeWebResource extends AbstractWebResource {
     private static final String NODE_ID = "NODE_ID";
     private static final String REMOVE = "REMOVE";
     private static final String QUERY = "QUERY";
-    private static final String INIT = "INIT";
     private static final String NOT_EXIST = "Not exist";
     private static final String STATE = "State";
     private static final String RESULT = "Result";
+
+    private static final long SLEEP_MS = 5000; // we wait 5s for init each node
+    private static final long TIMEOUT_MS = 10000; // we wait 10s
 
     private static final String HOST_NAME = "hostname";
     private static final String ERROR_MESSAGE = " cannot be null";
@@ -197,7 +203,7 @@ public class KubevirtNodeWebResource extends AbstractWebResource {
             log.error("Given node {} does not exist", hostname);
             return Response.serverError().build();
         }
-        KubevirtNode updated = node.updateState(KubevirtNodeState.INIT);
+        KubevirtNode updated = node.updateState(INIT);
         service.updateNode(updated);
         return ok(mapper().createObjectNode()).build();
     }
@@ -217,7 +223,7 @@ public class KubevirtNodeWebResource extends AbstractWebResource {
 
         service.nodes()
                 .forEach(n -> {
-                    KubevirtNode updated = n.updateState(KubevirtNodeState.INIT);
+                    KubevirtNode updated = n.updateState(INIT);
                     service.updateNode(updated);
                 });
 
@@ -239,11 +245,65 @@ public class KubevirtNodeWebResource extends AbstractWebResource {
         service.nodes().stream()
                 .filter(n -> n.state() != KubevirtNodeState.COMPLETE)
                 .forEach(n -> {
-                    KubevirtNode updated = n.updateState(KubevirtNodeState.INIT);
+                    KubevirtNode updated = n.updateState(INIT);
                     service.updateNode(updated);
                 });
 
         return ok(mapper().createObjectNode()).build();
+    }
+
+    /**
+     * Synchronizes the flow rules.
+     *
+     * @return 200 OK with sync result, 404 not found
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("sync/rules")
+    public Response syncRules() {
+
+        KubevirtNodeAdminService service = get(KubevirtNodeAdminService.class);
+
+        service.completeNodes(WORKER).forEach(this::syncRulesBase);
+        return ok(mapper().createObjectNode()).build();
+    }
+
+    private void syncRulesBase(KubevirtNode node) {
+        KubevirtNode updated = node.updateState(INIT);
+        KubevirtNodeAdminService service = get(KubevirtNodeAdminService.class);
+        service.updateNode(updated);
+
+        boolean result = true;
+        long timeoutExpiredMs = System.currentTimeMillis() + TIMEOUT_MS;
+
+        while (service.node(node.hostname()).state() != COMPLETE) {
+
+            long  waitMs = timeoutExpiredMs - System.currentTimeMillis();
+
+            try {
+                sleep(SLEEP_MS);
+            } catch (InterruptedException e) {
+                log.error("Exception caused during node synchronization...");
+            }
+
+            if (service.node(node.hostname()).state() == COMPLETE) {
+                break;
+            } else {
+                service.updateNode(updated);
+                log.info("Failed to synchronize flow rules, retrying...");
+            }
+
+            if (waitMs <= 0) {
+                result = false;
+                break;
+            }
+        }
+
+        if (result) {
+            log.info("Successfully synchronize flow rules for node {}!", node.hostname());
+        } else {
+            log.warn("Failed to synchronize flow rules for node {}.", node.hostname());
+        }
     }
 
     private Set<KubevirtNode> readNodeConfiguration(InputStream input) {
