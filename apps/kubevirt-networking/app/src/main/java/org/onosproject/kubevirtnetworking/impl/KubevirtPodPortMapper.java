@@ -171,8 +171,8 @@ public class KubevirtPodPortMapper {
                 }
             }
 
-            Set<KubevirtPort> ports =
-                    getPorts(kubevirtNodeService, kubevirtNetworkAdminService.networks(), pod);
+            Set<KubevirtPort> ports = getPorts(kubevirtNodeService,
+                                      kubevirtNetworkAdminService.networks(), pod);
             if (ports.size() == 0) {
                 return;
             }

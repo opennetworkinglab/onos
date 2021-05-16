@@ -18,10 +18,8 @@ package org.onosproject.kubevirtnetworking.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
@@ -34,7 +32,6 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.kubevirtnetworking.api.DefaultKubevirtPort;
-import org.onosproject.kubevirtnetworking.api.KubevirtNetwork;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetworkAdminService;
 import org.onosproject.kubevirtnetworking.api.KubevirtPodService;
 import org.onosproject.kubevirtnetworking.api.KubevirtPort;
@@ -61,13 +58,11 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
-import static java.lang.Thread.sleep;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.kubevirtnetworking.api.Constants.KUBEVIRT_NETWORKING_APP_ID;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.getPorts;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.k8sClient;
-import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.parseResourceName;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -87,7 +82,6 @@ public class KubevirtVmWatcher {
     private static final String DOMAIN = "domain";
     private static final String DEVICES = "devices";
     private static final String INTERFACES = "interfaces";
-    private static final String NETWORK_POLICIES = "networkPolicies";
     private static final String SECURITY_GROUPS = "securityGroups";
     private static final String NAME = "name";
     private static final String NETWORK = "network";
@@ -242,73 +236,21 @@ public class KubevirtVmWatcher {
                         .networkId(net)
                         .build();
 
-                String name = parseResourceName(resource);
-
                 Set<String> sgs = parseSecurityGroups(resource);
                 port = port.updateSecurityGroups(sgs);
 
                 Map<String, IpAddress> ips = parseIpAddresses(resource);
-                IpAddress ip;
-                IpAddress existingIp = ips.get(port.networkId());
+                IpAddress ip = ips.get(port.networkId());
 
-                KubevirtNetwork network = networkAdminService.network(port.networkId());
-                if (network == null) {
-                    try {
-                        sleep(SLEEP_MS);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                port = port.updateIpAddress(ip);
+
+                DeviceId deviceId = getDeviceId(podService.pods(), port);
+
+                if (deviceId != null) {
+                    port = port.updateDeviceId(deviceId);
                 }
 
-                KubevirtPort existingPort = portAdminService.port(port.macAddress());
-
-                if (existingIp == null) {
-
-                    KubernetesClient client = k8sClient(configService);
-
-                    if (client == null) {
-                        return;
-                    }
-
-                    ip = networkAdminService.allocateIp(port.networkId());
-                    log.info("IP address {} is allocated from network {}", ip, port.networkId());
-
-                    try {
-                        // we wait a while to avoid potentially referring to old version resource
-                        // FIXME: we may need to find a better solution to avoid this
-                        sleep(SLEEP_MS);
-                        ObjectMapper mapper = new ObjectMapper();
-                        Map<String, Object> newResource = client.customResource(vmCrdCxt).get(DEFAULT, name);
-                        String newResourceStr = mapper.writeValueAsString(newResource);
-                        String updatedResource = updateIpAddress(newResourceStr, port.networkId(), ip);
-                        client.customResource(vmCrdCxt).edit(DEFAULT, name, updatedResource);
-                    } catch (IOException | InterruptedException e) {
-                        log.error("Failed to annotate IP addresses", e);
-                    } catch (KubernetesClientException kce) {
-                        log.error("Failed to update VM resource", kce);
-                    }
-
-                } else {
-                    if (existingPort != null) {
-                        return;
-                    }
-
-                    ip = existingIp;
-                    networkAdminService.reserveIp(port.networkId(), ip);
-                    log.info("IP address {} is reserved from network {}", ip, port.networkId());
-                }
-
-                if (existingPort == null) {
-                    KubevirtPort updated = port.updateIpAddress(ip);
-
-                    DeviceId deviceId = getDeviceId(podService.pods(), port);
-
-                    if (deviceId != null) {
-                        updated = updated.updateDeviceId(deviceId);
-                    }
-
-                    portAdminService.createPort(updated);
-                }
+                portAdminService.createPort(port);
             });
         }
 
@@ -330,7 +272,12 @@ public class KubevirtVmWatcher {
                 }
 
                 Set<String> sgs = parseSecurityGroups(resource);
-                portAdminService.updatePort(existing.updateSecurityGroups(sgs));
+
+                // we only update the port, if the newly updated security groups
+                // have different values compared to existing ones
+                if (!port.securityGroups().equals(sgs)) {
+                    portAdminService.updatePort(existing.updateSecurityGroups(sgs));
+                }
             });
         }
 
@@ -342,10 +289,6 @@ public class KubevirtVmWatcher {
             parseMacAddresses(resource).forEach((mac, net) -> {
                 KubevirtPort port = portAdminService.port(mac);
                 if (port != null) {
-                    networkAdminService.releaseIp(port.networkId(), port.ipAddress());
-                    log.info("IP address {} is released from network {}",
-                            port.ipAddress(), port.networkId());
-
                     portAdminService.removePort(mac);
                 }
             });
@@ -403,42 +346,6 @@ public class KubevirtVmWatcher {
             }
 
             return new HashMap<>();
-        }
-
-        private String updateIpAddress(String resource, String network, IpAddress ip) {
-            try {
-                ObjectMapper mapper = new ObjectMapper();
-                ObjectNode json = (ObjectNode) mapper.readTree(resource);
-                ObjectNode spec = (ObjectNode) json.get(SPEC);
-                ObjectNode template = (ObjectNode) spec.get(TEMPLATE);
-                ObjectNode metadata = (ObjectNode) template.get(METADATA);
-                ObjectNode annots = (ObjectNode) metadata.get(ANNOTATIONS);
-
-                if (!annots.has(INTERFACES)) {
-                    annots.put(INTERFACES, "[]");
-                }
-
-                String intfs = annots.get(INTERFACES).asText();
-                ArrayNode intfsJson = (ArrayNode) mapper.readTree(intfs);
-
-                ObjectNode intf = mapper.createObjectNode();
-                intf.put(NETWORK, network);
-                intf.put(IP, ip.toString());
-
-                intfsJson.add(intf);
-
-                annots.put(INTERFACES, intfsJson.toString());
-                metadata.set(ANNOTATIONS, annots);
-                template.set(METADATA, metadata);
-                spec.set(TEMPLATE, template);
-                json.set(SPEC, spec);
-
-                return json.toString();
-
-            } catch (IOException e) {
-                log.error("Failed to update kubevirt VM IP addresses");
-            }
-            return null;
         }
 
         private Set<String> parseSecurityGroups(String resource) {
