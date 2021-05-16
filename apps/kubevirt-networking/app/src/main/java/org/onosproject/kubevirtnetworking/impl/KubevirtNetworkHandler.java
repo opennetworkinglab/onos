@@ -921,13 +921,6 @@ public class KubevirtNetworkHandler {
                 install);
     }
 
-    private void reserveVrouterIp(KubevirtNetwork network) {
-        String networkId = network.networkId();
-        IpAddress vrouterIp = network.ipPool().start();
-
-        networkService.reserveIp(networkId, vrouterIp);
-    }
-
     private class InternalRouterEventListener implements KubevirtRouterListener {
         private boolean isRelevantHelper() {
             return Objects.equals(localNodeId, leadershipService.getLeader(appId.name()));
@@ -1192,8 +1185,6 @@ public class KubevirtNetworkHandler {
                     initIntegrationTunnelBridge(network);
                     break;
                 case FLAT:
-                    reserveVrouterIp(network);
-                    break;
                 case VLAN:
                     break;
                 default:
@@ -1291,8 +1282,6 @@ public class KubevirtNetworkHandler {
                             setGatewayRuleToWorkerNodeWhenNodeCreated(node, network);
                             break;
                         case FLAT:
-                            reserveVrouterIp(network);
-                            break;
                         case VLAN:
                         default:
                             // do nothing

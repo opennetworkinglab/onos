@@ -107,7 +107,7 @@ public class KubevirtPortManager
         checkArgument(!Strings.isNullOrEmpty(port.networkId()), ERR_NULL_PORT_NET_ID);
 
         kubevirtPortStore.updatePort(port);
-        log.info(String.format(MSG_PORT, port.macAddress().toString(), MSG_UPDATED));
+        log.debug(String.format(MSG_PORT, port.macAddress().toString(), MSG_UPDATED));
     }
 
     @Override
