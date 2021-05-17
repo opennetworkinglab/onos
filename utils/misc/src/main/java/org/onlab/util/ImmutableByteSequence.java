@@ -190,6 +190,53 @@ public final class ImmutableByteSequence {
     }
 
     /**
+     * Creates a new immutable byte sequence while trimming or expanding the
+     * content of the given byte buffer to fit the given bit-width. Calling this
+     * method has the same behavior as
+     * {@code ImmutableByteSequence.copyFrom(original).fit(bitWidth)}.
+     *
+     * @param original a byte buffer value
+     * @param bitWidth a non-zero positive integer
+     * @return a new immutable byte sequence
+     * @throws ByteSequenceTrimException if the byte buffer cannot be fitted
+     */
+    public static ImmutableByteSequence copyAndFit(ByteBuffer original, int bitWidth)
+            throws ByteSequenceTrimException {
+        checkArgument(original != null && original.capacity() > 0,
+                      "Cannot copy from an empty or null byte buffer");
+        checkArgument(bitWidth > 0,
+                      "bit-width must be a non-zero positive integer");
+        if (original.order() == ByteOrder.LITTLE_ENDIAN) {
+            // FIXME: this can be improved, e.g. read bytes in reverse order from original
+            byte[] newBytes = new byte[original.capacity()];
+            original.get(newBytes);
+            reverse(newBytes);
+            return internalCopyAndFit(ByteBuffer.wrap(newBytes), bitWidth);
+        } else {
+            return internalCopyAndFit(original.duplicate(), bitWidth);
+        }
+    }
+
+    private static ImmutableByteSequence internalCopyAndFit(ByteBuffer byteBuf, int bitWidth)
+            throws ByteSequenceTrimException {
+        final int byteWidth = (bitWidth + 7) / 8;
+        final ByteBuffer newByteBuffer = ByteBuffer.allocate(byteWidth);
+        byteBuf.rewind();
+        if (byteWidth >= byteBuf.capacity()) {
+            newByteBuffer.position(byteWidth - byteBuf.capacity());
+            newByteBuffer.put(byteBuf);
+        } else {
+            for (int i = 0; i < byteBuf.capacity() - byteWidth; i++) {
+                if (byteBuf.get(i) != 0) {
+                    throw new ByteSequenceTrimException(byteBuf, bitWidth);
+                }
+            }
+            newByteBuffer.put(byteBuf.position(byteBuf.capacity() - byteWidth));
+        }
+        return new ImmutableByteSequence(newByteBuffer);
+    }
+
+    /**
      * Creates a new byte sequence of the given size where all bits are 0.
      *
      * @param size number of bytes
@@ -500,11 +547,16 @@ public final class ImmutableByteSequence {
     }
 
     /**
-     * Signals that a byte sequence cannot be trimmed.
+     * Signals a trim exception during byte sequence creation.
      */
     public static class ByteSequenceTrimException extends Exception {
         ByteSequenceTrimException(ImmutableByteSequence original, int bitWidth) {
             super(format("cannot trim %s into a %d bits long value",
+                         original, bitWidth));
+        }
+
+        ByteSequenceTrimException(ByteBuffer original, int bitWidth) {
+            super(format("cannot trim %s (ByteBuffer) into a %d bits long value",
                          original, bitWidth));
         }
     }

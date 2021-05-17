@@ -28,6 +28,8 @@ import p4.config.v1.P4InfoOuterClass;
 import p4.v1.P4RuntimeOuterClass;
 
 import static java.lang.String.format;
+import static org.onlab.util.ImmutableByteSequence.copyAndFit;
+import static org.onlab.util.ImmutableByteSequence.copyFrom;
 import static org.onosproject.p4runtime.ctl.codec.Utils.assertSize;
 
 /**
@@ -65,7 +67,7 @@ public final class ActionCodec
     protected PiAction decode(
             P4RuntimeOuterClass.Action message, Object ignored,
             PiPipeconf pipeconf, P4InfoBrowser browser)
-            throws P4InfoBrowser.NotFoundException {
+            throws P4InfoBrowser.NotFoundException, CodecException {
         final P4InfoBrowser.EntityBrowser<P4InfoOuterClass.Action.Param> paramInfo =
                 browser.actionParams(message.getActionId());
         final String actionName = browser.actions()
@@ -77,11 +79,17 @@ public final class ActionCodec
             final P4InfoOuterClass.Action.Param actionParam = paramInfo.getById(p.getParamId());
             final ImmutableByteSequence value;
             if (browser.isTypeString(actionParam.getTypeName())) {
-                value = ImmutableByteSequence.copyFrom(new String(p.getValue().toByteArray()));
+                value = copyFrom(new String(p.getValue().toByteArray()));
             } else {
-                value = ImmutableByteSequence.copyFrom(p.getValue().toByteArray());
+                try {
+                    value = copyAndFit(p.getValue().asReadOnlyByteBuffer(),
+                                       actionParam.getBitwidth());
+                } catch (ImmutableByteSequence.ByteSequenceTrimException e) {
+                    throw new CodecException(e.getMessage());
+                }
             }
-            builder.withParameter(new PiActionParam(PiActionParamId.of(actionParam.getName()), value));
+            builder.withParameter(new PiActionParam(
+                    PiActionParamId.of(actionParam.getName()), value));
         }
         return builder.build();
     }

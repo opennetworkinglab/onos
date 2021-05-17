@@ -25,6 +25,7 @@ import org.onosproject.p4runtime.ctl.utils.P4InfoBrowser;
 import p4.config.v1.P4InfoOuterClass;
 import p4.v1.P4RuntimeOuterClass;
 
+import static org.onlab.util.ImmutableByteSequence.copyAndFit;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
 
 /**
@@ -54,18 +55,23 @@ public final class PacketMetadataCodec
             P4RuntimeOuterClass.PacketMetadata message,
             P4InfoOuterClass.Preamble ctrlPktMetaPreamble,
             PiPipeconf pipeconf, P4InfoBrowser browser)
-            throws P4InfoBrowser.NotFoundException {
-        final P4InfoOuterClass.ControllerPacketMetadata.Metadata packetMetadata =
+            throws P4InfoBrowser.NotFoundException, CodecException {
+        final P4InfoOuterClass.ControllerPacketMetadata.Metadata pktMeta =
                 browser.packetMetadatas(ctrlPktMetaPreamble.getId())
-                .getById(message.getMetadataId());
+                        .getById(message.getMetadataId());
         final ImmutableByteSequence value;
-        if (browser.isTypeString(packetMetadata.getTypeName())) {
+        if (browser.isTypeString(pktMeta.getTypeName())) {
             value = copyFrom(new String(message.getValue().toByteArray()));
         } else {
-            value = copyFrom(message.getValue().asReadOnlyByteBuffer());
+            try {
+                value = copyAndFit(message.getValue().asReadOnlyByteBuffer(),
+                                   pktMeta.getBitwidth());
+            } catch (ImmutableByteSequence.ByteSequenceTrimException e) {
+                throw new CodecException(e.getMessage());
+            }
         }
         return PiPacketMetadata.builder()
-                .withId(PiPacketMetadataId.of(packetMetadata.getName()))
+                .withId(PiPacketMetadataId.of(pktMeta.getName()))
                 .withValue(value)
                 .build();
     }

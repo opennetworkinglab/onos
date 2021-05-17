@@ -31,6 +31,7 @@ import p4.config.v1.P4InfoOuterClass;
 import p4.v1.P4RuntimeOuterClass;
 
 import static java.lang.String.format;
+import static org.onlab.util.ImmutableByteSequence.copyAndFit;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
 import static org.onosproject.p4runtime.ctl.codec.Utils.assertPrefixLen;
 import static org.onosproject.p4runtime.ctl.codec.Utils.assertSize;
@@ -155,48 +156,66 @@ public final class FieldMatchCodec
         final P4InfoOuterClass.MatchField matchField =
                 browser.matchFields(tablePreamble.getId())
                         .getById(message.getFieldId());
+        final int fieldBitwidth = matchField.getBitwidth();
         final PiMatchFieldId headerFieldId = PiMatchFieldId.of(matchField.getName());
         final boolean isSdnString = browser.isTypeString(matchField.getTypeName());
 
-        P4RuntimeOuterClass.FieldMatch.FieldMatchTypeCase typeCase = message.getFieldMatchTypeCase();
-
-        switch (typeCase) {
-            case EXACT:
-                P4RuntimeOuterClass.FieldMatch.Exact exactFieldMatch = message.getExact();
-                ImmutableByteSequence exactValue;
-                if (isSdnString) {
-                    exactValue = copyFrom(new String(exactFieldMatch.getValue().toByteArray()));
-                } else {
-                    exactValue = copyFrom(exactFieldMatch.getValue().asReadOnlyByteBuffer());
-                }
-                return new PiExactFieldMatch(headerFieldId, exactValue);
-            case TERNARY:
-                P4RuntimeOuterClass.FieldMatch.Ternary ternaryFieldMatch = message.getTernary();
-                ImmutableByteSequence ternaryValue = copyFrom(ternaryFieldMatch.getValue().asReadOnlyByteBuffer());
-                ImmutableByteSequence ternaryMask = copyFrom(ternaryFieldMatch.getMask().asReadOnlyByteBuffer());
-                return new PiTernaryFieldMatch(headerFieldId, ternaryValue, ternaryMask);
-            case LPM:
-                P4RuntimeOuterClass.FieldMatch.LPM lpmFieldMatch = message.getLpm();
-                ImmutableByteSequence lpmValue = copyFrom(lpmFieldMatch.getValue().asReadOnlyByteBuffer());
-                int lpmPrefixLen = lpmFieldMatch.getPrefixLen();
-                return new PiLpmFieldMatch(headerFieldId, lpmValue, lpmPrefixLen);
-            case RANGE:
-                P4RuntimeOuterClass.FieldMatch.Range rangeFieldMatch = message.getRange();
-                ImmutableByteSequence rangeHighValue = copyFrom(rangeFieldMatch.getHigh().asReadOnlyByteBuffer());
-                ImmutableByteSequence rangeLowValue = copyFrom(rangeFieldMatch.getLow().asReadOnlyByteBuffer());
-                return new PiRangeFieldMatch(headerFieldId, rangeLowValue, rangeHighValue);
-            case OPTIONAL:
-                P4RuntimeOuterClass.FieldMatch.Optional optionalFieldMatch = message.getOptional();
-                ImmutableByteSequence optionalValue;
-                if (isSdnString) {
-                    optionalValue = copyFrom(new String(optionalFieldMatch.getValue().toByteArray()));
-                } else {
-                    optionalValue = copyFrom(optionalFieldMatch.getValue().asReadOnlyByteBuffer());
-                }
-                return new PiOptionalFieldMatch(headerFieldId, optionalValue);
-            default:
-                throw new CodecException(format(
-                        "Decoding of field match type '%s' not implemented", typeCase.name()));
+        final P4RuntimeOuterClass.FieldMatch.FieldMatchTypeCase typeCase = message.getFieldMatchTypeCase();
+        try {
+            switch (typeCase) {
+                case EXACT:
+                    P4RuntimeOuterClass.FieldMatch.Exact exactFieldMatch = message.getExact();
+                    final ImmutableByteSequence exactValue;
+                    if (isSdnString) {
+                        exactValue = copyFrom(new String(exactFieldMatch.getValue().toByteArray()));
+                    } else {
+                        exactValue = copyAndFit(
+                                exactFieldMatch.getValue().asReadOnlyByteBuffer(),
+                                fieldBitwidth);
+                    }
+                    return new PiExactFieldMatch(headerFieldId, exactValue);
+                case TERNARY:
+                    P4RuntimeOuterClass.FieldMatch.Ternary ternaryFieldMatch = message.getTernary();
+                    ImmutableByteSequence ternaryValue = copyAndFit(
+                            ternaryFieldMatch.getValue().asReadOnlyByteBuffer(),
+                            fieldBitwidth);
+                    ImmutableByteSequence ternaryMask = copyAndFit(
+                            ternaryFieldMatch.getMask().asReadOnlyByteBuffer(),
+                            fieldBitwidth);
+                    return new PiTernaryFieldMatch(headerFieldId, ternaryValue, ternaryMask);
+                case LPM:
+                    P4RuntimeOuterClass.FieldMatch.LPM lpmFieldMatch = message.getLpm();
+                    ImmutableByteSequence lpmValue = copyAndFit(
+                            lpmFieldMatch.getValue().asReadOnlyByteBuffer(),
+                            fieldBitwidth);
+                    int lpmPrefixLen = lpmFieldMatch.getPrefixLen();
+                    return new PiLpmFieldMatch(headerFieldId, lpmValue, lpmPrefixLen);
+                case RANGE:
+                    P4RuntimeOuterClass.FieldMatch.Range rangeFieldMatch = message.getRange();
+                    ImmutableByteSequence rangeHighValue = copyAndFit(
+                            rangeFieldMatch.getHigh().asReadOnlyByteBuffer(),
+                            fieldBitwidth);
+                    ImmutableByteSequence rangeLowValue = copyAndFit(
+                            rangeFieldMatch.getLow().asReadOnlyByteBuffer(),
+                            fieldBitwidth);
+                    return new PiRangeFieldMatch(headerFieldId, rangeLowValue, rangeHighValue);
+                case OPTIONAL:
+                    P4RuntimeOuterClass.FieldMatch.Optional optionalFieldMatch = message.getOptional();
+                    final ImmutableByteSequence optionalValue;
+                    if (isSdnString) {
+                        optionalValue = copyFrom(new String(optionalFieldMatch.getValue().toByteArray()));
+                    } else {
+                        optionalValue = copyAndFit(
+                                optionalFieldMatch.getValue().asReadOnlyByteBuffer(),
+                                fieldBitwidth);
+                    }
+                    return new PiOptionalFieldMatch(headerFieldId, optionalValue);
+                default:
+                    throw new CodecException(format(
+                            "Decoding of field match type '%s' not implemented", typeCase.name()));
+            }
+        } catch (ImmutableByteSequence.ByteSequenceTrimException e) {
+            throw new CodecException(e.getMessage());
         }
     }
 }
