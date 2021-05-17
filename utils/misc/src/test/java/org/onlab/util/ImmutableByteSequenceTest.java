@@ -25,6 +25,7 @@ import org.junit.rules.ExpectedException;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Arrays;
 import java.util.Random;
 
 import static java.lang.Integer.max;
@@ -78,6 +79,107 @@ public class ImmutableByteSequenceTest {
         assertThat(errStr, bsLong.asArray()[7], is(equalTo(byteValue)));
         assertThat(errStr, bsArray.asArray()[63], is(equalTo(byteValue)));
         assertThat(errStr, bsBuffer.asArray()[63], is(equalTo(byteValue)));
+    }
+
+    @Test
+    public void testCopyAndFit() throws Exception {
+        int originalByteWidth = 3;
+        int paddedByteWidth = 4;
+        int trimmedByteWidth = 2;
+        int indexFirstNonZeroByte = 1;
+
+        byte byteValue = (byte) 1;
+        byte[] arrayValue = new byte[originalByteWidth];
+        arrayValue[indexFirstNonZeroByte] = byteValue;
+        ByteBuffer bufferValue = ByteBuffer.allocate(originalByteWidth).put(arrayValue);
+
+        ImmutableByteSequence bsBuffer = ImmutableByteSequence.copyAndFit(
+                bufferValue, originalByteWidth * 8);
+        ImmutableByteSequence bsBufferTrimmed = ImmutableByteSequence.copyAndFit(
+                bufferValue, trimmedByteWidth * 8);
+        ImmutableByteSequence bsBufferPadded = ImmutableByteSequence.copyAndFit(
+                bufferValue, paddedByteWidth * 8);
+
+        assertThat("byte sequence of the byte buffer must be 3 bytes long",
+                   bsBuffer.size(), is(equalTo(originalByteWidth)));
+        assertThat("byte sequence of the byte buffer must be 3 bytes long",
+                   bsBufferTrimmed.size(), is(equalTo(trimmedByteWidth)));
+        assertThat("byte sequence of the byte buffer must be 3 bytes long",
+                   bsBufferPadded.size(), is(equalTo(paddedByteWidth)));
+
+        String errStr = "incorrect byte sequence value";
+
+        assertThat(errStr, bsBuffer.asArray()[indexFirstNonZeroByte], is(equalTo(byteValue)));
+        assertThat(errStr, bsBufferTrimmed.asArray()[indexFirstNonZeroByte - 1], is(equalTo(byteValue)));
+        assertThat(errStr, bsBufferPadded.asArray()[indexFirstNonZeroByte + 1], is(equalTo(byteValue)));
+        assertThat(errStr, bsBufferPadded.asArray()[paddedByteWidth - 1], is(equalTo((byte) 0x00)));
+    }
+
+    @Test
+    public void testCopyAndFitEndianness() throws Exception {
+        int originalByteWidth = 4;
+        int indexByteNonZeroBig = 1;
+        int indexByteNonZeroLittle = 2;
+        byte byteValue = (byte) 1;
+
+        ByteBuffer bbBigEndian = ByteBuffer
+                .allocate(originalByteWidth)
+                .order(ByteOrder.BIG_ENDIAN);
+        bbBigEndian.put(indexByteNonZeroBig, byteValue);
+        ImmutableByteSequence bsBufferCopyBigEndian =
+                ImmutableByteSequence.copyAndFit(bbBigEndian, originalByteWidth * 8);
+
+        ByteBuffer bbLittleEndian = ByteBuffer
+                .allocate(originalByteWidth)
+                .order(ByteOrder.LITTLE_ENDIAN);
+        bbLittleEndian.put(indexByteNonZeroLittle, byteValue);
+        ImmutableByteSequence bsBufferCopyLittleEndian =
+                ImmutableByteSequence.copyAndFit(bbLittleEndian, originalByteWidth * 8);
+
+        // creates a new sequence from primitive type
+        byte[] arrayValue = new byte[originalByteWidth];
+        arrayValue[indexByteNonZeroBig] = byteValue;
+        ImmutableByteSequence bsArrayCopy =
+                ImmutableByteSequence.copyFrom(arrayValue);
+
+        new EqualsTester()
+                // big-endian byte array cannot be equal to little-endian array
+                .addEqualityGroup(bbBigEndian.array())
+                .addEqualityGroup(bbLittleEndian.array())
+                // all byte sequences must be equal
+                .addEqualityGroup(bsBufferCopyBigEndian,
+                                  bsBufferCopyLittleEndian,
+                                  bsArrayCopy)
+                // byte buffer views of all sequences must be equal
+                .addEqualityGroup(bsBufferCopyBigEndian.asReadOnlyBuffer(),
+                                  bsBufferCopyLittleEndian.asReadOnlyBuffer(),
+                                  bsArrayCopy.asReadOnlyBuffer())
+                // byte buffer orders of all sequences must be ByteOrder.BIG_ENDIAN
+                .addEqualityGroup(bsBufferCopyBigEndian.asReadOnlyBuffer().order(),
+                                  bsBufferCopyLittleEndian.asReadOnlyBuffer().order(),
+                                  bsArrayCopy.asReadOnlyBuffer().order(),
+                                  ByteOrder.BIG_ENDIAN)
+                .testEquals();
+    }
+
+    @Test
+    public void testIllegalCopyAndFit() throws Exception {
+        int originalByteWidth = 3;
+        int trimmedByteWidth = 1;
+        int indexFirstNonZeroByte = 1;
+
+        byte byteValue = (byte) 1;
+        byte[] arrayValue = new byte[originalByteWidth];
+        arrayValue[indexFirstNonZeroByte] = byteValue;
+        ByteBuffer bufferValue = ByteBuffer.allocate(originalByteWidth).put(arrayValue);
+
+        try {
+            ImmutableByteSequence.copyAndFit(bufferValue, trimmedByteWidth * 8);
+            Assert.fail(format("Expect ByteSequenceTrimException due to value = %s and bitWidth %d",
+                               Arrays.toString(arrayValue), trimmedByteWidth * 8));
+        } catch (ImmutableByteSequence.ByteSequenceTrimException e) {
+            // We expect this.
+        }
     }
 
     @Test
