@@ -432,7 +432,7 @@ public final class ImmutableByteSequence {
         checkNotNull(original, "byte sequence cannot be null");
         checkArgument(bitWidth > 0, "bit-width must be a non-zero positive integer");
 
-        int newByteWidth = (int) Math.ceil((double) bitWidth / 8);
+        int newByteWidth = (bitWidth + 7) / 8;
 
         if (bitWidth == original.size() * 8) {
             // No need to fit.
