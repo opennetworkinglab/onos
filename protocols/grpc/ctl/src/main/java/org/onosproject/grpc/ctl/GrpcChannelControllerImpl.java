@@ -210,6 +210,7 @@ public class GrpcChannelControllerImpl implements GrpcChannelController {
 
         channelLocks.get(channelUri).lock();
         try {
+            log.info("Destroying gRPC channel {}...", channelUri);
             final ManagedChannel channel = channels.remove(channelUri);
             if (channel != null) {
                 shutdownNowAndWait(channel, channelUri);
