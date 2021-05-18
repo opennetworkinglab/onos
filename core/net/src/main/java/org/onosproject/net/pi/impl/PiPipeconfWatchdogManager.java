@@ -271,6 +271,7 @@ public class PiPipeconfWatchdogManager
         final PiPipelineProgrammable pipelineProg = device.as(PiPipelineProgrammable.class);
         final DeviceHandshaker handshaker = device.as(DeviceHandshaker.class);
         if (!handshaker.hasConnection()) {
+            log.warn("There is no connectivity with {}", device.id());
             return false;
         }
         if (Futures.getUnchecked(pipelineProg.isPipeconfSet(pipeconf)) &&
