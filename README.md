@@ -136,8 +136,7 @@ through pull requests on GitHub.
 
 To contribute to ONOS, please refer to [Sample Gerrit
 Workflow](https://wiki.onosproject.org/display/ONOS/Sample+Gerrit+Workflow). It
-should includes most of the things you'll need to get your contribution started!
-
+should include most of the things you'll need to get your contribution started!
 
 ## More information
 
