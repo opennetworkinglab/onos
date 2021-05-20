@@ -28,7 +28,7 @@ if __name__ == '__main__':
                         help="Nexus complete URL")
     parser.add_argument('--local_settings', type=str, required=False, default=None,
                         help="Use a local settings.xml instead of the default one")
-    parser.add_argument('--repo_id', type=str, required=False, default="snapshots",
+    parser.add_argument('--repo_id', type=str, required=False, default="ossrh",
                         help="ID to map on the <id> under <server> section of settings.xml")
     parser.add_argument('--group_id', type=str, required=False, default="org.onosproject",
                         help="GroupId of the artifacts to be deployed")
