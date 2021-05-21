@@ -461,22 +461,22 @@ public class FabricUpfProgrammable extends AbstractP4RuntimeHandlerBehaviour
                 .withSelector(DefaultTrafficSelector.builder().matchPi(match).build())
                 .withPriority(DEFAULT_PRIORITY)
                 .build();
-
-        /*
-         *  FIXME: Stupid stupid slow hack, needed because removeFlowRules expects FlowRule objects
-         *   with correct and complete actions and parameters, but P4Runtime deletion requests
-         *   will not have those.
-         */
-        for (FlowEntry installedEntry : flowRuleService.getFlowEntries(deviceId)) {
-            if (installedEntry.selector().equals(entry.selector())) {
-                log.info("Found matching entry to remove, it has FlowID {}", installedEntry.id());
-                flowRuleService.removeFlowRules(installedEntry);
-                return true;
-            }
+        try {
+            flowRuleService.removeFlowRules(entry);
+            // TODO in future we may need to send other notifications to the pfcp agent
+            //if (!failSilent) {
+            //    throw new UpfProgrammableException("Match criterion " + match.toString() +
+            //            " not found in table " + tableId.toString());
+            //}
+            return true;
+        } catch (Exception e) {
+            log.error("Exception thrown while removing flows", e);
         }
+        // Assumes that the ONOS state is ok and the pfcp agent
+        // is not asking to remove wrong flows
         if (!failSilent) {
-            throw new UpfProgrammableException("Match criterion " + match.toString() +
-                                                       " not found in table " + tableId.toString());
+            throw new UpfProgrammableException("Unable to remove FlowRule with match criterion " + match.toString() +
+                    " in table " + tableId.toString());
         }
         return false;
     }
@@ -566,18 +566,20 @@ public class FabricUpfProgrammable extends AbstractP4RuntimeHandlerBehaviour
             return;
         }
         Ip4Prefix ifacePrefix = upfInterface.getPrefix();
-        // If it isn't a core interface (so it is either access or unknown), try removing core
+        // If it isn't a core interface (so it is either access/dbuf or unknown), try removing first
+        // access/dbuf interfaces and then fall through in the next step where we try to remove the core flow
         if (!upfInterface.isCore()) {
             PiCriterion match1 = PiCriterion.builder()
                     .matchLpm(HDR_IPV4_DST_ADDR, ifacePrefix.address().toInt(),
                               ifacePrefix.prefixLength())
                     .matchExact(HDR_GTPU_IS_VALID, 1)
                     .build();
-            if (removeEntry(match1, FABRIC_INGRESS_SPGW_INTERFACES, true)) {
-                return;
-            }
+            // removeEntry does return false only for severe issues, before we had
+            // a safe fall through. This part should not be affected since core and access
+            // flows are different in the match keys and should not result in wrong removal
+            removeEntry(match1, FABRIC_INGRESS_SPGW_INTERFACES, true);
         }
-        // If that didn't work or didn't execute, try removing access
+        // This additional step might be also needed in case of unknown interfaces
         PiCriterion match2 = PiCriterion.builder()
                 .matchLpm(HDR_IPV4_DST_ADDR, ifacePrefix.address().toInt(),
                           ifacePrefix.prefixLength())
