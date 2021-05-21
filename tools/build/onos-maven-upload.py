@@ -101,23 +101,33 @@ if __name__ == '__main__':
             call_funct.insert(1, "-s")
             call_funct.insert(2, local_settings_file)
 
-        # If we have a pom, use it, otherwise do not let Maven generate one
-        if "pom" in artifacts.keys():
-            call_funct.append("-DpomFile=" + artifacts["pom"][0])
-            del artifacts["pom"]
+        if artifact_id == "onos-dependencies":
+            # Special case for onos-dependencies, the JAR is a fake empty jar.
+            # For this case, upload only the pom.
+            if "pom" in artifacts.keys():
+                call_funct.append("-Dfile=" + artifacts["pom"][0])
+                call_funct.append("-DgeneratePom=false")
+                del artifacts["pom"]
+            if "jar" in artifacts.keys():
+                del artifacts["jar"]
         else:
-            call_funct.append("-DgeneratePom=false")
+            # If we have a pom, use it, otherwise do not let Maven generate one
+            if "pom" in artifacts.keys():
+                call_funct.append("-DpomFile=" + artifacts["pom"][0])
+                del artifacts["pom"]
+            else:
+                call_funct.append("-DgeneratePom=false")
 
-        # Find the main artifact, it can be a JAR or a OAR
-        if "jar" in artifacts.keys():
-            call_funct.append("-Dfile=" + artifacts["jar"][0])
-            del artifacts["jar"]
-        elif "oar" in artifacts.keys():
-            call_funct.append("-Dfile=" + artifacts["oar"][0])
-            del artifacts["oar"]
-        else:
-            print("WARNING: Skipping, no main artifact for artifact ID: " + artifact_id)
-            continue
+            # Find the main artifact, it can be a JAR or a OAR
+            if "jar" in artifacts.keys():
+                call_funct.append("-Dfile=" + artifacts["jar"][0])
+                del artifacts["jar"]
+            elif "oar" in artifacts.keys():
+                call_funct.append("-Dfile=" + artifacts["oar"][0])
+                del artifacts["oar"]
+            else:
+                print("WARNING: Skipping, no main artifact for artifact ID: " + artifact_id)
+                continue
 
         if "javadoc" in artifacts.keys():
             call_funct.append("-Djavadoc=" + artifacts["javadoc"][0])
