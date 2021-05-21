@@ -54,6 +54,7 @@ import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.CompletedBatchOperation;
 import org.onosproject.net.flow.DefaultFlowEntry;
+import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowEntry.FlowEntryState;
 import org.onosproject.net.flow.FlowRule;
@@ -518,7 +519,9 @@ public class ECFlowRuleStore
                         return flowTable.update(op.target(), stored -> {
                             stored.setState(FlowEntryState.PENDING_REMOVE);
                             log.debug("Setting state of rule to pending remove: {}", stored);
-                            return op;
+                            // Using the stored value instead of op to allow the removal
+                            // of flows that do not specify actions or have empty treatment
+                            return new FlowRuleBatchEntry(op.operator(), new DefaultFlowRule(stored));
                         });
                     default:
                         log.warn("Unknown flow operation operator: {}", op.operator());
