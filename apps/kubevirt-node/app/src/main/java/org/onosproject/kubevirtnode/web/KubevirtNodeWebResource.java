@@ -19,6 +19,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
+import org.onosproject.kubevirtnode.api.KubevirtApiConfig;
+import org.onosproject.kubevirtnode.api.KubevirtApiConfigService;
 import org.onosproject.kubevirtnode.api.KubevirtNode;
 import org.onosproject.kubevirtnode.api.KubevirtNodeAdminService;
 import org.onosproject.kubevirtnode.api.KubevirtNodeState;
@@ -68,6 +70,9 @@ public class KubevirtNodeWebResource extends AbstractWebResource {
     private static final String QUERY = "QUERY";
     private static final String NOT_EXIST = "Not exist";
     private static final String STATE = "State";
+    private static final String API_CONFIG = "apiConfig";
+    private static final String OK = "ok";
+    private static final String ERROR = "error";
     private static final String RESULT = "Result";
 
     private static final long SLEEP_MS = 5000; // we wait 5s for init each node
@@ -266,6 +271,25 @@ public class KubevirtNodeWebResource extends AbstractWebResource {
 
         service.completeNodes(WORKER).forEach(this::syncRulesBase);
         return ok(mapper().createObjectNode()).build();
+    }
+
+    /**
+     * Returns the health check result.
+     *
+     * @return 200 OK with health check result, 404 not found
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("healthz")
+    public Response healthz() {
+        KubevirtApiConfigService configService = get(KubevirtApiConfigService.class);
+        KubevirtApiConfig config = configService.apiConfig();
+
+        // TODO: we need to add more health check items
+        ObjectNode jsonResult = mapper().createObjectNode();
+        String result = config != null ? OK : ERROR;
+        jsonResult.put(API_CONFIG, result);
+        return ok(jsonResult).build();
     }
 
     private void syncRulesBase(KubevirtNode node) {
