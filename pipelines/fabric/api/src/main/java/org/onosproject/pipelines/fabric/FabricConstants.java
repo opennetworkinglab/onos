@@ -378,6 +378,8 @@ public final class FabricConstants {
     // Packet Metadata IDs
     public static final PiPacketMetadataId INGRESS_PORT =
             PiPacketMetadataId.of("ingress_port");
+    public static final PiPacketMetadataId DO_FORWARDING =
+            PiPacketMetadataId.of("do_forwarding");
     public static final PiPacketMetadataId EGRESS_PORT =
             PiPacketMetadataId.of("egress_port");
     // Meter IDs

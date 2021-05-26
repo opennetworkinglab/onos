@@ -90,7 +90,6 @@ control DecapGtpu(inout parsed_headers_t hdr,
             (false, true,  false) : decap_inner_udp();
             (false, false, true)  : decap_inner_icmp();
         }
-        size = 4;
     }
     apply {
         decap_gtpu.apply();
@@ -105,7 +104,7 @@ control SpgwIngress(inout parsed_headers_t hdr,
     //=============================//
     //===== Misc Things ======//
     //=============================//
-    
+
     counter(MAX_PDR_COUNTERS, CounterType.packets_and_bytes) pdr_counter;
 
     DecapGtpu() decap_gtpu_from_dbuf;
@@ -158,7 +157,7 @@ control SpgwIngress(inout parsed_headers_t hdr,
                         bit<1>       needs_gtpu_decap,
                         qid_t        qid) {
         load_pdr(ctr_id, far_id, needs_gtpu_decap);
-        // we cannot set the qid, since bmv2 does not support it   
+        // we cannot set the qid, since bmv2 does not support it
     }
 
     // These two tables scale well and cover the average case PDR
@@ -267,7 +266,7 @@ control SpgwIngress(inout parsed_headers_t hdr,
             }
 
             // GTPU Decapsulate
-            if (fabric_md.spgw.needs_gtpu_decap == _TRUE) { 
+            if (fabric_md.spgw.needs_gtpu_decap == _TRUE) {
                 decap_gtpu.apply(hdr, fabric_md);
             }
 
@@ -315,7 +314,7 @@ control SpgwEgress(
         hdr.gtpu_ipv4.hdr_checksum = 0; // Updated later
 
         hdr.gtpu_udp.setValid();
-        hdr.gtpu_udp.sport = fabric_md.spgw.tunnel_src_port; 
+        hdr.gtpu_udp.sport = fabric_md.spgw.tunnel_src_port;
         hdr.gtpu_udp.dport = UDP_PORT_GTPU;
         hdr.gtpu_udp.len = fabric_md.spgw.ipv4_len
                 + (UDP_HDR_SIZE + GTP_HDR_SIZE);

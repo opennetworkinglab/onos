@@ -38,7 +38,13 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.onosproject.net.flow.instructions.Instruction.Type.OUTPUT;
-import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.*;
+import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.ETH_DST;
+import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.ETH_SRC;
+import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.MPLS_LABEL;
+import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.MPLS_PUSH;
+import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.VLAN_ID;
+import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.VLAN_POP;
+import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.VLAN_PUSH;
 import static org.onosproject.pipelines.fabric.impl.behaviour.FabricUtils.instruction;
 import static org.onosproject.pipelines.fabric.impl.behaviour.FabricUtils.l2Instruction;
 import static org.onosproject.pipelines.fabric.impl.behaviour.FabricUtils.l2Instructions;

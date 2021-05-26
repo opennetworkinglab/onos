@@ -17,16 +17,26 @@
 package org.onosproject.pipelines.fabric.impl.behaviour.pipeliner;
 
 import com.google.common.collect.ImmutableList;
+import org.onlab.packet.Ethernet;
 import org.onlab.util.KryoNamespace;
 import org.onlab.util.SharedExecutors;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.NextGroup;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.behaviour.PipelinerContext;
+import org.onosproject.net.flow.DefaultFlowRule;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.criteria.Criteria;
+import org.onosproject.net.flow.criteria.PiCriterion;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveStore;
 import org.onosproject.net.flowobjective.ForwardingObjective;
@@ -37,6 +47,10 @@ import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.group.GroupService;
+import org.onosproject.net.pi.runtime.PiAction;
+import org.onosproject.net.pi.runtime.PiActionParam;
+import org.onosproject.pipelines.fabric.FabricConstants;
+import org.onosproject.pipelines.fabric.impl.FabricPipeconfLoader;
 import org.onosproject.pipelines.fabric.impl.behaviour.AbstractFabricHandlerBehavior;
 import org.onosproject.pipelines.fabric.impl.behaviour.FabricCapabilities;
 import org.onosproject.store.serializers.KryoNamespaces;
@@ -51,7 +65,10 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.onosproject.net.flowobjective.NextObjective.Type.SIMPLE;
+import static org.onosproject.pipelines.fabric.impl.behaviour.FabricInterpreter.ONE;
+import static org.onosproject.pipelines.fabric.impl.behaviour.FabricInterpreter.ZERO;
 import static org.onosproject.pipelines.fabric.impl.behaviour.FabricUtils.outputPort;
+import static org.onosproject.pipelines.fabric.impl.behaviour.pipeliner.FilteringObjectiveTranslator.FWD_IPV4_ROUTING;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -63,6 +80,8 @@ public class FabricPipeliner extends AbstractFabricHandlerBehavior
         implements Pipeliner {
 
     private static final Logger log = getLogger(FabricPipeliner.class);
+    private static final int DEFAULT_FLOW_PRIORITY = 100;
+    public static final int DEFAULT_VLAN = 4094;
 
     protected static final KryoNamespace KRYO = new KryoNamespace.Builder()
             .register(KryoNamespaces.API)
@@ -70,9 +89,11 @@ public class FabricPipeliner extends AbstractFabricHandlerBehavior
             .build("FabricPipeliner");
 
     protected DeviceId deviceId;
+    protected ApplicationId appId;
     protected FlowRuleService flowRuleService;
     protected GroupService groupService;
     protected FlowObjectiveStore flowObjectiveStore;
+    protected CoreService coreService;
 
     private FilteringObjectiveTranslator filteringTranslator;
     private ForwardingObjectiveTranslator forwardingTranslator;
@@ -106,6 +127,17 @@ public class FabricPipeliner extends AbstractFabricHandlerBehavior
         this.filteringTranslator = new FilteringObjectiveTranslator(deviceId, capabilities);
         this.forwardingTranslator = new ForwardingObjectiveTranslator(deviceId, capabilities);
         this.nextTranslator = new NextObjectiveTranslator(deviceId, capabilities);
+        this.coreService = context.directory().get(CoreService.class);
+        this.appId = coreService.getAppId(FabricPipeconfLoader.PIPELINE_APP_NAME);
+    }
+
+    protected void initializePipeline() {
+        // Set up rules for packet-out forwarding. We support only IPv4 routing.
+        final int cpuPort = capabilities.cpuPort().get();
+        flowRuleService.applyFlowRules(
+                ingressVlanRule(cpuPort, false, DEFAULT_VLAN),
+                fwdClassifierRule(cpuPort, null, Ethernet.TYPE_IPV4, FWD_IPV4_ROUTING,
+                        DEFAULT_FLOW_PRIORITY));
     }
 
     @Override
@@ -268,7 +300,7 @@ public class FabricPipeliner extends AbstractFabricHandlerBehavior
     private void removeNextGroup(NextObjective obj) {
         final NextGroup removed = flowObjectiveStore.removeNextGroup(obj.id());
         if (removed == null) {
-            log.debug("NextGroup {} was not found in FlowObjectiveStore");
+            log.debug("NextGroup {} was not found in FlowObjectiveStore", obj);
         }
     }
 
@@ -294,6 +326,57 @@ public class FabricPipeliner extends AbstractFabricHandlerBehavior
                 log.warn("Unknown NextTreatment type '{}'", n.type());
                 return "???";
         }
+    }
+
+    public FlowRule ingressVlanRule(long port, boolean vlanValid, int vlanId) {
+        final TrafficSelector selector = DefaultTrafficSelector.builder()
+                .add(Criteria.matchInPort(PortNumber.portNumber(port)))
+                .add(PiCriterion.builder()
+                        .matchExact(FabricConstants.HDR_VLAN_IS_VALID, vlanValid ? ONE : ZERO)
+                        .build())
+                .build();
+        final TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .piTableAction(PiAction.builder()
+                        .withId(vlanValid ? FabricConstants.FABRIC_INGRESS_FILTERING_PERMIT
+                                : FabricConstants.FABRIC_INGRESS_FILTERING_PERMIT_WITH_INTERNAL_VLAN)
+                        .withParameter(new PiActionParam(FabricConstants.VLAN_ID, vlanId))
+                        .build())
+                .build();
+        return DefaultFlowRule.builder()
+                .withSelector(selector)
+                .withTreatment(treatment)
+                .forTable(FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN)
+                .makePermanent()
+                .withPriority(DEFAULT_FLOW_PRIORITY)
+                .forDevice(deviceId)
+                .fromApp(appId)
+                .build();
+    }
+
+    public FlowRule fwdClassifierRule(int port, Short ethType, short ipEthType, byte fwdType, int priority) {
+        final TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder()
+                .matchInPort(PortNumber.portNumber(port))
+                .matchPi(PiCriterion.builder()
+                        .matchExact(FabricConstants.HDR_IP_ETH_TYPE, ipEthType)
+                        .build());
+        if (ethType != null) {
+            selectorBuilder.matchEthType(ethType);
+        }
+        final TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .piTableAction(PiAction.builder()
+                        .withId(FabricConstants.FABRIC_INGRESS_FILTERING_SET_FORWARDING_TYPE)
+                        .withParameter(new PiActionParam(FabricConstants.FWD_TYPE, fwdType))
+                        .build())
+                .build();
+        return DefaultFlowRule.builder()
+                .withSelector(selectorBuilder.build())
+                .withTreatment(treatment)
+                .forTable(FabricConstants.FABRIC_INGRESS_FILTERING_FWD_CLASSIFIER)
+                .makePermanent()
+                .withPriority(priority)
+                .forDevice(deviceId)
+                .fromApp(appId)
+                .build();
     }
 
     /**

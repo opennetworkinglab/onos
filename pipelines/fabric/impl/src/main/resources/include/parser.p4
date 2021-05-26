@@ -28,13 +28,28 @@ parser FabricParser (packet_in packet,
 
     state start {
         transition select(standard_metadata.ingress_port) {
-            CPU_PORT: parse_packet_out;
+            CPU_PORT: check_packet_out;
             default: parse_ethernet;
         }
     }
 
-    state parse_packet_out {
+    state check_packet_out {
+        packet_out_header_t tmp = packet.lookahead<packet_out_header_t>();
+        transition select(tmp.do_forwarding) {
+            0: parse_packet_out_and_accept;
+            default: strip_packet_out;
+        }
+    }
+
+    state parse_packet_out_and_accept {
+        // Will transmit over requested egress port as-is. No need to parse further.
         packet.extract(hdr.packet_out);
+        transition accept;
+    }
+
+    state strip_packet_out {
+        // Remove packet-out header and process as a regular packet.
+        packet.advance(PACKET_OUT_HDR_SIZE * 8);
         transition parse_ethernet;
     }
 

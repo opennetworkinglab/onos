@@ -53,6 +53,7 @@ import static java.util.stream.Collectors.toList;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
 import static org.onosproject.net.PortNumber.CONTROLLER;
 import static org.onosproject.net.PortNumber.FLOOD;
+import static org.onosproject.net.PortNumber.TABLE;
 import static org.onosproject.net.flow.instructions.Instruction.Type.OUTPUT;
 import static org.onosproject.net.pi.model.PiPacketOperationType.PACKET_OUT;
 
@@ -63,6 +64,8 @@ public class FabricInterpreter extends AbstractFabricHandlerBehavior
         implements PiPipelineInterpreter {
 
     private static final int PORT_BITWIDTH = 9;
+    public static final byte[] ONE = new byte[]{1};
+    public static final byte[] ZERO = new byte[]{0};
 
     // Group tables by control block.
     private static final Set<PiTableId> FILTERING_CTRL_TBLS = ImmutableSet.of(
@@ -180,23 +183,30 @@ public class FabricInterpreter extends AbstractFabricHandlerBehavior
     }
 
     private PiPacketOperation createPiPacketOperation(
-            DeviceId deviceId, ByteBuffer data, long portNumber)
+            ByteBuffer data, long portNumber, boolean doForwarding)
             throws PiInterpreterException {
-        PiPacketMetadata metadata = createPacketMetadata(portNumber);
         return PiPacketOperation.builder()
                 .withType(PACKET_OUT)
                 .withData(copyFrom(data))
-                .withMetadatas(ImmutableList.of(metadata))
+                .withMetadatas(createPacketMetadata(portNumber, doForwarding))
                 .build();
     }
 
-    private PiPacketMetadata createPacketMetadata(long portNumber)
+    private Collection<PiPacketMetadata> createPacketMetadata(
+            long portNumber, boolean doForwarding)
             throws PiInterpreterException {
         try {
-            return PiPacketMetadata.builder()
+            ImmutableList.Builder<PiPacketMetadata> builder = ImmutableList.builder();
+            builder.add(PiPacketMetadata.builder()
                     .withId(FabricConstants.EGRESS_PORT)
-                    .withValue(copyFrom(portNumber).fit(PORT_BITWIDTH))
-                    .build();
+                    .withValue(copyFrom(portNumber)
+                            .fit(PORT_BITWIDTH))
+                    .build());
+            builder.add(PiPacketMetadata.builder()
+                    .withId(FabricConstants.DO_FORWARDING)
+                    .withValue(copyFrom(doForwarding ? ONE : ZERO))
+                    .build());
+            return builder.build();
         } catch (ImmutableByteSequence.ByteSequenceTrimException e) {
             throw new PiInterpreterException(format(
                     "Port number '%d' too big, %s", portNumber, e.getMessage()));
@@ -224,18 +234,21 @@ public class FabricInterpreter extends AbstractFabricHandlerBehavior
 
         ImmutableList.Builder<PiPacketOperation> builder = ImmutableList.builder();
         for (Instructions.OutputInstruction outInst : outInstructions) {
-            if (outInst.port().isLogical() && !outInst.port().equals(FLOOD)) {
-                throw new PiInterpreterException(format(
-                        "Output on logical port '%s' not supported", outInst.port()));
+            if (outInst.port().equals(TABLE)) {
+                // Logical port. Forward using the switch tables like a regular packet.
+                builder.add(createPiPacketOperation(packet.data(), 0, true));
             } else if (outInst.port().equals(FLOOD)) {
-                // Since fabric.p4 does not support flooding, we create a packet
-                // operation for each switch port.
+                // Logical port. Create a packet operation for each switch port.
                 final DeviceService deviceService = handler().get(DeviceService.class);
                 for (Port port : deviceService.getPorts(packet.sendThrough())) {
-                    builder.add(createPiPacketOperation(deviceId, packet.data(), port.number().toLong()));
+                    builder.add(createPiPacketOperation(packet.data(), port.number().toLong(), false));
                 }
+            } else if (outInst.port().isLogical()) {
+                throw new PiInterpreterException(format(
+                        "Output on logical port '%s' not supported", outInst.port()));
             } else {
-                builder.add(createPiPacketOperation(deviceId, packet.data(), outInst.port().toLong()));
+                // Send as-is to given port bypassing all switch tables.
+                builder.add(createPiPacketOperation(packet.data(), outInst.port().toLong(), false));
             }
         }
         return builder.build();

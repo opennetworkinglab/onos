@@ -23,12 +23,21 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onlab.util.ImmutableByteSequence;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.packet.DefaultOutboundPacket;
+import org.onosproject.net.packet.OutboundPacket;
+import org.onosproject.net.pi.model.PiPacketOperationType;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionParam;
+import org.onosproject.net.pi.runtime.PiPacketMetadata;
+import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.onosproject.pipelines.fabric.FabricConstants;
+
+import java.nio.ByteBuffer;
+import java.util.Collection;
 
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
@@ -44,6 +53,8 @@ public class FabricInterpreterTest {
     private static final MacAddress SRC_MAC = MacAddress.valueOf("00:00:00:00:00:01");
     private static final MacAddress DST_MAC = MacAddress.valueOf("00:00:00:00:00:02");
     private static final MplsLabel MPLS_10 = MplsLabel.mplsLabel(10);
+    private static final DeviceId DEVICE_ID = DeviceId.deviceId("device:1");
+    private static final int PORT_BITWIDTH = 9;
 
     private FabricInterpreter interpreter;
 
@@ -210,5 +221,70 @@ public class FabricInterpreterTest {
                 .withParameter(vlanParam)
                 .build();
         assertEquals(expectedAction, mappedAction);
+    }
+
+    @Test
+    public void testMapOutboundPacketWithoutForwarding()
+            throws Exception {
+        PortNumber outputPort = PortNumber.portNumber(1);
+        TrafficTreatment outputTreatment = DefaultTrafficTreatment.builder()
+                .setOutput(outputPort)
+                .build();
+        ByteBuffer data = ByteBuffer.allocate(64);
+        OutboundPacket outPkt = new DefaultOutboundPacket(DEVICE_ID, outputTreatment, data);
+        Collection<PiPacketOperation> result = interpreter.mapOutboundPacket(outPkt);
+        assertEquals(result.size(), 1);
+
+        ImmutableList.Builder<PiPacketMetadata> builder = ImmutableList.builder();
+        builder.add(PiPacketMetadata.builder()
+                .withId(FabricConstants.EGRESS_PORT)
+                .withValue(ImmutableByteSequence.copyFrom(outputPort.toLong())
+                        .fit(PORT_BITWIDTH))
+                .build());
+        builder.add(PiPacketMetadata.builder()
+                .withId(FabricConstants.DO_FORWARDING)
+                .withValue(ImmutableByteSequence.copyFrom(0).fit(1))
+                .build());
+
+        PiPacketOperation expectedPktOp = PiPacketOperation.builder()
+                .withType(PiPacketOperationType.PACKET_OUT)
+                .withData(ImmutableByteSequence.copyFrom(data))
+                .withMetadatas(builder.build())
+                .build();
+
+        assertEquals(expectedPktOp, result.iterator().next());
+    }
+
+    @Test
+    public void testMapOutboundPacketWithForwarding()
+            throws Exception {
+        PortNumber outputPort = PortNumber.TABLE;
+        TrafficTreatment outputTreatment = DefaultTrafficTreatment.builder()
+                .setOutput(outputPort)
+                .build();
+        ByteBuffer data = ByteBuffer.allocate(64);
+        OutboundPacket outPkt = new DefaultOutboundPacket(DEVICE_ID, outputTreatment, data);
+        Collection<PiPacketOperation> result = interpreter.mapOutboundPacket(outPkt);
+        assertEquals(result.size(), 1);
+
+        ImmutableList.Builder<PiPacketMetadata> builder = ImmutableList.builder();
+        builder.add(PiPacketMetadata.builder()
+                .withId(FabricConstants.EGRESS_PORT)
+                .withValue(ImmutableByteSequence.copyFrom(0)
+                        .fit(PORT_BITWIDTH))
+                .build());
+        builder.add(PiPacketMetadata.builder()
+                .withId(FabricConstants.DO_FORWARDING)
+                .withValue(ImmutableByteSequence.copyFrom(1)
+                        .fit(1))
+                .build());
+
+        PiPacketOperation expectedPktOp = PiPacketOperation.builder()
+                .withType(PiPacketOperationType.PACKET_OUT)
+                .withData(ImmutableByteSequence.copyFrom(data))
+                .withMetadatas(builder.build())
+                .build();
+
+        assertEquals(expectedPktOp, result.iterator().next());
     }
 }
