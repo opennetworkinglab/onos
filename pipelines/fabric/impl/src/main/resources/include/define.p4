@@ -67,6 +67,7 @@
 #define IP_VERSION_6 6
 #endif
 
+#define PACKET_OUT_HDR_SIZE 2
 #define ETH_HDR_SIZE 14
 #define IPV4_HDR_SIZE 20
 #define UDP_HDR_SIZE 8

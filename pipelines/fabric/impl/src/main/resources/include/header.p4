@@ -30,7 +30,8 @@ _PKT_OUT_HDR_ANNOT
 @controller_header("packet_out")
 header packet_out_header_t {
     port_num_t egress_port;
-    bit<7> _pad;
+    bit<1> do_forwarding;
+    bit<6> _pad;
 }
 
 header ethernet_t {

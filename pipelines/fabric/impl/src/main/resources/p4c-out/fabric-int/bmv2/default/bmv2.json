@@ -4,52 +4,60 @@
       "name" : "scalars_0",
       "id" : 0,
       "fields" : [
+        ["tmp_0", 1, false],
         ["last_ipv4_dscp_0", 6, false],
-        ["tmp", 16, false],
-        ["tmp_0", 16, false],
-        ["tmp_1", 4, false],
+        ["tmp_1", 16, false],
+        ["tmp_3", 16, false],
+        ["tmp_5", 4, false],
+        ["tmp_6", 16, false],
         ["tmp_2", 32, false],
-        ["tmp_3", 32, false],
+        ["tmp_4", 32, false],
         ["process_int_main_process_int_transit_hasReturned", 1, false],
-        ["fabric_metadata_t._ip_eth_type0", 16, false],
-        ["fabric_metadata_t._vlan_id1", 12, false],
-        ["fabric_metadata_t._vlan_pri2", 3, false],
-        ["fabric_metadata_t._vlan_cfi3", 1, false],
-        ["fabric_metadata_t._mpls_label4", 20, false],
-        ["fabric_metadata_t._mpls_ttl5", 8, false],
-        ["fabric_metadata_t._skip_forwarding6", 1, false],
-        ["fabric_metadata_t._skip_next7", 1, false],
-        ["fabric_metadata_t._fwd_type8", 3, false],
-        ["fabric_metadata_t._next_id9", 32, false],
-        ["fabric_metadata_t._is_multicast10", 1, false],
-        ["fabric_metadata_t._is_controller_packet_out11", 1, false],
-        ["fabric_metadata_t._ip_proto12", 8, false],
-        ["fabric_metadata_t._l4_sport13", 16, false],
-        ["fabric_metadata_t._l4_dport14", 16, false],
-        ["fabric_metadata_t._ipv4_src_addr15", 32, false],
-        ["fabric_metadata_t._ipv4_dst_addr16", 32, false],
-        ["fabric_metadata_t._int_meta_source17", 1, false],
-        ["fabric_metadata_t._int_meta_transit18", 1, false],
-        ["fabric_metadata_t._int_meta_sink19", 1, false],
-        ["fabric_metadata_t._int_meta_switch_id20", 32, false],
-        ["fabric_metadata_t._int_meta_new_words21", 8, false],
-        ["fabric_metadata_t._int_meta_new_bytes22", 16, false],
-        ["fabric_metadata_t._int_meta_ig_tstamp23", 32, false],
-        ["fabric_metadata_t._int_meta_eg_tstamp24", 32, false],
-        ["_padding_0", 7, false]
+        ["userMetadata._ip_eth_type0", 16, false],
+        ["userMetadata._vlan_id1", 12, false],
+        ["userMetadata._vlan_pri2", 3, false],
+        ["userMetadata._vlan_cfi3", 1, false],
+        ["userMetadata._mpls_label4", 20, false],
+        ["userMetadata._mpls_ttl5", 8, false],
+        ["userMetadata._skip_forwarding6", 1, false],
+        ["userMetadata._skip_next7", 1, false],
+        ["userMetadata._fwd_type8", 3, false],
+        ["userMetadata._next_id9", 32, false],
+        ["userMetadata._is_multicast10", 1, false],
+        ["userMetadata._is_controller_packet_out11", 1, false],
+        ["userMetadata._ip_proto12", 8, false],
+        ["userMetadata._l4_sport13", 16, false],
+        ["userMetadata._l4_dport14", 16, false],
+        ["userMetadata._ipv4_src_addr15", 32, false],
+        ["userMetadata._ipv4_dst_addr16", 32, false],
+        ["userMetadata._int_meta_source17", 1, false],
+        ["userMetadata._int_meta_transit18", 1, false],
+        ["userMetadata._int_meta_sink19", 1, false],
+        ["userMetadata._int_meta_switch_id20", 32, false],
+        ["userMetadata._int_meta_new_words21", 8, false],
+        ["userMetadata._int_meta_new_bytes22", 16, false],
+        ["userMetadata._int_meta_ig_tstamp23", 32, false],
+        ["userMetadata._int_meta_eg_tstamp24", 32, false],
+        ["_padding_0", 6, false]
+      ]
+    },
+    {
+      "name" : "packet_out_header_t",
+      "id" : 1,
+      "fields" : [
+        ["egress_port", 9, false],
+        ["do_forwarding", 1, false],
+        ["_pad", 6, false]
       ]
     },
     {
       "name" : "standard_metadata",
-      "id" : 1,
+      "id" : 2,
       "fields" : [
         ["ingress_port", 9, false],
         ["egress_spec", 9, false],
         ["egress_port", 9, false],
-        ["clone_spec", 32, false],
         ["instance_type", 32, false],
-        ["drop", 1, false],
-        ["recirculate_port", 16, false],
         ["packet_length", 32, false],
         ["enq_timestamp", 32, false],
         ["enq_qdepth", 19, false],
@@ -57,20 +65,17 @@
         ["deq_qdepth", 19, false],
         ["ingress_global_timestamp", 48, false],
         ["egress_global_timestamp", 48, false],
-        ["lf_field_list", 32, false],
         ["mcast_grp", 16, false],
-        ["resubmit_flag", 32, false],
         ["egress_rid", 16, false],
-        ["recirculate_flag", 32, false],
         ["checksum_error", 1, false],
         ["parser_error", 32, false],
         ["priority", 3, false],
-        ["_padding", 2, false]
+        ["_padding", 3, false]
       ]
     },
     {
       "name" : "ethernet_t",
-      "id" : 2,
+      "id" : 3,
       "fields" : [
         ["dst_addr", 48, false],
         ["src_addr", 48, false]
@@ -78,7 +83,7 @@
     },
     {
       "name" : "vlan_tag_t",
-      "id" : 3,
+      "id" : 4,
       "fields" : [
         ["eth_type", 16, false],
         ["pri", 3, false],
@@ -88,14 +93,14 @@
     },
     {
       "name" : "eth_type_t",
-      "id" : 4,
+      "id" : 5,
       "fields" : [
         ["value", 16, false]
       ]
     },
     {
       "name" : "mpls_t",
-      "id" : 5,
+      "id" : 6,
       "fields" : [
         ["label", 20, false],
         ["tc", 3, false],
@@ -105,7 +110,7 @@
     },
     {
       "name" : "ipv4_t",
-      "id" : 6,
+      "id" : 7,
       "fields" : [
         ["version", 4, false],
         ["ihl", 4, false],
@@ -124,7 +129,7 @@
     },
     {
       "name" : "tcp_t",
-      "id" : 7,
+      "id" : 8,
       "fields" : [
         ["sport", 16, false],
         ["dport", 16, false],
@@ -141,7 +146,7 @@
     },
     {
       "name" : "udp_t",
-      "id" : 8,
+      "id" : 9,
       "fields" : [
         ["sport", 16, false],
         ["dport", 16, false],
@@ -151,7 +156,7 @@
     },
     {
       "name" : "icmp_t",
-      "id" : 9,
+      "id" : 10,
       "fields" : [
         ["icmp_type", 8, false],
         ["icmp_code", 8, false],
@@ -159,14 +164,6 @@
         ["identifier", 16, false],
         ["sequence_number", 16, false],
         ["timestamp", 64, false]
-      ]
-    },
-    {
-      "name" : "packet_out_header_t",
-      "id" : 10,
-      "fields" : [
-        ["egress_port", 9, false],
-        ["_pad", 7, false]
       ]
     },
     {
@@ -278,169 +275,176 @@
   ],
   "headers" : [
     {
-      "name" : "scalars",
+      "name" : "tmp",
       "id" : 0,
+      "header_type" : "packet_out_header_t",
+      "metadata" : false,
+      "pi_omit" : true
+    },
+    {
+      "name" : "scalars",
+      "id" : 1,
       "header_type" : "scalars_0",
       "metadata" : true,
       "pi_omit" : true
     },
     {
       "name" : "standard_metadata",
-      "id" : 1,
+      "id" : 2,
       "header_type" : "standard_metadata",
       "metadata" : true,
       "pi_omit" : true
     },
     {
       "name" : "ethernet",
-      "id" : 2,
+      "id" : 3,
       "header_type" : "ethernet_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "vlan_tag",
-      "id" : 3,
-      "header_type" : "vlan_tag_t",
-      "metadata" : false,
-      "pi_omit" : true
-    },
-    {
-      "name" : "inner_vlan_tag",
       "id" : 4,
       "header_type" : "vlan_tag_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
-      "name" : "eth_type",
+      "name" : "inner_vlan_tag",
       "id" : 5,
+      "header_type" : "vlan_tag_t",
+      "metadata" : false,
+      "pi_omit" : true
+    },
+    {
+      "name" : "eth_type",
+      "id" : 6,
       "header_type" : "eth_type_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "mpls",
-      "id" : 6,
+      "id" : 7,
       "header_type" : "mpls_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "ipv4",
-      "id" : 7,
+      "id" : 8,
       "header_type" : "ipv4_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "tcp",
-      "id" : 8,
+      "id" : 9,
       "header_type" : "tcp_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "udp",
-      "id" : 9,
+      "id" : 10,
       "header_type" : "udp_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "icmp",
-      "id" : 10,
+      "id" : 11,
       "header_type" : "icmp_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "packet_out",
-      "id" : 11,
+      "id" : 12,
       "header_type" : "packet_out_header_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "packet_in",
-      "id" : 12,
+      "id" : 13,
       "header_type" : "packet_in_header_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "intl4_shim",
-      "id" : 13,
+      "id" : 14,
       "header_type" : "intl4_shim_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "int_header",
-      "id" : 14,
+      "id" : 15,
       "header_type" : "int_header_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "int_switch_id",
-      "id" : 15,
+      "id" : 16,
       "header_type" : "int_switch_id_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "int_port_ids",
-      "id" : 16,
+      "id" : 17,
       "header_type" : "int_port_ids_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "int_hop_latency",
-      "id" : 17,
+      "id" : 18,
       "header_type" : "int_hop_latency_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "int_q_occupancy",
-      "id" : 18,
+      "id" : 19,
       "header_type" : "int_q_occupancy_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "int_ingress_tstamp",
-      "id" : 19,
+      "id" : 20,
       "header_type" : "int_ingress_tstamp_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "int_egress_tstamp",
-      "id" : 20,
+      "id" : 21,
       "header_type" : "int_egress_tstamp_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "int_q_congestion",
-      "id" : 21,
+      "id" : 22,
       "header_type" : "int_q_congestion_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "int_egress_tx_util",
-      "id" : 22,
+      "id" : 23,
       "header_type" : "int_egress_port_tx_util_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "intl4_tail",
-      "id" : 23,
+      "id" : 24,
       "header_type" : "intl4_tail_t",
       "metadata" : false,
       "pi_omit" : true
@@ -493,10 +497,11 @@
               "type" : "hexstr",
               "value" : "0x00ff",
               "mask" : null,
-              "next_state" : "parse_packet_out"
+              "next_state" : "check_packet_out"
             },
             {
-              "value" : "default",
+              "type" : "default",
+              "value" : null,
               "mask" : null,
               "next_state" : "parse_ethernet"
             }
@@ -509,8 +514,225 @@
           ]
         },
         {
-          "name" : "parse_packet_out",
+          "name" : "check_packet_out",
           "id" : 1,
+          "parser_ops" : [
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["scalars", "tmp_6"]
+                },
+                {
+                  "type" : "lookahead",
+                  "value" : [0, 16]
+                }
+              ],
+              "op" : "set"
+            },
+            {
+              "parameters" : [
+                {
+                  "parameters" : [
+                    {
+                      "type" : "header",
+                      "value" : "tmp"
+                    }
+                  ],
+                  "op" : "add_header"
+                }
+              ],
+              "op" : "primitive"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["tmp", "egress_port"]
+                },
+                {
+                  "type" : "expression",
+                  "value" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "&",
+                      "left" : {
+                        "type" : "expression",
+                        "value" : {
+                          "op" : "&",
+                          "left" : {
+                            "type" : "expression",
+                            "value" : {
+                              "op" : ">>",
+                              "left" : {
+                                "type" : "field",
+                                "value" : ["scalars", "tmp_6"]
+                              },
+                              "right" : {
+                                "type" : "hexstr",
+                                "value" : "0x7"
+                              }
+                            }
+                          },
+                          "right" : {
+                            "type" : "hexstr",
+                            "value" : "0xffff"
+                          }
+                        }
+                      },
+                      "right" : {
+                        "type" : "hexstr",
+                        "value" : "0x01ff"
+                      }
+                    }
+                  }
+                }
+              ],
+              "op" : "set"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["tmp", "do_forwarding"]
+                },
+                {
+                  "type" : "expression",
+                  "value" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "&",
+                      "left" : {
+                        "type" : "expression",
+                        "value" : {
+                          "op" : "&",
+                          "left" : {
+                            "type" : "expression",
+                            "value" : {
+                              "op" : ">>",
+                              "left" : {
+                                "type" : "field",
+                                "value" : ["scalars", "tmp_6"]
+                              },
+                              "right" : {
+                                "type" : "hexstr",
+                                "value" : "0x6"
+                              }
+                            }
+                          },
+                          "right" : {
+                            "type" : "hexstr",
+                            "value" : "0xffff"
+                          }
+                        }
+                      },
+                      "right" : {
+                        "type" : "hexstr",
+                        "value" : "0x01"
+                      }
+                    }
+                  }
+                }
+              ],
+              "op" : "set"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["tmp", "_pad"]
+                },
+                {
+                  "type" : "expression",
+                  "value" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "&",
+                      "left" : {
+                        "type" : "field",
+                        "value" : ["scalars", "tmp_6"]
+                      },
+                      "right" : {
+                        "type" : "hexstr",
+                        "value" : "0x3f"
+                      }
+                    }
+                  }
+                }
+              ],
+              "op" : "set"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["scalars", "tmp_0"]
+                },
+                {
+                  "type" : "expression",
+                  "value" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "&",
+                      "left" : {
+                        "type" : "expression",
+                        "value" : {
+                          "op" : "&",
+                          "left" : {
+                            "type" : "expression",
+                            "value" : {
+                              "op" : ">>",
+                              "left" : {
+                                "type" : "field",
+                                "value" : ["scalars", "tmp_6"]
+                              },
+                              "right" : {
+                                "type" : "hexstr",
+                                "value" : "0x6"
+                              }
+                            }
+                          },
+                          "right" : {
+                            "type" : "hexstr",
+                            "value" : "0xffff"
+                          }
+                        }
+                      },
+                      "right" : {
+                        "type" : "hexstr",
+                        "value" : "0x01"
+                      }
+                    }
+                  }
+                }
+              ],
+              "op" : "set"
+            }
+          ],
+          "transitions" : [
+            {
+              "type" : "hexstr",
+              "value" : "0x00",
+              "mask" : null,
+              "next_state" : "parse_packet_out_and_accept"
+            },
+            {
+              "type" : "default",
+              "value" : null,
+              "mask" : null,
+              "next_state" : "strip_packet_out"
+            }
+          ],
+          "transition_key" : [
+            {
+              "type" : "field",
+              "value" : ["scalars", "tmp_0"]
+            }
+          ]
+        },
+        {
+          "name" : "parse_packet_out_and_accept",
+          "id" : 2,
           "parser_ops" : [
             {
               "parameters" : [
@@ -524,7 +746,32 @@
           ],
           "transitions" : [
             {
-              "value" : "default",
+              "type" : "default",
+              "value" : null,
+              "mask" : null,
+              "next_state" : null
+            }
+          ],
+          "transition_key" : []
+        },
+        {
+          "name" : "strip_packet_out",
+          "id" : 3,
+          "parser_ops" : [
+            {
+              "parameters" : [
+                {
+                  "type" : "hexstr",
+                  "value" : "0x00000010"
+                }
+              ],
+              "op" : "advance"
+            }
+          ],
+          "transitions" : [
+            {
+              "type" : "default",
+              "value" : null,
               "mask" : null,
               "next_state" : "parse_ethernet"
             }
@@ -533,7 +780,7 @@
         },
         {
           "name" : "parse_ethernet",
-          "id" : 2,
+          "id" : 4,
           "parser_ops" : [
             {
               "parameters" : [
@@ -548,7 +795,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t._vlan_id1"]
+                  "value" : ["scalars", "userMetadata._vlan_id1"]
                 },
                 {
                   "type" : "hexstr",
@@ -561,7 +808,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "tmp"]
+                  "value" : ["scalars", "tmp_1"]
                 },
                 {
                   "type" : "lookahead",
@@ -591,7 +838,8 @@
               "next_state" : "parse_vlan_tag"
             },
             {
-              "value" : "default",
+              "type" : "default",
+              "value" : null,
               "mask" : null,
               "next_state" : "parse_eth_type"
             }
@@ -599,13 +847,13 @@
           "transition_key" : [
             {
               "type" : "field",
-              "value" : ["scalars", "tmp"]
+              "value" : ["scalars", "tmp_1"]
             }
           ]
         },
         {
           "name" : "parse_vlan_tag",
-          "id" : 3,
+          "id" : 5,
           "parser_ops" : [
             {
               "parameters" : [
@@ -620,7 +868,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "tmp_0"]
+                  "value" : ["scalars", "tmp_3"]
                 },
                 {
                   "type" : "lookahead",
@@ -638,7 +886,8 @@
               "next_state" : "parse_inner_vlan_tag"
             },
             {
-              "value" : "default",
+              "type" : "default",
+              "value" : null,
               "mask" : null,
               "next_state" : "parse_eth_type"
             }
@@ -646,13 +895,13 @@
           "transition_key" : [
             {
               "type" : "field",
-              "value" : ["scalars", "tmp_0"]
+              "value" : ["scalars", "tmp_3"]
             }
           ]
         },
         {
           "name" : "parse_inner_vlan_tag",
-          "id" : 4,
+          "id" : 6,
           "parser_ops" : [
             {
               "parameters" : [
@@ -666,7 +915,8 @@
           ],
           "transitions" : [
             {
-              "value" : "default",
+              "type" : "default",
+              "value" : null,
               "mask" : null,
               "next_state" : "parse_eth_type"
             }
@@ -675,7 +925,7 @@
         },
         {
           "name" : "parse_eth_type",
-          "id" : 5,
+          "id" : 7,
           "parser_ops" : [
             {
               "parameters" : [
@@ -701,7 +951,8 @@
               "next_state" : "parse_ipv4"
             },
             {
-              "value" : "default",
+              "type" : "default",
+              "value" : null,
               "mask" : null,
               "next_state" : null
             }
@@ -715,7 +966,7 @@
         },
         {
           "name" : "parse_mpls",
-          "id" : 6,
+          "id" : 8,
           "parser_ops" : [
             {
               "parameters" : [
@@ -730,7 +981,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t._mpls_label4"]
+                  "value" : ["scalars", "userMetadata._mpls_label4"]
                 },
                 {
                   "type" : "field",
@@ -743,7 +994,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t._mpls_ttl5"]
+                  "value" : ["scalars", "userMetadata._mpls_ttl5"]
                 },
                 {
                   "type" : "field",
@@ -756,7 +1007,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "tmp_1"]
+                  "value" : ["scalars", "tmp_5"]
                 },
                 {
                   "type" : "lookahead",
@@ -774,7 +1025,8 @@
               "next_state" : "parse_ipv4"
             },
             {
-              "value" : "default",
+              "type" : "default",
+              "value" : null,
               "mask" : null,
               "next_state" : "parse_ethernet"
             }
@@ -782,13 +1034,13 @@
           "transition_key" : [
             {
               "type" : "field",
-              "value" : ["scalars", "tmp_1"]
+              "value" : ["scalars", "tmp_5"]
             }
           ]
         },
         {
           "name" : "parse_ipv4",
-          "id" : 7,
+          "id" : 9,
           "parser_ops" : [
             {
               "parameters" : [
@@ -803,7 +1055,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t._ip_proto12"]
+                  "value" : ["scalars", "userMetadata._ip_proto12"]
                 },
                 {
                   "type" : "field",
@@ -816,7 +1068,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t._ip_eth_type0"]
+                  "value" : ["scalars", "userMetadata._ip_eth_type0"]
                 },
                 {
                   "type" : "hexstr",
@@ -829,7 +1081,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t._ipv4_src_addr15"]
+                  "value" : ["scalars", "userMetadata._ipv4_src_addr15"]
                 },
                 {
                   "type" : "field",
@@ -842,7 +1094,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t._ipv4_dst_addr16"]
+                  "value" : ["scalars", "userMetadata._ipv4_dst_addr16"]
                 },
                 {
                   "type" : "field",
@@ -885,7 +1137,8 @@
               "next_state" : "parse_icmp"
             },
             {
-              "value" : "default",
+              "type" : "default",
+              "value" : null,
               "mask" : null,
               "next_state" : null
             }
@@ -899,7 +1152,7 @@
         },
         {
           "name" : "parse_tcp",
-          "id" : 8,
+          "id" : 10,
           "parser_ops" : [
             {
               "parameters" : [
@@ -914,7 +1167,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t._l4_sport13"]
+                  "value" : ["scalars", "userMetadata._l4_sport13"]
                 },
                 {
                   "type" : "field",
@@ -927,7 +1180,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t._l4_dport14"]
+                  "value" : ["scalars", "userMetadata._l4_dport14"]
                 },
                 {
                   "type" : "field",
@@ -939,7 +1192,8 @@
           ],
           "transitions" : [
             {
-              "value" : "default",
+              "type" : "default",
+              "value" : null,
               "mask" : null,
               "next_state" : "parse_int"
             }
@@ -948,7 +1202,7 @@
         },
         {
           "name" : "parse_udp",
-          "id" : 9,
+          "id" : 11,
           "parser_ops" : [
             {
               "parameters" : [
@@ -963,7 +1217,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t._l4_sport13"]
+                  "value" : ["scalars", "userMetadata._l4_sport13"]
                 },
                 {
                   "type" : "field",
@@ -976,7 +1230,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t._l4_dport14"]
+                  "value" : ["scalars", "userMetadata._l4_dport14"]
                 },
                 {
                   "type" : "field",
@@ -988,7 +1242,8 @@
           ],
           "transitions" : [
             {
-              "value" : "default",
+              "type" : "default",
+              "value" : null,
               "mask" : null,
               "next_state" : "parse_int"
             }
@@ -1002,7 +1257,7 @@
         },
         {
           "name" : "parse_icmp",
-          "id" : 10,
+          "id" : 12,
           "parser_ops" : [
             {
               "parameters" : [
@@ -1016,7 +1271,8 @@
           ],
           "transitions" : [
             {
-              "value" : "default",
+              "type" : "default",
+              "value" : null,
               "mask" : null,
               "next_state" : null
             }
@@ -1025,7 +1281,7 @@
         },
         {
           "name" : "parse_int",
-          "id" : 11,
+          "id" : 13,
           "parser_ops" : [],
           "transitions" : [
             {
@@ -1035,7 +1291,8 @@
               "next_state" : "parse_intl4_shim"
             },
             {
-              "value" : "default",
+              "type" : "default",
+              "value" : null,
               "mask" : null,
               "next_state" : null
             }
@@ -1049,7 +1306,7 @@
         },
         {
           "name" : "parse_intl4_shim",
-          "id" : 12,
+          "id" : 14,
           "parser_ops" : [
             {
               "parameters" : [
@@ -1078,7 +1335,8 @@
               "next_state" : "parse_intl4_tail"
             },
             {
-              "value" : "default",
+              "type" : "default",
+              "value" : null,
               "mask" : null,
               "next_state" : "parse_int_data"
             }
@@ -1092,11 +1350,12 @@
         },
         {
           "name" : "parse_int_data",
-          "id" : 13,
+          "id" : 15,
           "parser_ops" : [],
           "transitions" : [
             {
-              "value" : "default",
+              "type" : "default",
+              "value" : null,
               "mask" : null,
               "next_state" : null
             }
@@ -1105,7 +1364,7 @@
         },
         {
           "name" : "parse_intl4_tail",
-          "id" : 14,
+          "id" : 16,
           "parser_ops" : [
             {
               "parameters" : [
@@ -1119,7 +1378,8 @@
           ],
           "transitions" : [
             {
-              "value" : "default",
+              "type" : "default",
+              "value" : null,
               "mask" : null,
               "next_state" : null
             }
@@ -1136,11 +1396,12 @@
       "id" : 0,
       "source_info" : {
         "filename" : "include/parser.p4",
-        "line" : 268,
+        "line" : 283,
         "column" : 8,
         "source_fragment" : "FabricDeparser"
       },
-      "order" : ["packet_in", "ethernet", "vlan_tag", "inner_vlan_tag", "eth_type", "mpls", "ipv4", "tcp", "udp", "icmp", "intl4_shim", "int_header", "int_switch_id", "int_port_ids", "int_hop_latency", "int_q_occupancy", "int_ingress_tstamp", "int_egress_tstamp", "int_q_congestion", "int_egress_tx_util", "intl4_tail"]
+      "order" : ["packet_in", "ethernet", "vlan_tag", "inner_vlan_tag", "eth_type", "mpls", "ipv4", "tcp", "udp", "icmp", "intl4_shim", "int_header", "int_switch_id", "int_port_ids", "int_hop_latency", "int_q_occupancy", "int_ingress_tstamp", "int_egress_tstamp", "int_q_congestion", "int_egress_tx_util", "intl4_tail"],
+      "primitives" : []
     }
   ],
   "meter_arrays" : [],
@@ -1499,7 +1760,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_source17"]
+              "value" : ["scalars", "userMetadata._int_meta_source17"]
             },
             {
               "type" : "expression",
@@ -1535,7 +1796,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._skip_forwarding6"]
+              "value" : ["scalars", "userMetadata._skip_forwarding6"]
             },
             {
               "type" : "expression",
@@ -1564,7 +1825,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._skip_next7"]
+              "value" : ["scalars", "userMetadata._skip_next7"]
             },
             {
               "type" : "expression",
@@ -1611,7 +1872,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._vlan_id1"]
+              "value" : ["scalars", "userMetadata._vlan_id1"]
             },
             {
               "type" : "runtime_data",
@@ -1642,7 +1903,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._fwd_type8"]
+              "value" : ["scalars", "userMetadata._fwd_type8"]
             },
             {
               "type" : "runtime_data",
@@ -1673,7 +1934,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._next_id9"]
+              "value" : ["scalars", "userMetadata._next_id9"]
             },
             {
               "type" : "runtime_data",
@@ -1704,7 +1965,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._mpls_label4"]
+              "value" : ["scalars", "userMetadata._mpls_label4"]
             },
             {
               "type" : "hexstr",
@@ -1723,7 +1984,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._next_id9"]
+              "value" : ["scalars", "userMetadata._next_id9"]
             },
             {
               "type" : "runtime_data",
@@ -1754,7 +2015,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._next_id9"]
+              "value" : ["scalars", "userMetadata._next_id9"]
             },
             {
               "type" : "runtime_data",
@@ -1791,7 +2052,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._next_id9"]
+              "value" : ["scalars", "userMetadata._next_id9"]
             },
             {
               "type" : "runtime_data",
@@ -1836,7 +2097,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._skip_next7"]
+              "value" : ["scalars", "userMetadata._skip_next7"]
             },
             {
               "type" : "expression",
@@ -1918,7 +2179,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._skip_next7"]
+              "value" : ["scalars", "userMetadata._skip_next7"]
             },
             {
               "type" : "expression",
@@ -1965,7 +2226,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._vlan_id1"]
+              "value" : ["scalars", "userMetadata._vlan_id1"]
             },
             {
               "type" : "runtime_data",
@@ -2027,7 +2288,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._next_id9"]
+              "value" : ["scalars", "userMetadata._next_id9"]
             },
             {
               "type" : "runtime_data",
@@ -2178,7 +2439,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._mpls_label4"]
+              "value" : ["scalars", "userMetadata._mpls_label4"]
             },
             {
               "type" : "runtime_data",
@@ -2285,7 +2546,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._is_multicast10"]
+              "value" : ["scalars", "userMetadata._is_multicast10"]
             },
             {
               "type" : "expression",
@@ -2312,7 +2573,7 @@
       ]
     },
     {
-      "name" : "act",
+      "name" : "packetio25",
       "id" : 29,
       "runtime_data" : [],
       "primitives" : [
@@ -2355,7 +2616,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._is_controller_packet_out11"]
+              "value" : ["scalars", "userMetadata._is_controller_packet_out11"]
             },
             {
               "type" : "expression",
@@ -2392,7 +2653,7 @@
       ]
     },
     {
-      "name" : "act_0",
+      "name" : "filtering111",
       "id" : 30,
       "runtime_data" : [],
       "primitives" : [
@@ -2401,7 +2662,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._vlan_id1"]
+              "value" : ["scalars", "userMetadata._vlan_id1"]
             },
             {
               "type" : "field",
@@ -2420,7 +2681,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._vlan_pri2"]
+              "value" : ["scalars", "userMetadata._vlan_pri2"]
             },
             {
               "type" : "field",
@@ -2439,7 +2700,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._vlan_cfi3"]
+              "value" : ["scalars", "userMetadata._vlan_cfi3"]
             },
             {
               "type" : "field",
@@ -2456,7 +2717,7 @@
       ]
     },
     {
-      "name" : "act_1",
+      "name" : "filtering127",
       "id" : 31,
       "runtime_data" : [],
       "primitives" : [
@@ -2465,7 +2726,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._mpls_ttl5"]
+              "value" : ["scalars", "userMetadata._mpls_ttl5"]
             },
             {
               "type" : "hexstr",
@@ -2482,7 +2743,7 @@
       ]
     },
     {
-      "name" : "act_2",
+      "name" : "port_counter31",
       "id" : 32,
       "runtime_data" : [],
       "primitives" : [
@@ -2540,7 +2801,7 @@
       ]
     },
     {
-      "name" : "act_3",
+      "name" : "port_counter34",
       "id" : 33,
       "runtime_data" : [],
       "primitives" : [
@@ -2549,7 +2810,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "tmp_3"]
+              "value" : ["scalars", "tmp_4"]
             },
             {
               "type" : "expression",
@@ -2585,7 +2846,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "tmp_3"]
+              "value" : ["scalars", "tmp_4"]
             }
           ],
           "source_info" : {
@@ -2691,7 +2952,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 156,
+            "line" : 157,
             "column" : 36,
             "source_fragment" : "4; ..."
           }
@@ -2982,7 +3243,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._l4_dport14"]
+              "value" : ["scalars", "userMetadata._l4_dport14"]
             }
           ],
           "source_info" : {
@@ -3109,7 +3370,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 152,
+            "line" : 153,
             "column" : 24,
             "source_fragment" : "0x1; ..."
           }
@@ -3131,7 +3392,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_transit18"]
+              "value" : ["scalars", "userMetadata._int_meta_transit18"]
             },
             {
               "type" : "expression",
@@ -3160,7 +3421,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id20"]
+              "value" : ["scalars", "userMetadata._int_meta_switch_id20"]
             },
             {
               "type" : "runtime_data",
@@ -3258,7 +3519,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+              "value" : ["scalars", "userMetadata._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -3272,7 +3533,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -3300,7 +3561,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+              "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -3314,7 +3575,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -3383,7 +3644,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+              "value" : ["scalars", "userMetadata._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -3397,7 +3658,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -3425,7 +3686,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+              "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -3439,7 +3700,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -3574,7 +3835,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+              "value" : ["scalars", "userMetadata._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -3588,7 +3849,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -3616,7 +3877,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+              "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -3630,7 +3891,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -3744,7 +4005,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+              "value" : ["scalars", "userMetadata._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -3758,7 +4019,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -3786,7 +4047,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+              "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -3800,7 +4061,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -3980,7 +4241,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+              "value" : ["scalars", "userMetadata._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -3994,7 +4255,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4022,7 +4283,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+              "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -4036,7 +4297,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4184,7 +4445,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+              "value" : ["scalars", "userMetadata._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -4198,7 +4459,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4226,7 +4487,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+              "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -4240,7 +4501,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4454,7 +4715,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+              "value" : ["scalars", "userMetadata._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -4468,7 +4729,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4496,7 +4757,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+              "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -4510,7 +4771,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4564,7 +4825,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id20"]
+              "value" : ["scalars", "userMetadata._int_meta_switch_id20"]
             }
           ],
           "source_info" : {
@@ -4579,7 +4840,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+              "value" : ["scalars", "userMetadata._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -4593,7 +4854,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4621,7 +4882,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+              "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -4635,7 +4896,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4755,7 +5016,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id20"]
+              "value" : ["scalars", "userMetadata._int_meta_switch_id20"]
             }
           ],
           "source_info" : {
@@ -4770,7 +5031,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+              "value" : ["scalars", "userMetadata._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -4784,7 +5045,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4812,7 +5073,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+              "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -4826,7 +5087,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4914,7 +5175,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id20"]
+              "value" : ["scalars", "userMetadata._int_meta_switch_id20"]
             }
           ],
           "source_info" : {
@@ -4929,7 +5190,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+              "value" : ["scalars", "userMetadata._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -4943,7 +5204,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4971,7 +5232,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+              "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -4985,7 +5246,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5139,7 +5400,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id20"]
+              "value" : ["scalars", "userMetadata._int_meta_switch_id20"]
             }
           ],
           "source_info" : {
@@ -5154,7 +5415,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+              "value" : ["scalars", "userMetadata._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -5168,7 +5429,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5196,7 +5457,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+              "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -5210,7 +5471,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5343,7 +5604,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id20"]
+              "value" : ["scalars", "userMetadata._int_meta_switch_id20"]
             }
           ],
           "source_info" : {
@@ -5358,7 +5619,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+              "value" : ["scalars", "userMetadata._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -5372,7 +5633,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5400,7 +5661,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+              "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -5414,7 +5675,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5613,7 +5874,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id20"]
+              "value" : ["scalars", "userMetadata._int_meta_switch_id20"]
             }
           ],
           "source_info" : {
@@ -5628,7 +5889,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+              "value" : ["scalars", "userMetadata._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -5642,7 +5903,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5670,7 +5931,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+              "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -5684,7 +5945,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5851,7 +6112,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id20"]
+              "value" : ["scalars", "userMetadata._int_meta_switch_id20"]
             }
           ],
           "source_info" : {
@@ -5866,7 +6127,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+              "value" : ["scalars", "userMetadata._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -5880,7 +6141,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5908,7 +6169,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+              "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -5922,7 +6183,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6155,7 +6416,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id20"]
+              "value" : ["scalars", "userMetadata._int_meta_switch_id20"]
             }
           ],
           "source_info" : {
@@ -6170,7 +6431,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+              "value" : ["scalars", "userMetadata._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -6184,7 +6445,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6212,7 +6473,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+              "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -6226,7 +6487,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6301,7 +6562,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+              "value" : ["scalars", "userMetadata._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -6315,7 +6576,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6343,7 +6604,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+              "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -6357,7 +6618,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6445,7 +6706,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+              "value" : ["scalars", "userMetadata._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -6459,7 +6720,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6487,7 +6748,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+              "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -6501,7 +6762,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6623,7 +6884,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+              "value" : ["scalars", "userMetadata._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -6637,7 +6898,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6665,7 +6926,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+              "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -6679,7 +6940,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6771,7 +7032,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+              "value" : ["scalars", "userMetadata._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -6785,7 +7046,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6813,7 +7074,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+              "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -6827,7 +7088,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6953,7 +7214,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+              "value" : ["scalars", "userMetadata._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -6967,7 +7228,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6995,7 +7256,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+              "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -7009,7 +7270,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7154,7 +7415,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+              "value" : ["scalars", "userMetadata._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -7168,7 +7429,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7196,7 +7457,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+              "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -7210,7 +7471,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7389,7 +7650,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+              "value" : ["scalars", "userMetadata._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -7403,7 +7664,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7431,7 +7692,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+              "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -7445,7 +7706,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7514,7 +7775,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+              "value" : ["scalars", "userMetadata._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -7528,7 +7789,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7556,7 +7817,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+              "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -7570,7 +7831,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7673,7 +7934,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+              "value" : ["scalars", "userMetadata._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -7687,7 +7948,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7715,7 +7976,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+              "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -7729,7 +7990,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7851,7 +8112,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+              "value" : ["scalars", "userMetadata._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -7865,7 +8126,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7893,7 +8154,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+              "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -7907,7 +8168,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8063,7 +8324,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+              "value" : ["scalars", "userMetadata._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -8077,7 +8338,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8105,7 +8366,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+              "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -8119,7 +8380,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8245,7 +8506,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+              "value" : ["scalars", "userMetadata._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -8259,7 +8520,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8287,7 +8548,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+              "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -8301,7 +8562,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8461,7 +8722,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+              "value" : ["scalars", "userMetadata._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -8475,7 +8736,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8503,7 +8764,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+              "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -8517,7 +8778,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8696,7 +8957,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+              "value" : ["scalars", "userMetadata._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -8710,7 +8971,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8738,7 +8999,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+              "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -8752,7 +9013,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8965,7 +9226,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+              "value" : ["scalars", "userMetadata._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -8979,7 +9240,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -9007,7 +9268,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+              "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -9021,7 +9282,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -9075,7 +9336,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._ip_eth_type0"]
+              "value" : ["scalars", "userMetadata._ip_eth_type0"]
             }
           ],
           "source_info" : {
@@ -9116,7 +9377,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._mpls_label4"]
+              "value" : ["scalars", "userMetadata._mpls_label4"]
             }
           ],
           "source_info" : {
@@ -9173,7 +9434,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._mpls_ttl5"]
+              "value" : ["scalars", "userMetadata._mpls_ttl5"]
             }
           ],
           "source_info" : {
@@ -9197,7 +9458,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 117,
+            "line" : 118,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -9233,7 +9494,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._vlan_cfi3"]
+              "value" : ["scalars", "userMetadata._vlan_cfi3"]
             }
           ],
           "source_info" : {
@@ -9252,7 +9513,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._vlan_pri2"]
+              "value" : ["scalars", "userMetadata._vlan_pri2"]
             }
           ],
           "source_info" : {
@@ -9276,7 +9537,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 116,
+            "line" : 117,
             "column" : 31,
             "source_fragment" : "0x8100; ..."
           }
@@ -9290,7 +9551,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._vlan_id1"]
+              "value" : ["scalars", "userMetadata._vlan_id1"]
             }
           ],
           "source_info" : {
@@ -9347,7 +9608,7 @@
       ]
     },
     {
-      "name" : "act_4",
+      "name" : "packetio41",
       "id" : 77,
       "runtime_data" : [],
       "primitives" : [
@@ -9364,7 +9625,7 @@
       ]
     },
     {
-      "name" : "act_5",
+      "name" : "packetio44",
       "id" : 78,
       "runtime_data" : [],
       "primitives" : [
@@ -9415,7 +9676,7 @@
       ]
     },
     {
-      "name" : "act_6",
+      "name" : "next349",
       "id" : 79,
       "runtime_data" : [],
       "primitives" : [
@@ -9437,7 +9698,7 @@
       ]
     },
     {
-      "name" : "act_7",
+      "name" : "next376",
       "id" : 80,
       "runtime_data" : [],
       "primitives" : [
@@ -9459,7 +9720,7 @@
       ]
     },
     {
-      "name" : "act_8",
+      "name" : "next375",
       "id" : 81,
       "runtime_data" : [],
       "primitives" : [
@@ -9508,7 +9769,7 @@
       ]
     },
     {
-      "name" : "act_9",
+      "name" : "next380",
       "id" : 82,
       "runtime_data" : [],
       "primitives" : [
@@ -9530,7 +9791,7 @@
       ]
     },
     {
-      "name" : "act_10",
+      "name" : "next379",
       "id" : 83,
       "runtime_data" : [],
       "primitives" : [
@@ -9579,7 +9840,7 @@
       ]
     },
     {
-      "name" : "act_11",
+      "name" : "act",
       "id" : 84,
       "runtime_data" : [],
       "primitives" : [
@@ -9609,7 +9870,7 @@
       ]
     },
     {
-      "name" : "act_12",
+      "name" : "int_transit420",
       "id" : 85,
       "runtime_data" : [],
       "primitives" : [
@@ -9645,7 +9906,7 @@
       ]
     },
     {
-      "name" : "act_13",
+      "name" : "int_transit428",
       "id" : 86,
       "runtime_data" : [],
       "primitives" : [
@@ -9672,7 +9933,7 @@
                       },
                       "right" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       }
                     }
                   },
@@ -9694,7 +9955,7 @@
       ]
     },
     {
-      "name" : "act_14",
+      "name" : "int_transit425",
       "id" : 87,
       "runtime_data" : [],
       "primitives" : [
@@ -9743,7 +10004,7 @@
       ]
     },
     {
-      "name" : "act_15",
+      "name" : "int_transit431",
       "id" : 88,
       "runtime_data" : [],
       "primitives" : [
@@ -9770,7 +10031,7 @@
                       },
                       "right" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_bytes22"]
                       }
                     }
                   },
@@ -9792,7 +10053,7 @@
       ]
     },
     {
-      "name" : "act_16",
+      "name" : "int_transit434",
       "id" : 89,
       "runtime_data" : [],
       "primitives" : [
@@ -9819,7 +10080,7 @@
                       },
                       "right" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
+                        "value" : ["scalars", "userMetadata._int_meta_new_words21"]
                       }
                     }
                   },
@@ -9854,7 +10115,7 @@
       "init_table" : "node_2",
       "tables" : [
         {
-          "name" : "tbl_act",
+          "name" : "tbl_packetio25",
           "id" : 0,
           "source_info" : {
             "filename" : "include/control/packetio.p4",
@@ -9870,10 +10131,10 @@
           "support_timeout" : false,
           "direct_meters" : null,
           "action_ids" : [29],
-          "actions" : ["act"],
+          "actions" : ["packetio25"],
           "base_default_next" : "node_4",
           "next_tables" : {
-            "act" : "node_4"
+            "packetio25" : "node_4"
           },
           "default_entry" : {
             "action_id" : 29,
@@ -9883,7 +10144,7 @@
           }
         },
         {
-          "name" : "tbl_act_0",
+          "name" : "tbl_filtering111",
           "id" : 1,
           "source_info" : {
             "filename" : "include/control/filtering.p4",
@@ -9899,10 +10160,10 @@
           "support_timeout" : false,
           "direct_meters" : null,
           "action_ids" : [30],
-          "actions" : ["act_0"],
+          "actions" : ["filtering111"],
           "base_default_next" : "node_6",
           "next_tables" : {
-            "act_0" : "node_6"
+            "filtering111" : "node_6"
           },
           "default_entry" : {
             "action_id" : 30,
@@ -9912,7 +10173,7 @@
           }
         },
         {
-          "name" : "tbl_act_1",
+          "name" : "tbl_filtering127",
           "id" : 2,
           "source_info" : {
             "filename" : "include/control/filtering.p4",
@@ -9928,10 +10189,10 @@
           "support_timeout" : false,
           "direct_meters" : null,
           "action_ids" : [31],
-          "actions" : ["act_1"],
+          "actions" : ["filtering127"],
           "base_default_next" : "FabricIngress.filtering.ingress_port_vlan",
           "next_tables" : {
-            "act_1" : "FabricIngress.filtering.ingress_port_vlan"
+            "filtering127" : "FabricIngress.filtering.ingress_port_vlan"
           },
           "default_entry" : {
             "action_id" : 31,
@@ -10021,7 +10282,7 @@
             {
               "match_type" : "exact",
               "name" : "ip_eth_type",
-              "target" : ["scalars", "fabric_metadata_t._ip_eth_type0"],
+              "target" : ["scalars", "userMetadata._ip_eth_type0"],
               "mask" : null
             }
           ],
@@ -10057,7 +10318,7 @@
             {
               "match_type" : "exact",
               "name" : "vlan_id",
-              "target" : ["scalars", "fabric_metadata_t._vlan_id1"],
+              "target" : ["scalars", "userMetadata._vlan_id1"],
               "mask" : null
             },
             {
@@ -10100,7 +10361,7 @@
             {
               "match_type" : "exact",
               "name" : "mpls_label",
-              "target" : ["scalars", "fabric_metadata_t._mpls_label4"],
+              "target" : ["scalars", "userMetadata._mpls_label4"],
               "mask" : null
             }
           ],
@@ -10137,7 +10398,7 @@
             {
               "match_type" : "lpm",
               "name" : "ipv4_dst",
-              "target" : ["scalars", "fabric_metadata_t._ipv4_dst_addr16"],
+              "target" : ["scalars", "userMetadata._ipv4_dst_addr16"],
               "mask" : null
             }
           ],
@@ -10181,19 +10442,19 @@
             {
               "match_type" : "ternary",
               "name" : "ip_proto",
-              "target" : ["scalars", "fabric_metadata_t._ip_proto12"],
+              "target" : ["scalars", "userMetadata._ip_proto12"],
               "mask" : null
             },
             {
               "match_type" : "ternary",
               "name" : "l4_sport",
-              "target" : ["scalars", "fabric_metadata_t._l4_sport13"],
+              "target" : ["scalars", "userMetadata._l4_sport13"],
               "mask" : null
             },
             {
               "match_type" : "ternary",
               "name" : "l4_dport",
-              "target" : ["scalars", "fabric_metadata_t._l4_dport14"],
+              "target" : ["scalars", "userMetadata._l4_dport14"],
               "mask" : null
             },
             {
@@ -10287,7 +10548,7 @@
             {
               "match_type" : "exact",
               "name" : "next_id",
-              "target" : ["scalars", "fabric_metadata_t._next_id9"],
+              "target" : ["scalars", "userMetadata._next_id9"],
               "mask" : null
             }
           ],
@@ -10325,7 +10586,7 @@
             {
               "match_type" : "exact",
               "name" : "next_id",
-              "target" : ["scalars", "fabric_metadata_t._next_id9"],
+              "target" : ["scalars", "userMetadata._next_id9"],
               "mask" : null
             }
           ],
@@ -10359,7 +10620,7 @@
             {
               "match_type" : "exact",
               "name" : "next_id",
-              "target" : ["scalars", "fabric_metadata_t._next_id9"],
+              "target" : ["scalars", "userMetadata._next_id9"],
               "mask" : null
             }
           ],
@@ -10396,7 +10657,7 @@
             {
               "match_type" : "exact",
               "name" : "next_id",
-              "target" : ["scalars", "fabric_metadata_t._next_id9"],
+              "target" : ["scalars", "userMetadata._next_id9"],
               "mask" : null
             }
           ],
@@ -10421,7 +10682,7 @@
           }
         },
         {
-          "name" : "tbl_act_2",
+          "name" : "tbl_port_counter31",
           "id" : 13,
           "source_info" : {
             "filename" : "include/control/port_counter.p4",
@@ -10437,10 +10698,10 @@
           "support_timeout" : false,
           "direct_meters" : null,
           "action_ids" : [32],
-          "actions" : ["act_2"],
+          "actions" : ["port_counter31"],
           "base_default_next" : "node_25",
           "next_tables" : {
-            "act_2" : "node_25"
+            "port_counter31" : "node_25"
           },
           "default_entry" : {
             "action_id" : 32,
@@ -10450,7 +10711,7 @@
           }
         },
         {
-          "name" : "tbl_act_3",
+          "name" : "tbl_port_counter34",
           "id" : 14,
           "source_info" : {
             "filename" : "include/control/port_counter.p4",
@@ -10466,10 +10727,10 @@
           "support_timeout" : false,
           "direct_meters" : null,
           "action_ids" : [33],
-          "actions" : ["act_3"],
+          "actions" : ["port_counter34"],
           "base_default_next" : "FabricIngress.process_set_source_sink.tb_set_source",
           "next_tables" : {
-            "act_3" : "FabricIngress.process_set_source_sink.tb_set_source"
+            "port_counter34" : "FabricIngress.process_set_source_sink.tb_set_source"
           },
           "default_entry" : {
             "action_id" : 33,
@@ -10532,23 +10793,23 @@
             "input" : [
               {
                 "type" : "field",
-                "value" : ["scalars", "fabric_metadata_t._ipv4_src_addr15"]
+                "value" : ["scalars", "userMetadata._ipv4_src_addr15"]
               },
               {
                 "type" : "field",
-                "value" : ["scalars", "fabric_metadata_t._ipv4_dst_addr16"]
+                "value" : ["scalars", "userMetadata._ipv4_dst_addr16"]
               },
               {
                 "type" : "field",
-                "value" : ["scalars", "fabric_metadata_t._ip_proto12"]
+                "value" : ["scalars", "userMetadata._ip_proto12"]
               },
               {
                 "type" : "field",
-                "value" : ["scalars", "fabric_metadata_t._l4_sport13"]
+                "value" : ["scalars", "userMetadata._l4_sport13"]
               },
               {
                 "type" : "field",
-                "value" : ["scalars", "fabric_metadata_t._l4_dport14"]
+                "value" : ["scalars", "userMetadata._l4_dport14"]
               }
             ]
           }
@@ -10575,7 +10836,7 @@
               }
             }
           },
-          "true_next" : "tbl_act",
+          "true_next" : "tbl_packetio25",
           "false_next" : "node_4"
         },
         {
@@ -10598,7 +10859,7 @@
               }
             }
           },
-          "true_next" : "tbl_act_0",
+          "true_next" : "tbl_filtering111",
           "false_next" : "node_6"
         },
         {
@@ -10628,7 +10889,7 @@
               }
             }
           },
-          "true_next" : "tbl_act_1",
+          "true_next" : "tbl_filtering127",
           "false_next" : "FabricIngress.filtering.ingress_port_vlan"
         },
         {
@@ -10638,26 +10899,23 @@
             "filename" : "fabric.p4",
             "line" : 69,
             "column" : 12,
-            "source_fragment" : "fabric_metadata.skip_forwarding == false"
+            "source_fragment" : "fabric_metadata.skip_forwarding"
           },
           "expression" : {
             "type" : "expression",
             "value" : {
-              "op" : "==",
-              "left" : {
+              "op" : "not",
+              "left" : null,
+              "right" : {
                 "type" : "expression",
                 "value" : {
                   "op" : "d2b",
                   "left" : null,
                   "right" : {
                     "type" : "field",
-                    "value" : ["scalars", "fabric_metadata_t._skip_forwarding6"]
+                    "value" : ["scalars", "userMetadata._skip_forwarding6"]
                   }
                 }
-              },
-              "right" : {
-                "type" : "bool",
-                "value" : false
               }
             }
           },
@@ -10679,7 +10937,7 @@
               "op" : "==",
               "left" : {
                 "type" : "field",
-                "value" : ["scalars", "fabric_metadata_t._fwd_type8"]
+                "value" : ["scalars", "userMetadata._fwd_type8"]
               },
               "right" : {
                 "type" : "hexstr",
@@ -10705,7 +10963,7 @@
               "op" : "==",
               "left" : {
                 "type" : "field",
-                "value" : ["scalars", "fabric_metadata_t._fwd_type8"]
+                "value" : ["scalars", "userMetadata._fwd_type8"]
               },
               "right" : {
                 "type" : "hexstr",
@@ -10731,7 +10989,7 @@
               "op" : "==",
               "left" : {
                 "type" : "field",
-                "value" : ["scalars", "fabric_metadata_t._fwd_type8"]
+                "value" : ["scalars", "userMetadata._fwd_type8"]
               },
               "right" : {
                 "type" : "hexstr",
@@ -10749,26 +11007,23 @@
             "filename" : "fabric.p4",
             "line" : 73,
             "column" : 12,
-            "source_fragment" : "fabric_metadata.skip_next == false"
+            "source_fragment" : "fabric_metadata.skip_next"
           },
           "expression" : {
             "type" : "expression",
             "value" : {
-              "op" : "==",
-              "left" : {
+              "op" : "not",
+              "left" : null,
+              "right" : {
                 "type" : "expression",
                 "value" : {
                   "op" : "d2b",
                   "left" : null,
                   "right" : {
                     "type" : "field",
-                    "value" : ["scalars", "fabric_metadata_t._skip_next7"]
+                    "value" : ["scalars", "userMetadata._skip_next7"]
                   }
                 }
-              },
-              "right" : {
-                "type" : "bool",
-                "value" : false
               }
             }
           },
@@ -10798,7 +11053,7 @@
               }
             }
           },
-          "true_next" : "tbl_act_2",
+          "true_next" : "tbl_port_counter31",
           "false_next" : "node_25"
         },
         {
@@ -10824,7 +11079,7 @@
               }
             }
           },
-          "true_next" : "tbl_act_3",
+          "true_next" : "tbl_port_counter34",
           "false_next" : "FabricIngress.process_set_source_sink.tb_set_source"
         }
       ]
@@ -10841,7 +11096,7 @@
       "init_table" : "node_30",
       "tables" : [
         {
-          "name" : "tbl_act_4",
+          "name" : "tbl_packetio41",
           "id" : 16,
           "source_info" : {
             "filename" : "include/control/packetio.p4",
@@ -10857,10 +11112,10 @@
           "support_timeout" : false,
           "direct_meters" : null,
           "action_ids" : [77],
-          "actions" : ["act_4"],
+          "actions" : ["packetio41"],
           "base_default_next" : "node_32",
           "next_tables" : {
-            "act_4" : "node_32"
+            "packetio41" : "node_32"
           },
           "default_entry" : {
             "action_id" : 77,
@@ -10870,7 +11125,7 @@
           }
         },
         {
-          "name" : "tbl_act_5",
+          "name" : "tbl_packetio44",
           "id" : 17,
           "source_info" : {
             "filename" : "include/control/packetio.p4",
@@ -10886,10 +11141,10 @@
           "support_timeout" : false,
           "direct_meters" : null,
           "action_ids" : [78],
-          "actions" : ["act_5"],
+          "actions" : ["packetio44"],
           "base_default_next" : "node_34",
           "next_tables" : {
-            "act_5" : "node_34"
+            "packetio44" : "node_34"
           },
           "default_entry" : {
             "action_id" : 78,
@@ -10899,7 +11154,7 @@
           }
         },
         {
-          "name" : "tbl_act_6",
+          "name" : "tbl_next349",
           "id" : 18,
           "source_info" : {
             "filename" : "include/control/next.p4",
@@ -10915,10 +11170,10 @@
           "support_timeout" : false,
           "direct_meters" : null,
           "action_ids" : [79],
-          "actions" : ["act_6"],
+          "actions" : ["next349"],
           "base_default_next" : "node_36",
           "next_tables" : {
-            "act_6" : "node_36"
+            "next349" : "node_36"
           },
           "default_entry" : {
             "action_id" : 79,
@@ -10998,7 +11253,7 @@
             {
               "match_type" : "exact",
               "name" : "vlan_id",
-              "target" : ["scalars", "fabric_metadata_t._vlan_id1"],
+              "target" : ["scalars", "userMetadata._vlan_id1"],
               "mask" : null
             },
             {
@@ -11030,7 +11285,7 @@
           }
         },
         {
-          "name" : "tbl_act_7",
+          "name" : "tbl_next375",
           "id" : 22,
           "source_info" : {
             "filename" : "include/control/next.p4",
@@ -11046,10 +11301,10 @@
           "support_timeout" : false,
           "direct_meters" : null,
           "action_ids" : [81],
-          "actions" : ["act_8"],
+          "actions" : ["next375"],
           "base_default_next" : "node_43",
           "next_tables" : {
-            "act_8" : "node_43"
+            "next375" : "node_43"
           },
           "default_entry" : {
             "action_id" : 81,
@@ -11059,7 +11314,7 @@
           }
         },
         {
-          "name" : "tbl_act_8",
+          "name" : "tbl_next376",
           "id" : 23,
           "source_info" : {
             "filename" : "include/control/next.p4",
@@ -11075,10 +11330,10 @@
           "support_timeout" : false,
           "direct_meters" : null,
           "action_ids" : [80],
-          "actions" : ["act_7"],
+          "actions" : ["next376"],
           "base_default_next" : "node_49",
           "next_tables" : {
-            "act_7" : "node_49"
+            "next376" : "node_49"
           },
           "default_entry" : {
             "action_id" : 80,
@@ -11088,7 +11343,7 @@
           }
         },
         {
-          "name" : "tbl_act_9",
+          "name" : "tbl_next379",
           "id" : 24,
           "source_info" : {
             "filename" : "include/control/next.p4",
@@ -11104,10 +11359,10 @@
           "support_timeout" : false,
           "direct_meters" : null,
           "action_ids" : [83],
-          "actions" : ["act_10"],
+          "actions" : ["next379"],
           "base_default_next" : "node_47",
           "next_tables" : {
-            "act_10" : "node_47"
+            "next379" : "node_47"
           },
           "default_entry" : {
             "action_id" : 83,
@@ -11117,7 +11372,7 @@
           }
         },
         {
-          "name" : "tbl_act_10",
+          "name" : "tbl_next380",
           "id" : 25,
           "source_info" : {
             "filename" : "include/control/next.p4",
@@ -11133,10 +11388,10 @@
           "support_timeout" : false,
           "direct_meters" : null,
           "action_ids" : [82],
-          "actions" : ["act_9"],
+          "actions" : ["next380"],
           "base_default_next" : "node_49",
           "next_tables" : {
-            "act_9" : "node_49"
+            "next380" : "node_49"
           },
           "default_entry" : {
             "action_id" : 82,
@@ -11170,13 +11425,13 @@
             {
               "match_type" : "ternary",
               "name" : "l4_sport",
-              "target" : ["scalars", "fabric_metadata_t._l4_sport13"],
+              "target" : ["scalars", "userMetadata._l4_sport13"],
               "mask" : null
             },
             {
               "match_type" : "ternary",
               "name" : "l4_dport",
-              "target" : ["scalars", "fabric_metadata_t._l4_dport14"],
+              "target" : ["scalars", "userMetadata._l4_dport14"],
               "mask" : null
             }
           ],
@@ -11201,7 +11456,7 @@
           }
         },
         {
-          "name" : "tbl_act_11",
+          "name" : "tbl_act",
           "id" : 27,
           "key" : [],
           "match_type" : "exact",
@@ -11211,10 +11466,10 @@
           "support_timeout" : false,
           "direct_meters" : null,
           "action_ids" : [84],
-          "actions" : ["act_11"],
+          "actions" : ["act"],
           "base_default_next" : "FabricEgress.process_int_main.process_int_transit.tb_int_insert",
           "next_tables" : {
-            "act_11" : "FabricEgress.process_int_main.process_int_transit.tb_int_insert"
+            "act" : "FabricEgress.process_int_main.process_int_transit.tb_int_insert"
           },
           "default_entry" : {
             "action_id" : 84,
@@ -11261,7 +11516,7 @@
           }
         },
         {
-          "name" : "tbl_act_12",
+          "name" : "tbl_int_transit420",
           "id" : 29,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
@@ -11277,10 +11532,10 @@
           "support_timeout" : false,
           "direct_meters" : null,
           "action_ids" : [85],
-          "actions" : ["act_12"],
+          "actions" : ["int_transit420"],
           "base_default_next" : "node_57",
           "next_tables" : {
-            "act_12" : "node_57"
+            "int_transit420" : "node_57"
           },
           "default_entry" : {
             "action_id" : 85,
@@ -11672,25 +11927,25 @@
           "direct_meters" : null,
           "action_ids" : [56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 37],
           "actions" : ["FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i0", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i1", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i2", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i3", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i4", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i5", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i6", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i7", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i8", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i9", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i10", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i11", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i12", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i13", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i14", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i15", "NoAction"],
-          "base_default_next" : "tbl_act_13",
+          "base_default_next" : "tbl_int_transit425",
           "next_tables" : {
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i0" : "tbl_act_13",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i1" : "tbl_act_13",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i2" : "tbl_act_13",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i3" : "tbl_act_13",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i4" : "tbl_act_13",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i5" : "tbl_act_13",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i6" : "tbl_act_13",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i7" : "tbl_act_13",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i8" : "tbl_act_13",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i9" : "tbl_act_13",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i10" : "tbl_act_13",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i11" : "tbl_act_13",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i12" : "tbl_act_13",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i13" : "tbl_act_13",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i14" : "tbl_act_13",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i15" : "tbl_act_13",
-            "NoAction" : "tbl_act_13"
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i0" : "tbl_int_transit425",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i1" : "tbl_int_transit425",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i2" : "tbl_int_transit425",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i3" : "tbl_int_transit425",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i4" : "tbl_int_transit425",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i5" : "tbl_int_transit425",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i6" : "tbl_int_transit425",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i7" : "tbl_int_transit425",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i8" : "tbl_int_transit425",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i9" : "tbl_int_transit425",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i10" : "tbl_int_transit425",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i11" : "tbl_int_transit425",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i12" : "tbl_int_transit425",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i13" : "tbl_int_transit425",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i14" : "tbl_int_transit425",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i15" : "tbl_int_transit425",
+            "NoAction" : "tbl_int_transit425"
           },
           "default_entry" : {
             "action_id" : 37,
@@ -12006,7 +12261,7 @@
           ]
         },
         {
-          "name" : "tbl_act_13",
+          "name" : "tbl_int_transit425",
           "id" : 32,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
@@ -12022,10 +12277,10 @@
           "support_timeout" : false,
           "direct_meters" : null,
           "action_ids" : [87],
-          "actions" : ["act_14"],
+          "actions" : ["int_transit425"],
           "base_default_next" : "node_61",
           "next_tables" : {
-            "act_14" : "node_61"
+            "int_transit425" : "node_61"
           },
           "default_entry" : {
             "action_id" : 87,
@@ -12035,7 +12290,7 @@
           }
         },
         {
-          "name" : "tbl_act_14",
+          "name" : "tbl_int_transit428",
           "id" : 33,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
@@ -12051,10 +12306,10 @@
           "support_timeout" : false,
           "direct_meters" : null,
           "action_ids" : [86],
-          "actions" : ["act_13"],
+          "actions" : ["int_transit428"],
           "base_default_next" : "node_63",
           "next_tables" : {
-            "act_13" : "node_63"
+            "int_transit428" : "node_63"
           },
           "default_entry" : {
             "action_id" : 86,
@@ -12064,7 +12319,7 @@
           }
         },
         {
-          "name" : "tbl_act_15",
+          "name" : "tbl_int_transit431",
           "id" : 34,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
@@ -12080,10 +12335,10 @@
           "support_timeout" : false,
           "direct_meters" : null,
           "action_ids" : [88],
-          "actions" : ["act_15"],
+          "actions" : ["int_transit431"],
           "base_default_next" : "node_65",
           "next_tables" : {
-            "act_15" : "node_65"
+            "int_transit431" : "node_65"
           },
           "default_entry" : {
             "action_id" : 88,
@@ -12093,7 +12348,7 @@
           }
         },
         {
-          "name" : "tbl_act_16",
+          "name" : "tbl_int_transit434",
           "id" : 35,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
@@ -12109,10 +12364,10 @@
           "support_timeout" : false,
           "direct_meters" : null,
           "action_ids" : [89],
-          "actions" : ["act_16"],
+          "actions" : ["int_transit434"],
           "base_default_next" : null,
           "next_tables" : {
-            "act_16" : null
+            "int_transit434" : null
           },
           "default_entry" : {
             "action_id" : 89,
@@ -12128,33 +12383,23 @@
           "name" : "node_30",
           "id" : 10,
           "source_info" : {
-            "filename" : "include/control/packetio.p4",
-            "line" : 39,
-            "column" : 12,
-            "source_fragment" : "fabric_metadata.is_controller_packet_out == true"
+            "filename" : "fabric.p4",
+            "line" : 103,
+            "column" : 33,
+            "source_fragment" : "fabric_metadata"
           },
           "expression" : {
             "type" : "expression",
             "value" : {
-              "op" : "==",
-              "left" : {
-                "type" : "expression",
-                "value" : {
-                  "op" : "d2b",
-                  "left" : null,
-                  "right" : {
-                    "type" : "field",
-                    "value" : ["scalars", "fabric_metadata_t._is_controller_packet_out11"]
-                  }
-                }
-              },
+              "op" : "d2b",
+              "left" : null,
               "right" : {
-                "type" : "bool",
-                "value" : true
+                "type" : "field",
+                "value" : ["scalars", "userMetadata._is_controller_packet_out11"]
               }
             }
           },
-          "true_next" : "tbl_act_4",
+          "true_next" : "tbl_packetio41",
           "false_next" : "node_32"
         },
         {
@@ -12180,7 +12425,7 @@
               }
             }
           },
-          "true_next" : "tbl_act_5",
+          "true_next" : "tbl_packetio44",
           "false_next" : "node_34"
         },
         {
@@ -12199,21 +12444,11 @@
               "left" : {
                 "type" : "expression",
                 "value" : {
-                  "op" : "==",
-                  "left" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "d2b",
-                      "left" : null,
-                      "right" : {
-                        "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._is_multicast10"]
-                      }
-                    }
-                  },
+                  "op" : "d2b",
+                  "left" : null,
                   "right" : {
-                    "type" : "bool",
-                    "value" : true
+                    "type" : "field",
+                    "value" : ["scalars", "userMetadata._is_multicast10"]
                   }
                 }
               },
@@ -12233,7 +12468,7 @@
               }
             }
           },
-          "true_next" : "tbl_act_6",
+          "true_next" : "tbl_next349",
           "false_next" : "node_36"
         },
         {
@@ -12251,7 +12486,7 @@
               "op" : "==",
               "left" : {
                 "type" : "field",
-                "value" : ["scalars", "fabric_metadata_t._mpls_label4"]
+                "value" : ["scalars", "userMetadata._mpls_label4"]
               },
               "right" : {
                 "type" : "hexstr",
@@ -12305,7 +12540,7 @@
               }
             }
           },
-          "true_next" : "tbl_act_7",
+          "true_next" : "tbl_next375",
           "false_next" : "node_45"
         },
         {
@@ -12331,7 +12566,7 @@
               }
             }
           },
-          "true_next" : "tbl_act_8",
+          "true_next" : "tbl_next376",
           "false_next" : "node_49"
         },
         {
@@ -12364,7 +12599,7 @@
                   "op" : "!=",
                   "left" : {
                     "type" : "field",
-                    "value" : ["scalars", "fabric_metadata_t._fwd_type8"]
+                    "value" : ["scalars", "userMetadata._fwd_type8"]
                   },
                   "right" : {
                     "type" : "hexstr",
@@ -12374,7 +12609,7 @@
               }
             }
           },
-          "true_next" : "tbl_act_9",
+          "true_next" : "tbl_next379",
           "false_next" : "node_49"
         },
         {
@@ -12400,7 +12635,7 @@
               }
             }
           },
-          "true_next" : "tbl_act_10",
+          "true_next" : "tbl_next380",
           "false_next" : "node_49"
         },
         {
@@ -12487,29 +12722,19 @@
           "name" : "node_50",
           "id" : 20,
           "source_info" : {
-            "filename" : "include/int/int_main.p4",
-            "line" : 106,
-            "column" : 16,
-            "source_fragment" : "fabric_metadata.int_meta.source == true"
+            "filename" : "fabric.p4",
+            "line" : 112,
+            "column" : 36,
+            "source_fragment" : "fabric_metadata"
           },
           "expression" : {
             "type" : "expression",
             "value" : {
-              "op" : "==",
-              "left" : {
-                "type" : "expression",
-                "value" : {
-                  "op" : "d2b",
-                  "left" : null,
-                  "right" : {
-                    "type" : "field",
-                    "value" : ["scalars", "fabric_metadata_t._int_meta_source17"]
-                  }
-                }
-              },
+              "op" : "d2b",
+              "left" : null,
               "right" : {
-                "type" : "bool",
-                "value" : true
+                "type" : "field",
+                "value" : ["scalars", "userMetadata._int_meta_source17"]
               }
             }
           },
@@ -12537,7 +12762,7 @@
             }
           },
           "false_next" : null,
-          "true_next" : "tbl_act_11"
+          "true_next" : "tbl_act"
         },
         {
           "name" : "node_55",
@@ -12546,30 +12771,27 @@
             "filename" : "include/int/int_transit.p4",
             "line" : 419,
             "column" : 12,
-            "source_fragment" : "fmeta.int_meta.transit == false"
+            "source_fragment" : "fmeta.int_meta.transit"
           },
           "expression" : {
             "type" : "expression",
             "value" : {
-              "op" : "==",
-              "left" : {
+              "op" : "not",
+              "left" : null,
+              "right" : {
                 "type" : "expression",
                 "value" : {
                   "op" : "d2b",
                   "left" : null,
                   "right" : {
                     "type" : "field",
-                    "value" : ["scalars", "fabric_metadata_t._int_meta_transit18"]
+                    "value" : ["scalars", "userMetadata._int_meta_transit18"]
                   }
                 }
-              },
-              "right" : {
-                "type" : "bool",
-                "value" : false
               }
             }
           },
-          "true_next" : "tbl_act_12",
+          "true_next" : "tbl_int_transit420",
           "false_next" : "node_57"
         },
         {
@@ -12616,7 +12838,7 @@
               }
             }
           },
-          "true_next" : "tbl_act_14",
+          "true_next" : "tbl_int_transit428",
           "false_next" : "node_63"
         },
         {
@@ -12639,7 +12861,7 @@
               }
             }
           },
-          "true_next" : "tbl_act_15",
+          "true_next" : "tbl_int_transit431",
           "false_next" : "node_65"
         },
         {
@@ -12663,7 +12885,7 @@
             }
           },
           "false_next" : null,
-          "true_next" : "tbl_act_16"
+          "true_next" : "tbl_int_transit434"
         }
       ]
     }
@@ -12750,24 +12972,12 @@
       ["standard_metadata", "egress_global_timestamp"]
     ],
     [
-      "intrinsic_metadata.lf_field_list",
-      ["standard_metadata", "lf_field_list"]
-    ],
-    [
       "intrinsic_metadata.mcast_grp",
       ["standard_metadata", "mcast_grp"]
     ],
     [
-      "intrinsic_metadata.resubmit_flag",
-      ["standard_metadata", "resubmit_flag"]
-    ],
-    [
       "intrinsic_metadata.egress_rid",
       ["standard_metadata", "egress_rid"]
-    ],
-    [
-      "intrinsic_metadata.recirculate_flag",
-      ["standard_metadata", "recirculate_flag"]
     ],
     [
       "intrinsic_metadata.priority",
@@ -12776,7 +12986,7 @@
   ],
   "program" : "fabric.p4",
   "__meta__" : {
-    "version" : [2, 18],
+    "version" : [2, 23],
     "compiler" : "https://github.com/p4lang/p4c"
   }
 }

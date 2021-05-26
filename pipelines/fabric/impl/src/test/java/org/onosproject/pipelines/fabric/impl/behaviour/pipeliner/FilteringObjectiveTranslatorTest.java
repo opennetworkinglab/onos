@@ -48,7 +48,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * Test cases for fabric.p4 pipeline filtering control block.
  */
-public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
+public class FilteringObjectiveTranslatorTest extends BaseObjectiveTranslatorTest {
 
     public static final byte[] ONE = {1};
     public static final byte[] ZERO = {0};

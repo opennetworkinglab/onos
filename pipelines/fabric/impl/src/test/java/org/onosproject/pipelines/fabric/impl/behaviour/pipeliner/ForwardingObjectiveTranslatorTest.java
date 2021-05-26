@@ -56,7 +56,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Test cases for fabric.p4 pipeline forwarding control block.
  */
-public class FabricForwardingPipelineTest extends FabricPipelinerTest {
+public class ForwardingObjectiveTranslatorTest extends BaseObjectiveTranslatorTest {
 
     private ForwardingObjectiveTranslator translator;
 

@@ -51,7 +51,7 @@ import static org.onosproject.pipelines.fabric.impl.behaviour.FabricUtils.output
 /**
  * Test cases for fabric.p4 pipeline next control block.
  */
-public class FabricNextPipelinerTest extends FabricPipelinerTest {
+public class NextObjectiveTranslatorTest extends BaseObjectiveTranslatorTest {
 
     private NextObjectiveTranslator translatorHashed;
     private NextObjectiveTranslator translatorSimple;
