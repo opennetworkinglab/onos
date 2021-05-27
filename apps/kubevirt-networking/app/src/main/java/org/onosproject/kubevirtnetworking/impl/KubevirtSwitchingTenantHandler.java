@@ -25,6 +25,8 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.kubevirtnetworking.api.KubevirtFlowRuleService;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetwork;
+import org.onosproject.kubevirtnetworking.api.KubevirtNetworkEvent;
+import org.onosproject.kubevirtnetworking.api.KubevirtNetworkListener;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetworkService;
 import org.onosproject.kubevirtnetworking.api.KubevirtPodService;
 import org.onosproject.kubevirtnetworking.api.KubevirtPort;
@@ -53,6 +55,7 @@ import org.slf4j.Logger;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 
+import static java.lang.Thread.sleep;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.kubevirtnetworking.api.Constants.KUBEVIRT_NETWORKING_APP_ID;
@@ -73,6 +76,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(immediate = true)
 public class KubevirtSwitchingTenantHandler {
     private final Logger log = getLogger(getClass());
+    private static final long SLEEP_MS = 3000; // we wait 3s
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
@@ -100,6 +104,8 @@ public class KubevirtSwitchingTenantHandler {
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler"));
 
+    private final InternalKubevirtNetworkListener kubevirtNetworkListener =
+            new InternalKubevirtNetworkListener();
     private final InternalKubevirtPortListener kubevirtPortListener =
             new InternalKubevirtPortListener();
     private final InternalKubevirtNodeListener kubevirtNodeListener =
@@ -114,6 +120,7 @@ public class KubevirtSwitchingTenantHandler {
         localNodeId = clusterService.getLocalNode().id();
         leadershipService.runForLeadership(appId.name());
         kubevirtPortService.addListener(kubevirtPortListener);
+        kubevirtNetworkService.addListener(kubevirtNetworkListener);
         kubevirtNodeService.addListener(kubevirtNodeListener);
 
         log.info("Started");
@@ -121,6 +128,7 @@ public class KubevirtSwitchingTenantHandler {
 
     @Deactivate
     protected void deactivate() {
+        kubevirtNetworkService.removeListener(kubevirtNetworkListener);
         kubevirtPortService.removeListener(kubevirtPortListener);
         kubevirtNodeService.removeListener(kubevirtNodeListener);
         leadershipService.withdraw(appId.name());
@@ -129,13 +137,7 @@ public class KubevirtSwitchingTenantHandler {
         log.info("Stopped");
     }
 
-    private void setIngressRules(KubevirtPort port, boolean install) {
-        if (port.ipAddress() == null) {
-            return;
-        }
-
-        KubevirtNetwork network = kubevirtNetworkService.network(port.networkId());
-
+    private void setIngressRules(KubevirtNetwork network, boolean install) {
         if (network == null) {
             return;
         }
@@ -148,33 +150,65 @@ public class KubevirtSwitchingTenantHandler {
             return;
         }
 
-        KubevirtNode localNode = kubevirtNodeService.node(port.deviceId());
-        if (localNode == null || localNode.type() == MASTER) {
-            return;
+        for (KubevirtNode localNode : kubevirtNodeService.completeNodes(WORKER)) {
+
+            while (true) {
+                if (tunnelToTenantPort(localNode, network) != null) {
+                    break;
+                } else {
+                    try {
+                        sleep(SLEEP_MS);
+                    } catch (InterruptedException e) {
+                        log.error("Failed to install security group default rules.");
+                    }
+                }
+            }
+
+            PortNumber patchPortNumber = tunnelToTenantPort(localNode, network);
+
+            TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
+                    .matchTunnelId(Long.parseLong(network.segmentId()));
+
+            TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
+                    .setOutput(patchPortNumber);
+
+            flowRuleService.setRule(
+                    appId,
+                    localNode.tunBridge(),
+                    sBuilder.build(),
+                    tBuilder.build(),
+                    PRIORITY_TUNNEL_RULE,
+                    TUNNEL_DEFAULT_TABLE,
+                    install);
+
+            log.debug("Install ingress rules for segment ID {}", network.segmentId());
         }
+    }
 
-        PortNumber patchPortNumber = tunnelToTenantPort(localNode, network);
-        if (patchPortNumber == null) {
-            return;
+    private void setIngressRules(KubevirtNode node, boolean install) {
+        for (KubevirtNetwork network : kubevirtNetworkService.tenantNetworks()) {
+            PortNumber patchPortNumber = tunnelToTenantPort(node, network);
+            if (patchPortNumber == null) {
+                return;
+            }
+
+            TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
+                    .matchTunnelId(Long.parseLong(network.segmentId()));
+
+            TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
+                    .setOutput(patchPortNumber);
+
+            flowRuleService.setRule(
+                    appId,
+                    node.tunBridge(),
+                    sBuilder.build(),
+                    tBuilder.build(),
+                    PRIORITY_TUNNEL_RULE,
+                    TUNNEL_DEFAULT_TABLE,
+                    install);
+
+            log.debug("Install ingress rules for segment ID {}", network.segmentId());
         }
-
-        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
-                .matchTunnelId(Long.parseLong(network.segmentId()));
-
-        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
-                .setOutput(patchPortNumber);
-
-        flowRuleService.setRule(
-                appId,
-                localNode.tunBridge(),
-                sBuilder.build(),
-                tBuilder.build(),
-                PRIORITY_TUNNEL_RULE,
-                TUNNEL_DEFAULT_TABLE,
-                install);
-
-        log.debug("Install ingress rules for instance {}, segment ID {}",
-                port.ipAddress(), network.segmentId());
     }
 
     private void setEgressRules(KubevirtPort port, boolean install) {
@@ -284,12 +318,49 @@ public class KubevirtSwitchingTenantHandler {
                 return;
             }
 
+            setIngressRules(node, true);
             kubevirtPortService.ports().stream()
                     .filter(port -> node.equals(kubevirtNodeService.node(port.deviceId())))
                     .forEach(port -> {
-                        setIngressRules(port, true);
                         setEgressRules(port, true);
                     });
+        }
+    }
+
+    private class InternalKubevirtNetworkListener implements KubevirtNetworkListener {
+        private boolean isRelevantHelper() {
+            return Objects.equals(localNodeId, leadershipService.getLeader(appId.name()));
+        }
+
+        @Override
+        public void event(KubevirtNetworkEvent event) {
+            switch (event.type()) {
+                case KUBEVIRT_NETWORK_CREATED:
+                    eventExecutor.execute(() -> processNetworkAddition(event.subject()));
+                    break;
+                case KUBEVIRT_NETWORK_REMOVED:
+                    eventExecutor.execute(() -> processNetworkRemoval(event.subject()));
+                    break;
+                default:
+                    // do nothing
+                    break;
+            }
+        }
+
+        private void processNetworkAddition(KubevirtNetwork network) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            setIngressRules(network, true);
+        }
+
+        private void processNetworkRemoval(KubevirtNetwork network) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            setIngressRules(network, false);
         }
     }
 
@@ -325,7 +396,6 @@ public class KubevirtSwitchingTenantHandler {
                 return;
             }
 
-            setIngressRules(port, true);
             setEgressRules(port, true);
         }
 
@@ -334,7 +404,6 @@ public class KubevirtSwitchingTenantHandler {
                 return;
             }
 
-            setIngressRules(port, false);
             setEgressRules(port, false);
         }
     }
