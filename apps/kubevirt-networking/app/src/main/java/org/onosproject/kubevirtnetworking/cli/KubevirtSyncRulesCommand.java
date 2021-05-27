@@ -22,7 +22,6 @@ import org.onosproject.kubevirtnode.api.KubevirtNode;
 import org.onosproject.kubevirtnode.api.KubevirtNodeAdminService;
 
 import static java.lang.Thread.sleep;
-import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.WORKER;
 import static org.onosproject.kubevirtnode.api.KubevirtNodeState.COMPLETE;
 import static org.onosproject.kubevirtnode.api.KubevirtNodeState.INIT;
 
@@ -50,7 +49,7 @@ public class KubevirtSyncRulesCommand extends AbstractShellCommand {
             return;
         }
 
-        nodeAdminService.completeNodes(WORKER).forEach(node ->
+        nodeAdminService.completeNodes().forEach(node ->
                 syncRulesBaseForNode(nodeAdminService, node));
 
         print("Successfully requested re-installing flow rules.");
