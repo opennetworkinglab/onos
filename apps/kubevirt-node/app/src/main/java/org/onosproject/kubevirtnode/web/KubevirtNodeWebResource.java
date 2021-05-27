@@ -49,7 +49,6 @@ import static java.lang.Thread.sleep;
 import static javax.ws.rs.core.Response.created;
 import static org.onlab.util.Tools.nullIsIllegal;
 import static org.onlab.util.Tools.readTreeFromStream;
-import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.WORKER;
 import static org.onosproject.kubevirtnode.api.KubevirtNodeState.COMPLETE;
 import static org.onosproject.kubevirtnode.api.KubevirtNodeState.INIT;
 
@@ -269,7 +268,7 @@ public class KubevirtNodeWebResource extends AbstractWebResource {
 
         KubevirtNodeAdminService service = get(KubevirtNodeAdminService.class);
 
-        service.completeNodes(WORKER).forEach(this::syncRulesBase);
+        service.completeNodes().forEach(this::syncRulesBase);
         return ok(mapper().createObjectNode()).build();
     }
 
