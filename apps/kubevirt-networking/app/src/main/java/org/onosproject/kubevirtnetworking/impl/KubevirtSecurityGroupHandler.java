@@ -379,6 +379,23 @@ public class KubevirtSecurityGroupHandler {
         if (deviceId == null) {
             return;
         }
+
+        // we check whether the given device is available from the store
+        // if not we will wait until the device is eventually created
+        // FIXME: it would be better to listen to device event to perform
+        // pipeline initialization rather on network events.
+        while (true) {
+            if (deviceService.getDevice(deviceId) != null) {
+                break;
+            } else {
+                try {
+                    sleep(SLEEP_MS);
+                } catch (InterruptedException e) {
+                    log.error("Failed to install security group default rules.");
+                }
+            }
+        }
+
         initializeTenantIngressTable(deviceId, install);
         initializeTenantEgressTable(deviceId, install);
         initializeTenantConnTrackTable(deviceId, install);

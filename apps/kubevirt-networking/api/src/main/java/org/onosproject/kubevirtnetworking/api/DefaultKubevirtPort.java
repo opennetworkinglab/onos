@@ -92,7 +92,12 @@ public final class DefaultKubevirtPort implements KubevirtPort {
                 DefaultServiceDirectory.getService(KubevirtNodeService.class);
         KubevirtNetwork network = networkService.network(networkId);
         KubevirtNode node = nodeService.node(deviceId);
-        return network.tenantDeviceId(node.hostname());
+
+        if (network == null || node == null) {
+            return null;
+        } else {
+            return network.tenantDeviceId(node.hostname());
+        }
     }
 
     @Override
@@ -100,9 +105,13 @@ public final class DefaultKubevirtPort implements KubevirtPort {
         KubevirtNetworkService networkService =
                 DefaultServiceDirectory.getService(KubevirtNetworkService.class);
         KubevirtNetwork network = networkService.network(networkId);
-        return network.type() == KubevirtNetwork.Type.VXLAN ||
-                network.type() == KubevirtNetwork.Type.GRE ||
-                network.type() == KubevirtNetwork.Type.GENEVE;
+        if (network == null) {
+            return false;
+        } else {
+            return network.type() == KubevirtNetwork.Type.VXLAN ||
+                    network.type() == KubevirtNetwork.Type.GRE ||
+                    network.type() == KubevirtNetwork.Type.GENEVE;
+        }
     }
 
     @Override

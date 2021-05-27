@@ -134,9 +134,8 @@ public class KubevirtPodPortMapper {
         public void event(KubevirtPodEvent event) {
             switch (event.type()) {
                 case KUBEVIRT_POD_UPDATED:
-                    eventExecutor.execute(() -> processPodUpdate(event.subject()));
-                    break;
                 case KUBEVIRT_POD_CREATED:
+                    eventExecutor.execute(() -> processPodAddition(event.subject()));
                 case KUBEVIRT_POD_REMOVED:
                 default:
                     // do nothing
@@ -144,7 +143,7 @@ public class KubevirtPodPortMapper {
             }
         }
 
-        private void processPodUpdate(Pod pod) {
+        private void processPodAddition(Pod pod) {
             if (!isRelevantHelper()) {
                 return;
             }
@@ -173,6 +172,7 @@ public class KubevirtPodPortMapper {
 
             Set<KubevirtPort> ports = getPorts(kubevirtNodeService,
                                       kubevirtNetworkAdminService.networks(), pod);
+
             if (ports.size() == 0) {
                 return;
             }

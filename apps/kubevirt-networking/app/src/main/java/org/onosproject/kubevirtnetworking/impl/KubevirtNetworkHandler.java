@@ -1230,7 +1230,7 @@ public class KubevirtNetworkHandler {
                 return;
             }
 
-            nodeService.completeNodes().forEach(n -> {
+            nodeService.completeNodes(WORKER).forEach(n -> {
                 removePatchInterface(n, network);
                 removeBridge(n, network);
             });
