@@ -35,6 +35,7 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleOperationsContext;
@@ -55,6 +56,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.StreamSupport;
 
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.kubevirtnetworking.api.Constants.ACL_EGRESS_TABLE;
@@ -211,6 +213,13 @@ public class KubevirtFlowRuleManager implements KubevirtFlowRuleService {
                 DROP_PRIORITY,
                 fromTable,
                 true);
+    }
+
+    @Override
+    public void purgeRules(DeviceId deviceId) {
+        Iterable<FlowEntry> fes = flowRuleService.getFlowEntries(deviceId);
+        flowRuleService.removeFlowRules(StreamSupport.stream(
+                    fes.spliterator(), false).toArray(FlowEntry[]::new));
     }
 
     private void applyRule(FlowRule flowRule, boolean install) {

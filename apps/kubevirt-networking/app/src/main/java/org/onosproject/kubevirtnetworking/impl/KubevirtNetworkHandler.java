@@ -141,7 +141,8 @@ public class KubevirtNetworkHandler {
     private static final String DEFAULT_OF_PROTO = "tcp";
     private static final int DEFAULT_OFPORT = 6653;
     private static final int DPID_BEGIN = 3;
-    private static final long SLEEP_MS = 3000; // we wait 3s for init each node
+    private static final long SLEEP_MS = 3000;
+    private static final long SLEEP_LARGE_MS = 5000;
     private static final int DEFAULT_TTL = 0xff;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
@@ -309,6 +310,11 @@ public class KubevirtNetworkHandler {
                         .peer(tenantToTunIntf)
                         .build();
         ifaceConfig.addPatchMode(tunToTenantIntf, brTunTenantPatchDesc);
+    }
+
+    private void removeAllFlows(KubevirtNode node, KubevirtNetwork network) {
+        DeviceId deviceId = network.tenantDeviceId(node.hostname());
+        flowService.purgeRules(deviceId);
     }
 
     private void removePatchInterface(KubevirtNode node, KubevirtNetwork network) {
@@ -1231,7 +1237,15 @@ public class KubevirtNetworkHandler {
             }
 
             nodeService.completeNodes(WORKER).forEach(n -> {
+                removeAllFlows(n, network);
                 removePatchInterface(n, network);
+
+                try {
+                    sleep(SLEEP_LARGE_MS);
+                } catch (InterruptedException e) {
+                    log.error("Sleep exception", e);
+                }
+
                 removeBridge(n, network);
             });
         }

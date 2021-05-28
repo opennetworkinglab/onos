@@ -60,4 +60,11 @@ public interface KubevirtFlowRuleService {
      * @param toTable table number of table B
      */
     void connectTables(DeviceId deviceId, int fromTable, int toTable);
+
+    /**
+     * Remove all flow rules of a device.
+     *
+     * @param deviceId device identifier
+     */
+    void purgeRules(DeviceId deviceId);
 }
