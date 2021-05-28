@@ -235,8 +235,10 @@ public class KubevirtRoutingArpHandler {
                     eventExecutor.execute(() -> processRouterExternalNetAttachedOrGwAttached(event.subject()));
                     break;
                 case KUBEVIRT_ROUTER_REMOVED:
+                    eventExecutor.execute(() -> processRouterRemoved(event.subject()));
+                    break;
                 case KUBEVIRT_ROUTER_EXTERNAL_NETWORK_DETACHED:
-                    eventExecutor.execute(() -> processRouterRemovedOrExternalNetDetached(event.subject(),
+                    eventExecutor.execute(() -> processRouterExternalNetDetached(event.subject(),
                             event.externalIp(), event.externalPeerRouterIp()));
                     break;
                 case KUBEVIRT_GATEWAY_NODE_DETACHED:
@@ -273,8 +275,9 @@ public class KubevirtRoutingArpHandler {
             }
         }
 
-        private void processRouterRemovedOrExternalNetDetached(KubevirtRouter router, String routerSnatIp,
-                                                               String peerRouterIp) {
+        private void processRouterExternalNetDetached(KubevirtRouter router, String routerSnatIp,
+                                                      String peerRouterIp) {
+            log.info("processRouterRemovedOrExternalNetDetached called");
             if (!isRelevantHelper()) {
                 return;
             }
@@ -294,13 +297,42 @@ public class KubevirtRoutingArpHandler {
                     IpAddress.valueOf(peerRouterIp), gatewayNode.hostname(), false);
         }
 
+
+        private void processRouterRemoved(KubevirtRouter router) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+            if (router.electedGateway() == null) {
+                return;
+            }
+            KubevirtNode gatewayNode = kubevirtNodeService.node(router.electedGateway());
+            if (gatewayNode == null) {
+                return;
+            }
+
+            String routerSnatIp = router.external().keySet().stream().findAny().orElse(null);
+            if (routerSnatIp == null) {
+                return;
+            }
+
+            IpAddress peerRouterIp = router.peerRouter().ipAddress();
+            if (peerRouterIp == null) {
+                return;
+            }
+
+            setRuleArpRequestToController(IpAddress.valueOf(routerSnatIp),
+                    peerRouterIp, gatewayNode.hostname(), false);
+        }
+
         private void processRouterGatewayNodeDetached(KubevirtRouter router, String detachedGatewayNode) {
             if (!isRelevantHelper()) {
                 return;
             }
+
             if (detachedGatewayNode == null) {
                 return;
             }
+
             String routerSnatIp = router.external().keySet().stream().findAny().orElse(null);
             if (routerSnatIp == null) {
                 return;

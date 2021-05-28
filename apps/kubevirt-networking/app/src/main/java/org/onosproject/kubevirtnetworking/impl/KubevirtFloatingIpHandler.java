@@ -398,48 +398,41 @@ public class KubevirtFloatingIpHandler {
         }
 
         private void processRouterGatewayNodeChanged(KubevirtRouter router, String disAssociatedGateway) {
-
-            kubevirtRouterService.floatingIps()
-                    .stream()
-                    .filter(fip -> fip.routerName().equals(router.name())).forEach(fip -> {
-                        KubevirtNode oldGw = kubevirtNodeService.node(disAssociatedGateway);
-                        if (oldGw == null) {
-                            return;
-                        }
-
+            kubevirtRouterService.floatingIpsByRouter(router.name())
+                    .forEach(fip -> {
                         KubevirtNode newGw = kubevirtNodeService.node(router.electedGateway());
                         if (newGw == null) {
                             return;
                         }
-
-                        setFloatingIpRulesForFip(router, fip, oldGw, false);
-
                         setFloatingIpRulesForFip(router, fip, newGw, true);
                         processGarpPacketForFloatingIp(fip, newGw);
+                        KubevirtNode oldGw = kubevirtNodeService.node(disAssociatedGateway);
 
-            });
+                        if (oldGw == null) {
+                            return;
+                        }
+                        setFloatingIpRulesForFip(router, fip, oldGw, false);
+                    });
         }
 
         private void processGatewayNodeAttachment(KubevirtRouter router, String gatewayName) {
-            kubevirtRouterService.floatingIps().forEach(fip -> {
-                if (fip.routerName().equals(router.name())) {
-                    KubevirtNode gw = kubevirtNodeService.node(gatewayName);
-                    if (gw != null) {
-                        setFloatingIpRulesForFip(router, fip, gw, true);
-                    }
-                }
-            });
+            kubevirtRouterService.floatingIpsByRouter(router.name())
+                    .forEach(fip -> {
+                        KubevirtNode gw = kubevirtNodeService.node(gatewayName);
+                        if (gw != null) {
+                            setFloatingIpRulesForFip(router, fip, gw, true);
+                        }
+                    });
         }
 
         private void processGatewayNodeDetachment(KubevirtRouter router, String gatewayName) {
-            kubevirtRouterService.floatingIps().forEach(fip -> {
-                if (fip.routerName().equals(router.name())) {
-                    KubevirtNode gw = kubevirtNodeService.node(gatewayName);
-                    if (gw != null) {
-                        setFloatingIpRulesForFip(router, fip, gw, false);
-                    }
-                }
-            });
+            kubevirtRouterService.floatingIpsByRouter(router.name())
+                    .forEach(fip -> {
+                        KubevirtNode gw = kubevirtNodeService.node(gatewayName);
+                        if (gw != null) {
+                            setFloatingIpRulesForFip(router, fip, gw, false);
+                        }
+                    });
         }
 
         private void processFloatingIpAssociation(KubevirtRouter router, KubevirtFloatingIp floatingIp) {

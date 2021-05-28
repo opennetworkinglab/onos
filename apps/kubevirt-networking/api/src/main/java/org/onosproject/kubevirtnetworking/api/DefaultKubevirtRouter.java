@@ -165,8 +165,7 @@ public final class DefaultKubevirtRouter implements KubevirtRouter {
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, description, mac, enableSnat,
-                internal, external, peerRouter, gateway);
+        return Objects.hash(name, description, mac);
     }
 
     @Override
