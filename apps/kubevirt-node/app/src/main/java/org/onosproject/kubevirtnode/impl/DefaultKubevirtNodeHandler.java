@@ -51,6 +51,7 @@ import org.onosproject.net.device.DeviceAdminService;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.ovsdb.controller.OvsdbClientService;
 import org.onosproject.ovsdb.controller.OvsdbController;
 import org.osgi.service.component.ComponentContext;
@@ -151,6 +152,9 @@ public class DefaultKubevirtNodeHandler implements KubevirtNodeHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService componentConfigService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected FlowRuleService flowRuleService;
 
     /** OVSDB server listen port. */
     private int ovsdbPortNum = OVSDB_PORT_NUM_DEFAULT;
@@ -458,6 +462,10 @@ public class DefaultKubevirtNodeHandler implements KubevirtNodeHandler {
             log.info("Failed to get ovsdb client");
             return;
         }
+
+        // purges all the flow rules installed on the node
+        flowRuleService.purgeFlowRules(node.intgBridge());
+        flowRuleService.purgeFlowRules(node.tunBridge());
 
         // unprovision physical interfaces from the node
         // this procedure includes detaching physical port from physical bridge,
