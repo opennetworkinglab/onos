@@ -248,7 +248,9 @@ public class KubevirtVmWatcher {
                     port = port.updateDeviceId(deviceId);
                 }
 
-                portAdminService.createPort(port);
+                if (portAdminService.port(port.macAddress()) == null) {
+                    portAdminService.createPort(port);
+                }
             });
         }
 
