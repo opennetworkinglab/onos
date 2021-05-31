@@ -67,15 +67,14 @@ import static org.onosproject.kubevirtnetworking.api.Constants.FORWARDING_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.GW_ENTRY_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.KUBEVIRT_NETWORKING_APP_ID;
 import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_ARP_GATEWAY_RULE;
+import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_FLOATING_GATEWAY_TUN_BRIDGE_RULE;
 import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_FLOATING_IP_RULE;
-import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_FORWARDING_RULE;
 import static org.onosproject.kubevirtnetworking.api.Constants.TUNNEL_DEFAULT_TABLE;
 import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.GENEVE;
 import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.GRE;
 import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.VXLAN;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.buildGarpPacket;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.externalPatchPortNum;
-import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.gatewayNodeForSpecifiedRouter;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.getRouterMacAddress;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.tunnelPort;
 import static org.onosproject.kubevirtnetworking.util.RulePopulatorUtil.buildExtension;
@@ -166,7 +165,8 @@ public class KubevirtFloatingIpHandler {
 
         KubevirtNetwork kubevirtNetwork = kubevirtNetworkService.network(kubevirtPort.networkId());
         if (kubevirtNetwork.type() == VXLAN || kubevirtNetwork.type() == GENEVE || kubevirtNetwork.type() == GRE) {
-            setFloatingIpDownstreamRulesToGatewayTunBridge(router, floatingIp, kubevirtNetwork, kubevirtPort, install);
+            setFloatingIpDownstreamRulesToGatewayTunBridge(floatingIp,
+                    electedGw, kubevirtNetwork, kubevirtPort, install);
         }
 
         setFloatingIpArpResponseRules(router, floatingIp, kubevirtPort, electedGw, install);
@@ -288,19 +288,11 @@ public class KubevirtFloatingIpHandler {
                 install);
     }
 
-    private void setFloatingIpDownstreamRulesToGatewayTunBridge(KubevirtRouter router,
-                                                                KubevirtFloatingIp floatingIp,
+    private void setFloatingIpDownstreamRulesToGatewayTunBridge(KubevirtFloatingIp floatingIp,
+                                                                KubevirtNode electedGw,
                                                                 KubevirtNetwork network,
                                                                 KubevirtPort port,
                                                                 boolean install) {
-        KubevirtNode electedGw = gatewayNodeForSpecifiedRouter(kubevirtNodeService, router);
-
-        if (electedGw == null) {
-            log.warn("Failed to install floating Ip rules for floating ip {} " +
-                    "because there's no gateway assigned to it", floatingIp.floatingIp());
-            return;
-        }
-
         KubevirtNode workerNode = kubevirtNodeService.node(port.deviceId());
         if (workerNode == null) {
             log.warn("Failed to install floating Ip rules for floating ip {} " +
@@ -333,7 +325,7 @@ public class KubevirtFloatingIpHandler {
                 electedGw.tunBridge(),
                 sBuilder.build(),
                 tBuilder.build(),
-                PRIORITY_FORWARDING_RULE,
+                PRIORITY_FLOATING_GATEWAY_TUN_BRIDGE_RULE,
                 TUNNEL_DEFAULT_TABLE,
                 install);
     }

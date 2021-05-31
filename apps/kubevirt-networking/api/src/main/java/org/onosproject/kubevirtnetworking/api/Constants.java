@@ -67,6 +67,7 @@ public final class Constants {
     // flow rule priority
     public static final int PRIORITY_ICMP_RULE = 43000;
     public static final int PRIORITY_FORWARDING_RULE = 30000;
+    public static final int PRIORITY_FLOATING_GATEWAY_TUN_BRIDGE_RULE = 32000;
     public static final int PRIORITY_DHCP_RULE = 42000;
     public static final int PRIORITY_ARP_GATEWAY_RULE = 41000;
     public static final int PRIORITY_ARP_DEFAULT_RULE = 40000;
