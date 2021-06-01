@@ -57,7 +57,7 @@ public class OpenConfigGnmiDeviceDescriptionDiscovery
     private static final Logger log = LoggerFactory
             .getLogger(OpenConfigGnmiDeviceDescriptionDiscovery.class);
 
-    private static final String LAST_CHANGE = "last-changed";
+    private static final String LAST_CHANGE = "last-change";
 
     private static final String UNKNOWN = "unknown";
 
@@ -96,7 +96,6 @@ public class OpenConfigGnmiDeviceDescriptionDiscovery
         // Creates port descriptions with port name and port number
         response.getNotificationList()
                 .forEach(notification -> {
-                    long timestamp = notification.getTimestamp();
                     notification.getUpdateList().forEach(update -> {
                         // /interfaces/interface[name=ifName]/state/...
                         final String ifName = update.getPath().getElem(1)
@@ -107,12 +106,17 @@ public class OpenConfigGnmiDeviceDescriptionDiscovery
                         }
                         final DefaultPortDescription.Builder builder = ports.get(ifName);
                         final DefaultAnnotations.Builder annotationsBuilder = annotations.get(ifName);
-                        parseInterfaceInfo(update, ifName, builder, annotationsBuilder, timestamp);
+                        parseInterfaceInfo(update, ifName, builder, annotationsBuilder);
                     });
                 });
 
         final List<PortDescription> portDescriptionList = Lists.newArrayList();
         ports.forEach((key, value) -> {
+            // For devices not providing last-change, we set it to 0
+            final DefaultAnnotations.Builder annotationsBuilder = annotations.get(key);
+            if (!annotationsBuilder.build().keys().contains(LAST_CHANGE)) {
+                annotationsBuilder.set(LAST_CHANGE, String.valueOf(0));
+            }
             DefaultAnnotations annotation = annotations.get(key).build();
             portDescriptionList.add(value.annotations(annotation).build());
         });
@@ -140,9 +144,7 @@ public class OpenConfigGnmiDeviceDescriptionDiscovery
     private void parseInterfaceInfo(Update update,
                                     String ifName,
                                     DefaultPortDescription.Builder builder,
-                                    DefaultAnnotations.Builder annotationsBuilder,
-                                    long timestamp) {
-
+                                    DefaultAnnotations.Builder annotationsBuilder) {
 
         final Path path = update.getPath();
         final List<PathElem> elems = path.getElemList();
@@ -150,6 +152,7 @@ public class OpenConfigGnmiDeviceDescriptionDiscovery
         if (elems.size() == 4) {
             // /interfaces/interface/state/ifindex
             // /interfaces/interface/state/oper-status
+            // /interfaces/interface/state/last-change
             final String pathElemName = elems.get(3).getName();
             switch (pathElemName) {
                 case "ifindex": // port number
@@ -157,7 +160,9 @@ public class OpenConfigGnmiDeviceDescriptionDiscovery
                     return;
                 case "oper-status":
                     builder.isEnabled(parseOperStatus(val.getStringVal()));
-                    annotationsBuilder.set(LAST_CHANGE, String.valueOf(timestamp));
+                    return;
+                case "last-change":
+                    annotationsBuilder.set(LAST_CHANGE, String.valueOf(val.getUintVal()));
                     return;
                 default:
                     break;
