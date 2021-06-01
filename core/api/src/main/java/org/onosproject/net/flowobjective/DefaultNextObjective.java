@@ -18,6 +18,8 @@ package org.onosproject.net.flowobjective;
 import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableList;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.AbstractAnnotated;
+import org.onosproject.net.Annotations;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 
@@ -35,7 +37,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Default implementation of a next objective.
  */
 @Beta
-public final class DefaultNextObjective implements NextObjective {
+public final class DefaultNextObjective extends AbstractAnnotated
+        implements NextObjective {
 
     private final List<NextTreatment> treatments;
     private final ApplicationId appId;
@@ -46,6 +49,7 @@ public final class DefaultNextObjective implements NextObjective {
     private final TrafficSelector meta;
 
     private DefaultNextObjective(Builder builder) {
+        super(builder.annotations);
         this.treatments = builder.treatments;
         this.appId = builder.appId;
         this.type = builder.type;
@@ -147,6 +151,7 @@ public final class DefaultNextObjective implements NextObjective {
                 .add("appId", appId())
                 .add("permanent", permanent())
                 .add("timeout", timeout())
+                .add("annotations", annotations())
                 .toString();
     }
 
@@ -173,6 +178,7 @@ public final class DefaultNextObjective implements NextObjective {
         private Operation op;
         private ObjectiveContext context;
         private TrafficSelector meta;
+        private Annotations annotations;
 
         private final ImmutableList.Builder<NextTreatment> listBuilder
                 = ImmutableList.builder();
@@ -190,6 +196,7 @@ public final class DefaultNextObjective implements NextObjective {
             this.meta = objective.meta();
             this.appId = objective.appId();
             this.op = objective.op();
+            this.annotations = objective.annotations();
         }
 
         @Override
@@ -257,6 +264,12 @@ public final class DefaultNextObjective implements NextObjective {
         @Override
         public Builder withMeta(TrafficSelector meta) {
             this.meta = meta;
+            return this;
+        }
+
+        @Override
+        public Builder withAnnotations(Annotations annotations) {
+            this.annotations = annotations;
             return this;
         }
 

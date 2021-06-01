@@ -17,6 +17,8 @@ package org.onosproject.net.flowobjective;
 
 import com.google.common.annotations.Beta;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.Annotated;
+import org.onosproject.net.Annotations;
 
 import java.util.Optional;
 
@@ -24,7 +26,7 @@ import java.util.Optional;
  * Base representation of a flow-objective description.
  */
 @Beta
-public interface Objective {
+public interface Objective extends Annotated {
 
     boolean DEFAULT_PERMANENT = true;
     int DEFAULT_TIMEOUT = 0;
@@ -172,6 +174,14 @@ public interface Objective {
          * @return an objective builder
          */
         Builder withPriority(int priority);
+
+        /**
+         * Adds annotations to the objective.
+         *
+         * @param annotations the annotations for the objective
+         * @return an objective builder
+         */
+         Builder withAnnotations(Annotations annotations);
 
         /**
          * Builds the objective that will be added.

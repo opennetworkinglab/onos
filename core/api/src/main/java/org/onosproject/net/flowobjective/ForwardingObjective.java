@@ -17,6 +17,7 @@ package org.onosproject.net.flowobjective;
 
 import com.google.common.annotations.Beta;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.Annotations;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 
@@ -182,12 +183,21 @@ public interface ForwardingObjective extends Objective {
         Builder withPriority(int priority);
 
         /**
-         * Makes the filtering objective permanent.
+         * Makes the forwarding objective permanent.
          *
          * @return an objective builder
          */
         @Override
         Builder makePermanent();
+
+        /**
+         * Adds annotations to the forwarding objective.
+         *
+         * @param annotations the annotations for the forwarding objective
+         * @return a forwarding objective builder
+         */
+        @Override
+        Builder withAnnotations(Annotations annotations);
 
         /**
          * Builds the forwarding objective that will be added.

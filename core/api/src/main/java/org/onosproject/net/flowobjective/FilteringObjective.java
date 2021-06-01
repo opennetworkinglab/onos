@@ -17,6 +17,7 @@ package org.onosproject.net.flowobjective;
 
 import com.google.common.annotations.Beta;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.Annotations;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 
@@ -168,6 +169,16 @@ public interface FilteringObjective extends Objective {
          */
         @Override
         public Builder makePermanent();
+
+
+        /**
+         * Adds annotations to the filtering objective.
+         *
+         * @param annotations the annotations for the filtering objective
+         * @return a filtering objective builder
+         */
+         @Override
+         Builder withAnnotations(Annotations annotations);
 
         /**
          * Builds the filtering objective that will be added.

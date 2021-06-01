@@ -18,6 +18,8 @@ package org.onosproject.net.flowobjective;
 import com.google.common.annotations.Beta;
 
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.AbstractAnnotated;
+import org.onosproject.net.Annotations;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 
@@ -32,7 +34,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Default implementation of a forwarding objective.
  */
 @Beta
-public final class DefaultForwardingObjective implements ForwardingObjective {
+public final class DefaultForwardingObjective extends AbstractAnnotated
+        implements ForwardingObjective {
 
     private final TrafficSelector selector;
     private final Flag flag;
@@ -49,6 +52,7 @@ public final class DefaultForwardingObjective implements ForwardingObjective {
     private final int id;
 
     private DefaultForwardingObjective(Builder builder) {
+        super(builder.annotations);
         this.selector = builder.selector;
         this.flag = builder.flag;
         this.permanent = builder.permanent;
@@ -169,6 +173,7 @@ public final class DefaultForwardingObjective implements ForwardingObjective {
                 .add("appId", appId())
                 .add("permanent", permanent())
                 .add("timeout", timeout())
+                .add("annotations", annotations())
                 .toString();
     }
 
@@ -212,6 +217,8 @@ public final class DefaultForwardingObjective implements ForwardingObjective {
         private Operation op;
         private ObjectiveContext context;
         private TrafficSelector meta;
+        private Annotations annotations;
+
 
         // Creates an empty builder
         private Builder() {
@@ -229,6 +236,7 @@ public final class DefaultForwardingObjective implements ForwardingObjective {
             this.treatment = objective.treatment();
             this.op = objective.op();
             this.meta = objective.meta();
+            this.annotations = objective.annotations();
         }
 
         @Override
@@ -283,6 +291,12 @@ public final class DefaultForwardingObjective implements ForwardingObjective {
         @Override
         public Builder withMeta(TrafficSelector meta) {
             this.meta = meta;
+            return this;
+        }
+
+        @Override
+        public Builder withAnnotations(Annotations annotations) {
+            this.annotations = annotations;
             return this;
         }
 

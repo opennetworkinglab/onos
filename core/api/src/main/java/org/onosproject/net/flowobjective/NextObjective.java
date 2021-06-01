@@ -17,6 +17,7 @@ package org.onosproject.net.flowobjective;
 
 import com.google.common.annotations.Beta;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.Annotations;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 
@@ -175,6 +176,15 @@ public interface NextObjective extends Objective {
          * @return an objective builder
          */
         Builder withMeta(TrafficSelector selector);
+
+        /**
+         * Adds annotations to the next objective.
+         *
+         * @param annotations the annotations for the next objective
+         * @return a next objective builder
+         */
+        @Override
+        Builder withAnnotations(Annotations annotations);
 
         /**
          * Builds the next objective that will be added.

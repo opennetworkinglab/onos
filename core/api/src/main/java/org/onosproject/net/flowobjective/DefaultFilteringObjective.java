@@ -18,6 +18,8 @@ package org.onosproject.net.flowobjective;
 import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableList;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.AbstractAnnotated;
+import org.onosproject.net.Annotations;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
@@ -35,7 +37,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Default implementation of a filtering objective.
  */
 @Beta
-public final class DefaultFilteringObjective implements FilteringObjective {
+public final class DefaultFilteringObjective extends AbstractAnnotated
+        implements FilteringObjective {
 
     private final Type type;
     private final boolean permanent;
@@ -50,6 +53,7 @@ public final class DefaultFilteringObjective implements FilteringObjective {
     private final TrafficTreatment meta;
 
     private DefaultFilteringObjective(Builder builder) {
+        super(builder.annotations);
         this.key = builder.key;
         this.type = builder.type;
         this.permanent = builder.permanent;
@@ -160,6 +164,7 @@ public final class DefaultFilteringObjective implements FilteringObjective {
                 .add("appId", appId())
                 .add("permanent", permanent())
                 .add("timeout", timeout())
+                .add("annotations", annotations())
                 .toString();
     }
 
@@ -191,6 +196,7 @@ public final class DefaultFilteringObjective implements FilteringObjective {
         private Operation op;
         private ObjectiveContext context;
         private TrafficTreatment meta;
+        private Annotations annotations;
 
         // Creates an empty builder
         private Builder() {
@@ -207,6 +213,7 @@ public final class DefaultFilteringObjective implements FilteringObjective {
             this.appId = objective.appId();
             this.meta = objective.meta();
             this.op = objective.op();
+            this.annotations = objective.annotations();
         }
 
         @Override
@@ -261,6 +268,12 @@ public final class DefaultFilteringObjective implements FilteringObjective {
         @Override
         public Builder withMeta(TrafficTreatment treatment) {
             this.meta = treatment;
+            return this;
+        }
+
+        @Override
+        public Builder withAnnotations(Annotations annotations) {
+            this.annotations = annotations;
             return this;
         }
 
