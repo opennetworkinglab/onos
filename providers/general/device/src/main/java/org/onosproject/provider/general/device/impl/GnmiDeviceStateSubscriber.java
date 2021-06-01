@@ -62,7 +62,7 @@ import java.util.stream.Collectors;
 @Beta
 class GnmiDeviceStateSubscriber {
 
-    private static final String LAST_CHANGE = "last-changed";
+    private static final String LAST_CHANGE = "last-change";
 
     private static Logger log = LoggerFactory.getLogger(GnmiDeviceStateSubscriber.class);
 
@@ -126,13 +126,12 @@ class GnmiDeviceStateSubscriber {
                 && !deviceService.getPorts(deviceId).isEmpty();
     }
 
-    private Path interfaceOperStatusPath(String interfaceName) {
+    private Path interfaceStatePath(String interfaceName) {
         return Path.newBuilder()
                 .addElem(PathElem.newBuilder().setName("interfaces").build())
                 .addElem(PathElem.newBuilder()
                                  .setName("interface").putKey("name", interfaceName).build())
                 .addElem(PathElem.newBuilder().setName("state").build())
-                .addElem(PathElem.newBuilder().setName("oper-status").build())
                 .build();
     }
 
@@ -163,7 +162,7 @@ class GnmiDeviceStateSubscriber {
                 .setUpdatesOnly(true)
                 .addAllSubscription(ports.stream().map(
                         port -> Subscription.newBuilder()
-                                .setPath(interfaceOperStatusPath(port.name()))
+                                .setPath(interfaceStatePath(port.name()))
                                 .setMode(SubscriptionMode.ON_CHANGE)
                                 .build()).collect(Collectors.toList()))
                 .build();
@@ -183,19 +182,32 @@ class GnmiDeviceStateSubscriber {
             return;
         }
 
-        List<Update> updateList = notification.getUpdateList();
-        updateList.forEach(update -> {
-            Path path = update.getPath();
-            PathElem lastElem = path.getElem(path.getElemCount() - 1);
+        long lastChange = 0;
+        Update statusUpdate = null;
+        Path path;
+        PathElem lastElem;
+        // The assumption is that the notification contains all the updates:
+        // last-change, oper-status, counters, and so on. Otherwise, we need
+        // to put in place the aggregation logic in ONOS
+        for (Update update : notification.getUpdateList()) {
+            path = update.getPath();
+            lastElem = path.getElem(path.getElemCount() - 1);
 
             // Use last element to identify which state updated
             if ("oper-status".equals(lastElem.getName())) {
-                handleOperStatusUpdate(eventSubject.deviceId(), update,
-                                       notification.getTimestamp());
-            } else {
+                statusUpdate = update;
+            } else if ("last-change".equals(lastElem.getName())) {
+                lastChange = update.getVal().getUintVal();
+            } else if (log.isDebugEnabled()) {
                 log.debug("Unrecognized update {}", GnmiUtils.pathToString(path));
             }
-        });
+        }
+
+        // Last-change could be not supported by the device
+        // Cannot proceed without the status update.
+        if (statusUpdate != null) {
+            handleOperStatusUpdate(eventSubject.deviceId(), statusUpdate, lastChange);
+        }
     }
 
     private void handleOperStatusUpdate(DeviceId deviceId, Update update, long timestamp) {

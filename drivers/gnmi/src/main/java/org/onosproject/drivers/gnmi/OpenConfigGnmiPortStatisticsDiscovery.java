@@ -22,11 +22,9 @@ import gnmi.Gnmi;
 import gnmi.Gnmi.GetRequest;
 import gnmi.Gnmi.GetResponse;
 import gnmi.Gnmi.Path;
-import org.apache.commons.lang3.tuple.Pair;
 import org.onosproject.gnmi.api.GnmiClient;
 import org.onosproject.gnmi.api.GnmiController;
 import org.onosproject.grpc.utils.AbstractGrpcHandlerBehaviour;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DefaultPortStatistics;
@@ -48,9 +46,7 @@ public class OpenConfigGnmiPortStatisticsDiscovery
         extends AbstractGrpcHandlerBehaviour<GnmiClient, GnmiController>
         implements PortStatisticsDiscovery {
 
-    private static final Map<Pair<DeviceId, PortNumber>, Long> PORT_START_TIMES =
-            Maps.newConcurrentMap();
-    private static final String LAST_CHANGE = "last-changed";
+    private static final String LAST_CHANGE = "last-change";
 
     public OpenConfigGnmiPortStatisticsDiscovery() {
         super(GnmiController.class);
@@ -185,21 +181,16 @@ public class OpenConfigGnmiPortStatisticsDiscovery
             //FIXME log
             return Duration.ZERO;
         }
+
+        // Set duration 0 for devices that do not support reporting last-change
         String lastChangedStr = port.annotations().value(LAST_CHANGE);
         if (lastChangedStr == null) {
-            //FIXME log
-            // Falling back to the hack...
-            // FIXME: This is a workaround since we cannot determine the port
-            // duration from gNMI now
-            final long now = System.currentTimeMillis() / 1000;
-            final Long startTime = PORT_START_TIMES.putIfAbsent(
-                    Pair.of(deviceId, portNumber), now);
-            return Duration.ofSeconds(startTime == null ? now : now - startTime);
+            return Duration.ZERO;
         }
 
         try {
             long lastChanged = Long.parseLong(lastChangedStr);
-            return timestamp.minus(lastChanged, ChronoUnit.NANOS);
+            return lastChanged == 0 ? Duration.ZERO : timestamp.minus(lastChanged, ChronoUnit.NANOS);
         } catch (NullPointerException | NumberFormatException ex) {
             //FIXME log
             return Duration.ZERO;
