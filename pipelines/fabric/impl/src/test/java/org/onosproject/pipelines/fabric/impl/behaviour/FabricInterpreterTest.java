@@ -241,10 +241,6 @@ public class FabricInterpreterTest {
                 .withValue(ImmutableByteSequence.copyFrom(outputPort.toLong())
                         .fit(PORT_BITWIDTH))
                 .build());
-        builder.add(PiPacketMetadata.builder()
-                .withId(FabricConstants.DO_FORWARDING)
-                .withValue(ImmutableByteSequence.copyFrom(0).fit(1))
-                .build());
 
         PiPacketOperation expectedPktOp = PiPacketOperation.builder()
                 .withType(PiPacketOperationType.PACKET_OUT)
@@ -268,11 +264,6 @@ public class FabricInterpreterTest {
         assertEquals(result.size(), 1);
 
         ImmutableList.Builder<PiPacketMetadata> builder = ImmutableList.builder();
-        builder.add(PiPacketMetadata.builder()
-                .withId(FabricConstants.EGRESS_PORT)
-                .withValue(ImmutableByteSequence.copyFrom(0)
-                        .fit(PORT_BITWIDTH))
-                .build());
         builder.add(PiPacketMetadata.builder()
                 .withId(FabricConstants.DO_FORWARDING)
                 .withValue(ImmutableByteSequence.copyFrom(1)

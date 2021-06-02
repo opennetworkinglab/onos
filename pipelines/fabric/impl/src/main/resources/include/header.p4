@@ -125,7 +125,7 @@ header icmp_t {
     bit<64> timestamp;
 }
 
-#ifdef WITH_SPGW
+
 // GTPU v1
 header gtpu_t {
     bit<3>  version;    /* version */
@@ -139,6 +139,7 @@ header gtpu_t {
     teid_t  teid;       /* tunnel endpoint id */
 }
 
+#ifdef WITH_SPGW
 struct spgw_meta_t {
     bit<16>           ipv4_len;
     teid_t            teid;

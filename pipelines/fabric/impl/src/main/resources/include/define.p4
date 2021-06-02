@@ -75,7 +75,7 @@
 
 #define UDP_PORT_GTPU 2152
 #define GTP_GPDU 0xff
-#define GTPU_VERSION 0x01
+#define GTP_V1 0x01
 #define GTP_PROTOCOL_TYPE_GTP 0x01
 
 #define PKT_INSTANCE_TYPE_NORMAL 0

@@ -197,15 +197,31 @@ public class FabricInterpreter extends AbstractFabricHandlerBehavior
             throws PiInterpreterException {
         try {
             ImmutableList.Builder<PiPacketMetadata> builder = ImmutableList.builder();
-            builder.add(PiPacketMetadata.builder()
-                    .withId(FabricConstants.EGRESS_PORT)
-                    .withValue(copyFrom(portNumber)
-                            .fit(PORT_BITWIDTH))
-                    .build());
-            builder.add(PiPacketMetadata.builder()
-                    .withId(FabricConstants.DO_FORWARDING)
-                    .withValue(copyFrom(doForwarding ? ONE : ZERO))
-                    .build());
+            // We have observed an issue with p4lang/PI and BMv2 where in
+            // presence of multiple metadata fields, the PI implementation for
+            // BMv2 provides an erroneous serialization of the packet-out
+            // header, an hence affects the parsing/forwarding behavior. As a
+            // workaround, since we cannot control the order of fields in the
+            // p4runtime.PacketOut message, we modify the interpreter to only
+            // add one field, egress_port or do_forwarding. Both fields
+            // are treated as mutually exclusive by the P4 pipeline, so the
+            // operation is safe. This is against the P4Runtime spec (all fields
+            // should be provided), but supported by bmv2 (unset fields are
+            // initialized to zero).
+            if (portNumber >= 0) {
+                // 0 is a valid port number.
+                builder.add(PiPacketMetadata.builder()
+                        .withId(FabricConstants.EGRESS_PORT)
+                        .withValue(copyFrom(portNumber)
+                                .fit(PORT_BITWIDTH))
+                        .build());
+            }
+            if (doForwarding) {
+                builder.add(PiPacketMetadata.builder()
+                        .withId(FabricConstants.DO_FORWARDING)
+                        .withValue(copyFrom(ONE))
+                        .build());
+            }
             return builder.build();
         } catch (ImmutableByteSequence.ByteSequenceTrimException e) {
             throw new PiInterpreterException(format(
@@ -236,7 +252,7 @@ public class FabricInterpreter extends AbstractFabricHandlerBehavior
         for (Instructions.OutputInstruction outInst : outInstructions) {
             if (outInst.port().equals(TABLE)) {
                 // Logical port. Forward using the switch tables like a regular packet.
-                builder.add(createPiPacketOperation(packet.data(), 0, true));
+                builder.add(createPiPacketOperation(packet.data(), -1, true));
             } else if (outInst.port().equals(FLOOD)) {
                 // Logical port. Create a packet operation for each switch port.
                 final DeviceService deviceService = handler().get(DeviceService.class);

@@ -129,6 +129,8 @@ public class FabricPipeliner extends AbstractFabricHandlerBehavior
         this.nextTranslator = new NextObjectiveTranslator(deviceId, capabilities);
         this.coreService = context.directory().get(CoreService.class);
         this.appId = coreService.getAppId(FabricPipeconfLoader.PIPELINE_APP_NAME);
+
+        initializePipeline();
     }
 
     protected void initializePipeline() {
