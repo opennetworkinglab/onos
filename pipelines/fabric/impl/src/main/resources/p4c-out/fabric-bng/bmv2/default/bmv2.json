@@ -5,12 +5,15 @@
       "id" : 0,
       "fields" : [
         ["tmp_0", 1, false],
+        ["tmp_2", 3, false],
+        ["tmp_4", 8, false],
         ["tmp_1", 16, false],
         ["tmp_3", 16, false],
         ["tmp_5", 4, false],
         ["tmp_6", 16, false],
-        ["tmp_2", 32, false],
-        ["tmp_4", 32, false],
+        ["tmp_7", 64, false],
+        ["tmp_8", 32, false],
+        ["tmp_9", 32, false],
         ["bng_ingress_upstream_hasReturned", 1, false],
         ["userMetadata._ip_eth_type0", 16, false],
         ["userMetadata._vlan_id1", 12, false],
@@ -39,7 +42,7 @@
         ["userMetadata._bng_ds_meter_result24", 32, false],
         ["userMetadata._bng_s_tag25", 12, false],
         ["userMetadata._bng_c_tag26", 12, false],
-        ["_padding_0", 4, false]
+        ["_padding_0", 1, false]
       ]
     },
     {
@@ -52,8 +55,23 @@
       ]
     },
     {
-      "name" : "standard_metadata",
+      "name" : "gtpu_t",
       "id" : 2,
+      "fields" : [
+        ["version", 3, false],
+        ["pt", 1, false],
+        ["spare", 1, false],
+        ["ex_flag", 1, false],
+        ["seq_flag", 1, false],
+        ["npdu_flag", 1, false],
+        ["msgtype", 8, false],
+        ["msglen", 16, false],
+        ["teid", 32, false]
+      ]
+    },
+    {
+      "name" : "standard_metadata",
+      "id" : 3,
       "fields" : [
         ["ingress_port", 9, false],
         ["egress_spec", 9, false],
@@ -76,7 +94,7 @@
     },
     {
       "name" : "ethernet_t",
-      "id" : 3,
+      "id" : 4,
       "fields" : [
         ["dst_addr", 48, false],
         ["src_addr", 48, false]
@@ -84,7 +102,7 @@
     },
     {
       "name" : "vlan_tag_t",
-      "id" : 4,
+      "id" : 5,
       "fields" : [
         ["eth_type", 16, false],
         ["pri", 3, false],
@@ -94,14 +112,14 @@
     },
     {
       "name" : "eth_type_t",
-      "id" : 5,
+      "id" : 6,
       "fields" : [
         ["value", 16, false]
       ]
     },
     {
       "name" : "pppoe_t",
-      "id" : 6,
+      "id" : 7,
       "fields" : [
         ["version", 4, false],
         ["type_id", 4, false],
@@ -113,7 +131,7 @@
     },
     {
       "name" : "mpls_t",
-      "id" : 7,
+      "id" : 8,
       "fields" : [
         ["label", 20, false],
         ["tc", 3, false],
@@ -123,7 +141,7 @@
     },
     {
       "name" : "ipv4_t",
-      "id" : 8,
+      "id" : 9,
       "fields" : [
         ["version", 4, false],
         ["ihl", 4, false],
@@ -142,7 +160,7 @@
     },
     {
       "name" : "tcp_t",
-      "id" : 9,
+      "id" : 10,
       "fields" : [
         ["sport", 16, false],
         ["dport", 16, false],
@@ -159,7 +177,7 @@
     },
     {
       "name" : "udp_t",
-      "id" : 10,
+      "id" : 11,
       "fields" : [
         ["sport", 16, false],
         ["dport", 16, false],
@@ -169,7 +187,7 @@
     },
     {
       "name" : "icmp_t",
-      "id" : 11,
+      "id" : 12,
       "fields" : [
         ["icmp_type", 8, false],
         ["icmp_code", 8, false],
@@ -181,7 +199,7 @@
     },
     {
       "name" : "packet_in_header_t",
-      "id" : 12,
+      "id" : 13,
       "fields" : [
         ["ingress_port", 9, false],
         ["_pad", 7, false]
@@ -197,99 +215,106 @@
       "pi_omit" : true
     },
     {
-      "name" : "scalars",
+      "name" : "gtpu_0",
       "id" : 1,
+      "header_type" : "gtpu_t",
+      "metadata" : false,
+      "pi_omit" : true
+    },
+    {
+      "name" : "scalars",
+      "id" : 2,
       "header_type" : "scalars_0",
       "metadata" : true,
       "pi_omit" : true
     },
     {
       "name" : "standard_metadata",
-      "id" : 2,
+      "id" : 3,
       "header_type" : "standard_metadata",
       "metadata" : true,
       "pi_omit" : true
     },
     {
       "name" : "ethernet",
-      "id" : 3,
+      "id" : 4,
       "header_type" : "ethernet_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "vlan_tag",
-      "id" : 4,
-      "header_type" : "vlan_tag_t",
-      "metadata" : false,
-      "pi_omit" : true
-    },
-    {
-      "name" : "inner_vlan_tag",
       "id" : 5,
       "header_type" : "vlan_tag_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
-      "name" : "eth_type",
+      "name" : "inner_vlan_tag",
       "id" : 6,
+      "header_type" : "vlan_tag_t",
+      "metadata" : false,
+      "pi_omit" : true
+    },
+    {
+      "name" : "eth_type",
+      "id" : 7,
       "header_type" : "eth_type_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "pppoe",
-      "id" : 7,
+      "id" : 8,
       "header_type" : "pppoe_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "mpls",
-      "id" : 8,
+      "id" : 9,
       "header_type" : "mpls_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "ipv4",
-      "id" : 9,
+      "id" : 10,
       "header_type" : "ipv4_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "tcp",
-      "id" : 10,
+      "id" : 11,
       "header_type" : "tcp_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "udp",
-      "id" : 11,
+      "id" : 12,
       "header_type" : "udp_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "icmp",
-      "id" : 12,
+      "id" : 13,
       "header_type" : "icmp_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "packet_out",
-      "id" : 13,
+      "id" : 14,
       "header_type" : "packet_out_header_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "packet_in",
-      "id" : 14,
+      "id" : 15,
       "header_type" : "packet_in_header_t",
       "metadata" : false,
       "pi_omit" : true
@@ -1149,6 +1174,519 @@
                 }
               ],
               "op" : "set"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["scalars", "tmp_7"]
+                },
+                {
+                  "type" : "lookahead",
+                  "value" : [0, 64]
+                }
+              ],
+              "op" : "set"
+            },
+            {
+              "parameters" : [
+                {
+                  "parameters" : [
+                    {
+                      "type" : "header",
+                      "value" : "gtpu_0"
+                    }
+                  ],
+                  "op" : "add_header"
+                }
+              ],
+              "op" : "primitive"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["gtpu_0", "version"]
+                },
+                {
+                  "type" : "expression",
+                  "value" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "&",
+                      "left" : {
+                        "type" : "expression",
+                        "value" : {
+                          "op" : "&",
+                          "left" : {
+                            "type" : "expression",
+                            "value" : {
+                              "op" : ">>",
+                              "left" : {
+                                "type" : "field",
+                                "value" : ["scalars", "tmp_7"]
+                              },
+                              "right" : {
+                                "type" : "hexstr",
+                                "value" : "0x3d"
+                              }
+                            }
+                          },
+                          "right" : {
+                            "type" : "hexstr",
+                            "value" : "0xffffffffffffffff"
+                          }
+                        }
+                      },
+                      "right" : {
+                        "type" : "hexstr",
+                        "value" : "0x07"
+                      }
+                    }
+                  }
+                }
+              ],
+              "op" : "set"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["gtpu_0", "pt"]
+                },
+                {
+                  "type" : "expression",
+                  "value" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "&",
+                      "left" : {
+                        "type" : "expression",
+                        "value" : {
+                          "op" : "&",
+                          "left" : {
+                            "type" : "expression",
+                            "value" : {
+                              "op" : ">>",
+                              "left" : {
+                                "type" : "field",
+                                "value" : ["scalars", "tmp_7"]
+                              },
+                              "right" : {
+                                "type" : "hexstr",
+                                "value" : "0x3c"
+                              }
+                            }
+                          },
+                          "right" : {
+                            "type" : "hexstr",
+                            "value" : "0xffffffffffffffff"
+                          }
+                        }
+                      },
+                      "right" : {
+                        "type" : "hexstr",
+                        "value" : "0x01"
+                      }
+                    }
+                  }
+                }
+              ],
+              "op" : "set"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["gtpu_0", "spare"]
+                },
+                {
+                  "type" : "expression",
+                  "value" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "&",
+                      "left" : {
+                        "type" : "expression",
+                        "value" : {
+                          "op" : "&",
+                          "left" : {
+                            "type" : "expression",
+                            "value" : {
+                              "op" : ">>",
+                              "left" : {
+                                "type" : "field",
+                                "value" : ["scalars", "tmp_7"]
+                              },
+                              "right" : {
+                                "type" : "hexstr",
+                                "value" : "0x3b"
+                              }
+                            }
+                          },
+                          "right" : {
+                            "type" : "hexstr",
+                            "value" : "0xffffffffffffffff"
+                          }
+                        }
+                      },
+                      "right" : {
+                        "type" : "hexstr",
+                        "value" : "0x01"
+                      }
+                    }
+                  }
+                }
+              ],
+              "op" : "set"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["gtpu_0", "ex_flag"]
+                },
+                {
+                  "type" : "expression",
+                  "value" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "&",
+                      "left" : {
+                        "type" : "expression",
+                        "value" : {
+                          "op" : "&",
+                          "left" : {
+                            "type" : "expression",
+                            "value" : {
+                              "op" : ">>",
+                              "left" : {
+                                "type" : "field",
+                                "value" : ["scalars", "tmp_7"]
+                              },
+                              "right" : {
+                                "type" : "hexstr",
+                                "value" : "0x3a"
+                              }
+                            }
+                          },
+                          "right" : {
+                            "type" : "hexstr",
+                            "value" : "0xffffffffffffffff"
+                          }
+                        }
+                      },
+                      "right" : {
+                        "type" : "hexstr",
+                        "value" : "0x01"
+                      }
+                    }
+                  }
+                }
+              ],
+              "op" : "set"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["gtpu_0", "seq_flag"]
+                },
+                {
+                  "type" : "expression",
+                  "value" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "&",
+                      "left" : {
+                        "type" : "expression",
+                        "value" : {
+                          "op" : "&",
+                          "left" : {
+                            "type" : "expression",
+                            "value" : {
+                              "op" : ">>",
+                              "left" : {
+                                "type" : "field",
+                                "value" : ["scalars", "tmp_7"]
+                              },
+                              "right" : {
+                                "type" : "hexstr",
+                                "value" : "0x39"
+                              }
+                            }
+                          },
+                          "right" : {
+                            "type" : "hexstr",
+                            "value" : "0xffffffffffffffff"
+                          }
+                        }
+                      },
+                      "right" : {
+                        "type" : "hexstr",
+                        "value" : "0x01"
+                      }
+                    }
+                  }
+                }
+              ],
+              "op" : "set"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["gtpu_0", "npdu_flag"]
+                },
+                {
+                  "type" : "expression",
+                  "value" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "&",
+                      "left" : {
+                        "type" : "expression",
+                        "value" : {
+                          "op" : "&",
+                          "left" : {
+                            "type" : "expression",
+                            "value" : {
+                              "op" : ">>",
+                              "left" : {
+                                "type" : "field",
+                                "value" : ["scalars", "tmp_7"]
+                              },
+                              "right" : {
+                                "type" : "hexstr",
+                                "value" : "0x38"
+                              }
+                            }
+                          },
+                          "right" : {
+                            "type" : "hexstr",
+                            "value" : "0xffffffffffffffff"
+                          }
+                        }
+                      },
+                      "right" : {
+                        "type" : "hexstr",
+                        "value" : "0x01"
+                      }
+                    }
+                  }
+                }
+              ],
+              "op" : "set"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["gtpu_0", "msgtype"]
+                },
+                {
+                  "type" : "expression",
+                  "value" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "&",
+                      "left" : {
+                        "type" : "expression",
+                        "value" : {
+                          "op" : "&",
+                          "left" : {
+                            "type" : "expression",
+                            "value" : {
+                              "op" : ">>",
+                              "left" : {
+                                "type" : "field",
+                                "value" : ["scalars", "tmp_7"]
+                              },
+                              "right" : {
+                                "type" : "hexstr",
+                                "value" : "0x30"
+                              }
+                            }
+                          },
+                          "right" : {
+                            "type" : "hexstr",
+                            "value" : "0xffffffffffffffff"
+                          }
+                        }
+                      },
+                      "right" : {
+                        "type" : "hexstr",
+                        "value" : "0xff"
+                      }
+                    }
+                  }
+                }
+              ],
+              "op" : "set"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["gtpu_0", "msglen"]
+                },
+                {
+                  "type" : "expression",
+                  "value" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "&",
+                      "left" : {
+                        "type" : "expression",
+                        "value" : {
+                          "op" : "&",
+                          "left" : {
+                            "type" : "expression",
+                            "value" : {
+                              "op" : ">>",
+                              "left" : {
+                                "type" : "field",
+                                "value" : ["scalars", "tmp_7"]
+                              },
+                              "right" : {
+                                "type" : "hexstr",
+                                "value" : "0x20"
+                              }
+                            }
+                          },
+                          "right" : {
+                            "type" : "hexstr",
+                            "value" : "0xffffffffffffffff"
+                          }
+                        }
+                      },
+                      "right" : {
+                        "type" : "hexstr",
+                        "value" : "0xffff"
+                      }
+                    }
+                  }
+                }
+              ],
+              "op" : "set"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["gtpu_0", "teid"]
+                },
+                {
+                  "type" : "expression",
+                  "value" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "&",
+                      "left" : {
+                        "type" : "field",
+                        "value" : ["scalars", "tmp_7"]
+                      },
+                      "right" : {
+                        "type" : "hexstr",
+                        "value" : "0xffffffff"
+                      }
+                    }
+                  }
+                }
+              ],
+              "op" : "set"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["scalars", "tmp_2"]
+                },
+                {
+                  "type" : "expression",
+                  "value" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "&",
+                      "left" : {
+                        "type" : "expression",
+                        "value" : {
+                          "op" : "&",
+                          "left" : {
+                            "type" : "expression",
+                            "value" : {
+                              "op" : ">>",
+                              "left" : {
+                                "type" : "field",
+                                "value" : ["scalars", "tmp_7"]
+                              },
+                              "right" : {
+                                "type" : "hexstr",
+                                "value" : "0x3d"
+                              }
+                            }
+                          },
+                          "right" : {
+                            "type" : "hexstr",
+                            "value" : "0xffffffffffffffff"
+                          }
+                        }
+                      },
+                      "right" : {
+                        "type" : "hexstr",
+                        "value" : "0x07"
+                      }
+                    }
+                  }
+                }
+              ],
+              "op" : "set"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["scalars", "tmp_4"]
+                },
+                {
+                  "type" : "expression",
+                  "value" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "&",
+                      "left" : {
+                        "type" : "expression",
+                        "value" : {
+                          "op" : "&",
+                          "left" : {
+                            "type" : "expression",
+                            "value" : {
+                              "op" : ">>",
+                              "left" : {
+                                "type" : "field",
+                                "value" : ["scalars", "tmp_7"]
+                              },
+                              "right" : {
+                                "type" : "hexstr",
+                                "value" : "0x30"
+                              }
+                            }
+                          },
+                          "right" : {
+                            "type" : "hexstr",
+                            "value" : "0xffffffffffffffff"
+                          }
+                        }
+                      },
+                      "right" : {
+                        "type" : "hexstr",
+                        "value" : "0xff"
+                      }
+                    }
+                  }
+                }
+              ],
+              "op" : "set"
             }
           ],
           "transitions" : [
@@ -1163,6 +1701,14 @@
             {
               "type" : "field",
               "value" : ["udp", "dport"]
+            },
+            {
+              "type" : "field",
+              "value" : ["scalars", "tmp_2"]
+            },
+            {
+              "type" : "field",
+              "value" : ["scalars", "tmp_4"]
             }
           ]
         },
@@ -1200,7 +1746,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "include/parser.p4",
-        "line" : 283,
+        "line" : 285,
         "column" : 8,
         "source_fragment" : "FabricDeparser"
       },
@@ -1690,7 +2236,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../header.p4",
-            "line" : 162,
+            "line" : 163,
             "column" : 36,
             "source_fragment" : "2w0x0; ..."
           }
@@ -1796,7 +2342,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../header.p4",
-            "line" : 164,
+            "line" : 165,
             "column" : 39,
             "source_fragment" : "2w0x2;; ..."
           }
@@ -1860,7 +2406,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../header.p4",
-            "line" : 164,
+            "line" : 165,
             "column" : 39,
             "source_fragment" : "2w0x2;; ..."
           }
@@ -3033,7 +3579,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "tmp_2"]
+              "value" : ["scalars", "tmp_8"]
             },
             {
               "type" : "expression",
@@ -3069,7 +3615,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "tmp_2"]
+              "value" : ["scalars", "tmp_8"]
             }
           ],
           "source_info" : {
@@ -3091,7 +3637,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "tmp_4"]
+              "value" : ["scalars", "tmp_9"]
             },
             {
               "type" : "expression",
@@ -3127,7 +3673,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "tmp_4"]
+              "value" : ["scalars", "tmp_9"]
             }
           ],
           "source_info" : {
@@ -3194,7 +3740,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../header.p4",
-            "line" : 163,
+            "line" : 164,
             "column" : 37,
             "source_fragment" : "2w0x1; ..."
           }

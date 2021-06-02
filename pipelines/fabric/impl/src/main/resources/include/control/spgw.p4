@@ -322,7 +322,7 @@ control SpgwEgress(
 
 
         hdr.outer_gtpu.setValid();
-        hdr.outer_gtpu.version = GTPU_VERSION;
+        hdr.outer_gtpu.version = GTP_V1;
         hdr.outer_gtpu.pt = GTP_PROTOCOL_TYPE_GTP;
         hdr.outer_gtpu.spare = 0;
         hdr.outer_gtpu.ex_flag = 0;

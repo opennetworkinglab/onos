@@ -181,9 +181,11 @@ parser FabricParser (packet_in packet,
         packet.extract(hdr.udp);
         fabric_metadata.l4_sport = hdr.udp.sport;
         fabric_metadata.l4_dport = hdr.udp.dport;
-        transition select(hdr.udp.dport) {
+        gtpu_t gtpu = packet.lookahead<gtpu_t>();
+        transition select(hdr.udp.dport, gtpu.version, gtpu.msgtype) {
 #ifdef WITH_SPGW
-            UDP_PORT_GTPU: parse_gtpu;
+            // Treat GTP control traffic as payload.
+            (UDP_PORT_GTPU, GTP_V1, GTP_GPDU): parse_gtpu;
 #endif // WITH_SPGW
 #ifdef WITH_INT
             default: parse_int;
