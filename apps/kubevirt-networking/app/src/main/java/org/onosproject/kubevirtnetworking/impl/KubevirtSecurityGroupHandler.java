@@ -78,7 +78,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
-import static java.lang.Thread.sleep;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.kubevirtnetworking.api.Constants.ACL_CT_TABLE;
@@ -103,6 +102,7 @@ import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.VLAN;
 import static org.onosproject.kubevirtnetworking.impl.OsgiPropertyConstants.USE_SECURITY_GROUP;
 import static org.onosproject.kubevirtnetworking.impl.OsgiPropertyConstants.USE_SECURITY_GROUP_DEFAULT;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.getPropertyValueAsBoolean;
+import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.waitFor;
 import static org.onosproject.kubevirtnetworking.util.RulePopulatorUtil.buildPortRangeMatches;
 import static org.onosproject.kubevirtnetworking.util.RulePopulatorUtil.computeCtMaskFlag;
 import static org.onosproject.kubevirtnetworking.util.RulePopulatorUtil.computeCtStateFlag;
@@ -153,8 +153,6 @@ public class KubevirtSecurityGroupHandler {
 
     private static final int ACTION_NONE = 0;
     private static final int ACTION_DROP = -1;
-
-    private static final long SLEEP_MS = 5000;
 
     /** Apply EdgeStack security group rule for VM traffic. */
     private boolean useSecurityGroup = USE_SECURITY_GROUP_DEFAULT;
@@ -388,11 +386,7 @@ public class KubevirtSecurityGroupHandler {
             if (deviceService.getDevice(deviceId) != null) {
                 break;
             } else {
-                try {
-                    sleep(SLEEP_MS);
-                } catch (InterruptedException e) {
-                    log.error("Failed to install security group default rules.");
-                }
+                waitFor(5);
             }
         }
 
@@ -1020,11 +1014,7 @@ public class KubevirtSecurityGroupHandler {
                 // now we wait 5s for all tenant bridges are created,
                 // FIXME: we need to fina a better way to wait all tenant bridges
                 // are created before installing default security group rules
-                try {
-                    sleep(SLEEP_MS);
-                } catch (InterruptedException e) {
-                    log.error("Failed to install security group default rules.");
-                }
+                waitFor(5);
 
                 for (KubevirtNode node : nodes) {
                     initializeTenantPipeline(network, node, true);
@@ -1108,11 +1098,7 @@ public class KubevirtSecurityGroupHandler {
             }
 
             // FIXME: we wait all port get its deviceId updated
-            try {
-                sleep(SLEEP_MS);
-            } catch (InterruptedException e) {
-                log.error("Failed to install security group default rules.");
-            }
+            waitFor(5);
 
             resetSecurityGroupRulesByNode(node);
         }

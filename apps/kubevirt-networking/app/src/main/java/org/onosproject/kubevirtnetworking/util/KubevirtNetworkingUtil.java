@@ -15,16 +15,16 @@
  */
 package org.onosproject.kubevirtnetworking.util;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
-import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.net.util.SubnetUtils;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.onlab.osgi.DefaultServiceDirectory;
@@ -62,7 +62,6 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -90,6 +89,10 @@ public final class KubevirtNetworkingUtil {
     private static final String MAC = "mac";
     private static final String IPS = "ips";
     private static final String BR_INT = "br-int";
+    private static final String STATUS = "status";
+    private static final String INTERFACES = "interfaces";
+    private static final String IP_ADDRESS = "ipAddress";
+    private static final String NODE_NAME = "nodeName";
 
     /**
      * Prevents object installation from external.
@@ -325,65 +328,68 @@ public final class KubevirtNetworkingUtil {
     }
 
     /**
-     * Obtains the kubevirt port from kubevirt POD.
+     * Obtains the kubevirt port from kubevirt VMI.
      *
      * @param nodeService kubevirt node service
      * @param networks set of existing kubevirt networks
-     * @param pod      kubevirt POD
-     * @return kubevirt ports attached to the POD
+     * @param resource  VMI definition
+     * @return kubevirt ports attached to the VMI
      */
     public static Set<KubevirtPort> getPorts(KubevirtNodeService nodeService,
-                                             Set<KubevirtNetwork> networks, Pod pod) {
+                                             Set<KubevirtNetwork> networks,
+                                             String resource) {
         try {
-            Map<String, String> annots = pod.getMetadata().getAnnotations();
-            if (annots == null) {
-                return ImmutableSet.of();
-            }
-
-            if (!annots.containsKey(NETWORK_STATUS_KEY)) {
-                return ImmutableSet.of();
-            }
-
-            String networkStatusStr = annots.get(NETWORK_STATUS_KEY);
-
-            if (networkStatusStr == null) {
-                return ImmutableSet.of();
-            }
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode json = mapper.readTree(resource);
+            JsonNode statusJson = json.get(STATUS);
+            ArrayNode interfacesJson = (ArrayNode) statusJson.get(INTERFACES);
 
             KubevirtPort.Builder builder = DefaultKubevirtPort.builder();
-
-            KubevirtNode node = nodeService.node(pod.getSpec().getNodeName());
-
-            if (node != null) {
-                builder.deviceId(node.intgBridge());
+            String nodeName = parseVmiNodeName(resource);
+            if (nodeName != null && nodeService.node(nodeName) != null) {
+                builder.deviceId(nodeService.node(nodeName).intgBridge());
             }
 
-            JSONArray networkStatus = new JSONArray(networkStatusStr);
-            Set<KubevirtPort> ports = new HashSet<>();
+            if (interfacesJson == null) {
+                return ImmutableSet.of();
+            }
 
-            for (int i = 0; i < networkStatus.length(); i++) {
-                JSONObject object = networkStatus.getJSONObject(i);
-                String name = object.getString(NAME);
+            Set<KubevirtPort> ports = new HashSet<>();
+            for (JsonNode interfaceJson : interfacesJson) {
+                String name = interfaceJson.get(NAME).asText();
                 KubevirtNetwork network = networks.stream()
-                        .filter(n -> (NETWORK_PREFIX + n.name()).equals(name) || (n.name()).equals(name))
+                        .filter(n -> (NETWORK_PREFIX + n.name()).equals(name) ||
+                                     (n.name() + "-net").equals(name))
                         .findAny().orElse(null);
                 if (network != null) {
-                    String mac = object.getString(MAC);
-
+                    // FIXME: we do not update IP address, as learning IP address
+                    // requires much more time due to the lag from VM agent
+                    String mac = interfaceJson.get(MAC).asText();
                     builder.macAddress(MacAddress.valueOf(mac))
                             .networkId(network.networkId());
-
                     ports.add(builder.build());
                 }
             }
-
             return ports;
+        } catch (IOException e) {
+            log.error("Failed to parse port info from VMI object", e);
+        }
+        return ImmutableSet.of();
+    }
 
-        } catch (JSONException e) {
-            log.error("Failed to parse network status object", e);
+    public static String parseVmiNodeName(String resource) {
+        String nodeName = null;
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode json = mapper.readTree(resource);
+            JsonNode statusJson = json.get(STATUS);
+            JsonNode nodeNameJson = statusJson.get(NODE_NAME);
+            nodeName = nodeNameJson != null ? nodeNameJson.asText() : null;
+        } catch (IOException e) {
+            log.error("Failed to parse kubevirt VMI nodename");
         }
 
-        return ImmutableSet.of();
+        return nodeName;
     }
 
     /**
@@ -662,5 +668,18 @@ public final class KubevirtNetworkingUtil {
         return lbService.loadBalancers().stream()
                 .filter(lb -> router.internal().contains(lb.networkId()))
                 .collect(Collectors.toSet());
+    }
+
+    /**
+     * Waits for the given length of time.
+     *
+     * @param timeSecond the amount of time for wait in second unit
+     */
+    public static void waitFor(int timeSecond) {
+        try {
+            Thread.sleep(timeSecond * 1000L);
+        } catch (Exception e) {
+            log.error(e.toString());
+        }
     }
 }
