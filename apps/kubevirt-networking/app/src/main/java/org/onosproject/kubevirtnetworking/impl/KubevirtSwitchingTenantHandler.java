@@ -55,7 +55,6 @@ import org.slf4j.Logger;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 
-import static java.lang.Thread.sleep;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.kubevirtnetworking.api.Constants.KUBEVIRT_NETWORKING_APP_ID;
@@ -65,6 +64,7 @@ import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.FLAT;
 import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.VLAN;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.tunnelPort;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.tunnelToTenantPort;
+import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.waitFor;
 import static org.onosproject.kubevirtnetworking.util.RulePopulatorUtil.buildExtension;
 import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.MASTER;
 import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.WORKER;
@@ -76,7 +76,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(immediate = true)
 public class KubevirtSwitchingTenantHandler {
     private final Logger log = getLogger(getClass());
-    private static final long SLEEP_MS = 3000; // we wait 3s
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
@@ -156,11 +155,7 @@ public class KubevirtSwitchingTenantHandler {
                 if (tunnelToTenantPort(localNode, network) != null) {
                     break;
                 } else {
-                    try {
-                        sleep(SLEEP_MS);
-                    } catch (InterruptedException e) {
-                        log.error("Failed to install security group default rules.");
-                    }
+                    waitFor(3);
                 }
             }
 

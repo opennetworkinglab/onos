@@ -16,6 +16,7 @@
 package org.onosproject.kubevirtnetworking.impl;
 
 import com.google.common.collect.Lists;
+import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.packet.ARP;
 import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
@@ -52,6 +53,7 @@ import org.onosproject.kubevirtnode.api.KubevirtNodeListener;
 import org.onosproject.kubevirtnode.api.KubevirtNodeService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.BridgeConfig;
 import org.onosproject.net.behaviour.BridgeDescription;
@@ -62,6 +64,7 @@ import org.onosproject.net.behaviour.DefaultPatchDescription;
 import org.onosproject.net.behaviour.InterfaceConfig;
 import org.onosproject.net.behaviour.PatchDescription;
 import org.onosproject.net.device.DeviceAdminService;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -79,7 +82,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
-import static java.lang.Thread.sleep;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.packet.ICMP.CODE_ECHO_REQEUST;
 import static org.onlab.packet.ICMP.TYPE_ECHO_REPLY;
@@ -118,6 +120,7 @@ import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.res
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.segmentIdHex;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.tunnelPort;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.tunnelToTenantPort;
+import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.waitFor;
 import static org.onosproject.kubevirtnetworking.util.RulePopulatorUtil.NXM_NX_IP_TTL;
 import static org.onosproject.kubevirtnetworking.util.RulePopulatorUtil.NXM_OF_ICMP_TYPE;
 import static org.onosproject.kubevirtnetworking.util.RulePopulatorUtil.buildExtension;
@@ -130,6 +133,7 @@ import static org.onosproject.kubevirtnode.api.Constants.TUNNEL_BRIDGE;
 import static org.onosproject.kubevirtnode.api.Constants.TUNNEL_TO_INTEGRATION;
 import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.GATEWAY;
 import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.WORKER;
+import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -141,8 +145,6 @@ public class KubevirtNetworkHandler {
     private static final String DEFAULT_OF_PROTO = "tcp";
     private static final int DEFAULT_OFPORT = 6653;
     private static final int DPID_BEGIN = 3;
-    private static final long SLEEP_MS = 3000;
-    private static final long SLEEP_LARGE_MS = 5000;
     private static final int DEFAULT_TTL = 0xff;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
@@ -256,15 +258,20 @@ public class KubevirtNetworkHandler {
         String dpid = network.tenantDeviceId(
                 node.hostname()).toString().substring(DPID_BEGIN);
 
-        BridgeDescription.Builder builder = DefaultBridgeDescription.builder()
-                .name(network.tenantBridgeName())
-                .failMode(BridgeDescription.FailMode.SECURE)
-                .datapathId(dpid)
-                .disableInBand()
-                .controllers(controllers);
+        // if the bridge is already available, we skip creating a new bridge
+        if (!deviceService.isAvailable(DeviceId.deviceId(dpid))) {
+            BridgeDescription.Builder builder = DefaultBridgeDescription.builder()
+                    .name(network.tenantBridgeName())
+                    .failMode(BridgeDescription.FailMode.SECURE)
+                    .datapathId(dpid)
+                    .disableInBand()
+                    .controllers(controllers);
 
-        BridgeConfig bridgeConfig = device.as(BridgeConfig.class);
-        bridgeConfig.addBridge(builder.build());
+            BridgeConfig bridgeConfig = device.as(BridgeConfig.class);
+            bridgeConfig.addBridge(builder.build());
+
+            waitFor(3);
+        }
     }
 
     private void removeBridge(KubevirtNode node, KubevirtNetwork network) {
@@ -292,24 +299,32 @@ public class KubevirtNetworkHandler {
         String tunToTenantIntf =
                 TUNNEL_TO_TENANT_PREFIX + segmentIdHex(network.segmentId());
 
-        // tenant bridge -> tunnel bridge
-        PatchDescription brTenantTunPatchDesc =
-                DefaultPatchDescription.builder()
-                        .deviceId(network.tenantBridgeName())
-                        .ifaceName(tenantToTunIntf)
-                        .peer(tunToTenantIntf)
-                        .build();
+        if (!hasPort(DeviceId.deviceId(network.tenantBridgeName()), tenantToTunIntf)) {
+            // tenant bridge -> tunnel bridge
+            PatchDescription brTenantTunPatchDesc =
+                    DefaultPatchDescription.builder()
+                            .deviceId(network.tenantBridgeName())
+                            .ifaceName(tenantToTunIntf)
+                            .peer(tunToTenantIntf)
+                            .build();
 
-        ifaceConfig.addPatchMode(tenantToTunIntf, brTenantTunPatchDesc);
+            ifaceConfig.addPatchMode(tenantToTunIntf, brTenantTunPatchDesc);
 
-        // tunnel bridge -> tenant bridge
-        PatchDescription brTunTenantPatchDesc =
-                DefaultPatchDescription.builder()
-                        .deviceId(TUNNEL_BRIDGE)
-                        .ifaceName(tunToTenantIntf)
-                        .peer(tenantToTunIntf)
-                        .build();
-        ifaceConfig.addPatchMode(tunToTenantIntf, brTunTenantPatchDesc);
+            waitFor(1);
+        }
+
+        if (!hasPort(DeviceId.deviceId(TUNNEL_BRIDGE), tunToTenantIntf)) {
+            // tunnel bridge -> tenant bridge
+            PatchDescription brTunTenantPatchDesc =
+                    DefaultPatchDescription.builder()
+                            .deviceId(TUNNEL_BRIDGE)
+                            .ifaceName(tunToTenantIntf)
+                            .peer(tenantToTunIntf)
+                            .build();
+            ifaceConfig.addPatchMode(tunToTenantIntf, brTunTenantPatchDesc);
+
+            waitFor(1);
+        }
     }
 
     private void removeAllFlows(KubevirtNode node, KubevirtNetwork network) {
@@ -387,12 +402,7 @@ public class KubevirtNetworkHandler {
 
         while (!deviceService.isAvailable(deviceId)) {
             log.warn("Device {} is not ready for installing rules", deviceId);
-
-            try {
-                sleep(SLEEP_MS);
-            } catch (InterruptedException e) {
-                log.error("Failed to check device availability", e);
-            }
+            waitFor(3);
         }
 
         flowService.connectTables(deviceId, TENANT_INBOUND_TABLE, TENANT_DHCP_TABLE);
@@ -927,6 +937,15 @@ public class KubevirtNetworkHandler {
                 install);
     }
 
+    private boolean hasPort(DeviceId deviceId, String portName) {
+        DeviceService deviceService = DefaultServiceDirectory.getService(DeviceService.class);
+        Port port = deviceService.getPorts(deviceId).stream()
+                .filter(p -> p.isEnabled() &&
+                        Objects.equals(p.annotations().value(PORT_NAME), portName))
+                .findAny().orElse(null);
+        return port != null;
+    }
+
     private class InternalRouterEventListener implements KubevirtRouterListener {
         private boolean isRelevantHelper() {
             return Objects.equals(localNodeId, leadershipService.getLeader(appId.name()));
@@ -1240,11 +1259,7 @@ public class KubevirtNetworkHandler {
                 removeAllFlows(n, network);
                 removePatchInterface(n, network);
 
-                try {
-                    sleep(SLEEP_LARGE_MS);
-                } catch (InterruptedException e) {
-                    log.error("Sleep exception", e);
-                }
+                waitFor(5);
 
                 removeBridge(n, network);
             });
@@ -1440,7 +1455,6 @@ public class KubevirtNetworkHandler {
                             kubevirtPort, gwNode, false);
                 });
             }
-
         }
     }
 }
