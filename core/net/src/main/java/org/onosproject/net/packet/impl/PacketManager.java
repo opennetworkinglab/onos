@@ -285,7 +285,6 @@ public class PacketManager
             } else if (request.deviceId().get().equals(device.id())) {
                 pushRule(device, request);
             }
-
         }
     }
 
