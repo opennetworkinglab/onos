@@ -246,7 +246,7 @@ public class DistributedPacketStore
 
         private List<PacketRequest> requests() {
             List<PacketRequest> list = Lists.newArrayList();
-            requests.values().forEach(v -> list.add(v));
+            requests.forEach(entry -> list.add(entry.getValue()));
             list.sort((o1, o2) -> o1.priority().priorityValue() - o2.priority().priorityValue());
             return list;
         }
