@@ -202,7 +202,8 @@ public class DefaultRouteTable implements RouteTable {
     public Collection<RouteSet> getRoutesForNextHops(Collection<IpAddress> nextHops) {
         // First create a reduced snapshot of the store iterating one time the map
         Map<String, Collection<? extends RawRoute>> filteredRouteStore = new HashMap<>();
-        routes.values().stream()
+        routes.stream()
+                .map(Map.Entry::getValue)
                 .filter(r -> nextHops.contains(IpAddress.valueOf(r.nextHop())))
                 .forEach(r -> filteredRouteStore.computeIfAbsent(r.prefix, k -> {
                     // We need to get all the routes because the resolve logic
