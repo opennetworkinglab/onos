@@ -291,13 +291,8 @@ public class KubevirtSecurityGroupHandler {
                 ACTION_DROP, PRIORITY_CT_DROP_RULE, install);
     }
 
-    private void initializeProviderAclTable(KubevirtNode node,
-                                            DeviceId deviceId, boolean install) {
-        // FIXME: we need to use group table to multi-cast traffic to all
-        // physPatchPorts later, we only choose one of the physPatchPorts to
-        // stream the outbound traffic for now
-        node.physPatchPorts().stream().findFirst().ifPresent(p ->
-                    initializeAclTable(deviceId, ACL_RECIRC_TABLE, p, install));
+    private void initializeProviderAclTable(DeviceId deviceId, boolean install) {
+        initializeAclTable(deviceId, ACL_RECIRC_TABLE, PortNumber.NORMAL, install);
     }
 
     private void initializeTenantAclTable(KubevirtNetwork network,
@@ -368,7 +363,7 @@ public class KubevirtSecurityGroupHandler {
         initializeProviderIngressTable(node.intgBridge(), install);
         initializeProviderEgressTable(node.intgBridge(), install);
         initializeProviderConnTrackTable(node.intgBridge(), install);
-        initializeProviderAclTable(node, node.intgBridge(), install);
+        initializeProviderAclTable(node.intgBridge(), install);
     }
 
     private void initializeTenantPipeline(KubevirtNetwork network,
