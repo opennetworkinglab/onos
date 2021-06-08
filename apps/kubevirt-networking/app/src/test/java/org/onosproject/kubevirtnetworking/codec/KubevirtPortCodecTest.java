@@ -72,6 +72,7 @@ public final class KubevirtPortCodecTest {
     @Test
     public void testKubevirtPortEncode() {
         KubevirtPort port = DefaultKubevirtPort.builder()
+                .vmName("test-vm-1")
                 .networkId("net-1")
                 .macAddress(MacAddress.valueOf("11:22:33:44:55:66"))
                 .ipAddress(IpAddress.valueOf("10.10.10.100"))

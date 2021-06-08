@@ -36,6 +36,7 @@ public final class KubevirtPortCodec extends JsonCodec<KubevirtPort> {
 
     private final Logger log = getLogger(getClass());
 
+    private static final String VM_NAME = "vmName";
     private static final String NETWORK_ID = "networkId";
     private static final String MAC_ADDRESS = "macAddress";
     private static final String IP_ADDRESS = "ipAddress";
@@ -50,6 +51,7 @@ public final class KubevirtPortCodec extends JsonCodec<KubevirtPort> {
         checkNotNull(port, "Kubevirt port cannot be null");
 
         ObjectNode result = context.mapper().createObjectNode()
+                .put(VM_NAME, port.vmName())
                 .put(NETWORK_ID, port.networkId())
                 .put(MAC_ADDRESS, port.macAddress().toString());
 
@@ -82,6 +84,9 @@ public final class KubevirtPortCodec extends JsonCodec<KubevirtPort> {
             return null;
         }
 
+        String vmName = nullIsIllegal(json.get(VM_NAME).asText(),
+                VM_NAME + MISSING_MESSAGE);
+
         String networkId = nullIsIllegal(json.get(NETWORK_ID).asText(),
                 NETWORK_ID + MISSING_MESSAGE);
 
@@ -89,6 +94,7 @@ public final class KubevirtPortCodec extends JsonCodec<KubevirtPort> {
                 MAC_ADDRESS + MISSING_MESSAGE);
 
         KubevirtPort.Builder builder = DefaultKubevirtPort.builder()
+                .vmName(vmName)
                 .networkId(networkId)
                 .macAddress(MacAddress.valueOf(macAddress));
 

@@ -59,7 +59,7 @@ public class KubevirtListPortCommand extends AbstractShellCommand {
         ports.sort(Comparator.comparing(KubevirtPort::networkId));
 
         String format = genFormatString(ImmutableList.of(CLI_NAME_LENGTH,
-                CLI_MAC_ADDRESS_LENGTH, CLI_IP_ADDRESSES_LENGTH));
+                CLI_NAME_LENGTH, CLI_MAC_ADDRESS_LENGTH, CLI_IP_ADDRESSES_LENGTH));
 
         if (!Strings.isNullOrEmpty(networkId)) {
             ports.removeIf(port -> !port.networkId().equals(networkId));
@@ -68,9 +68,11 @@ public class KubevirtListPortCommand extends AbstractShellCommand {
         if (outputJson()) {
             print("%s", json(ports));
         } else {
-            print(format, "Network", "MAC Address", "Fixed IPs");
+            print(format, "VM Name", "Network", "MAC Address", "Fixed IPs");
             for (KubevirtPort port: ports) {
                 print(format,
+                        StringUtils.substring(port.vmName(), 0,
+                                CLI_NAME_LENGTH - CLI_MARGIN_LENGTH),
                         StringUtils.substring(port.networkId(), 0,
                                 CLI_NAME_LENGTH - CLI_MARGIN_LENGTH),
                         StringUtils.substring(port.macAddress().toString(), 0,

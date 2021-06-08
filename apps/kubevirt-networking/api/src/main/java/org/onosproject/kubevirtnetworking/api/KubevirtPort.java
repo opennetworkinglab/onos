@@ -28,6 +28,13 @@ import java.util.Set;
 public interface KubevirtPort {
 
     /**
+     * Returns the name of VM where the kubevirt port is attached.
+     *
+     * @return VM name
+     */
+    String vmName();
+
+    /**
      * Returns the network identifier associated with the port.
      *
      * @return network identifier
@@ -126,6 +133,14 @@ public interface KubevirtPort {
          * @return kubernetes port
          */
         KubevirtPort build();
+
+        /**
+         * Returns port builder with supplied VM name.
+         *
+         * @param vmName VM name
+         * @return port builder
+         */
+        Builder vmName(String vmName);
 
         /**
          * Returns port builder with supplied network identifier.

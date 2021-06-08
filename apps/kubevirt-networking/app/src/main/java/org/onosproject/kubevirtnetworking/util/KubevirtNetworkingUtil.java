@@ -89,9 +89,9 @@ public final class KubevirtNetworkingUtil {
     private static final String MAC = "mac";
     private static final String IPS = "ips";
     private static final String BR_INT = "br-int";
+    private static final String METADATA = "metadata";
     private static final String STATUS = "status";
     private static final String INTERFACES = "interfaces";
-    private static final String IP_ADDRESS = "ipAddress";
     private static final String NODE_NAME = "nodeName";
 
     /**
@@ -343,6 +343,7 @@ public final class KubevirtNetworkingUtil {
             JsonNode json = mapper.readTree(resource);
             JsonNode statusJson = json.get(STATUS);
             ArrayNode interfacesJson = (ArrayNode) statusJson.get(INTERFACES);
+            String vmName = parseResourceName(resource);
 
             KubevirtPort.Builder builder = DefaultKubevirtPort.builder();
             String nodeName = parseVmiNodeName(resource);
@@ -365,7 +366,8 @@ public final class KubevirtNetworkingUtil {
                     // FIXME: we do not update IP address, as learning IP address
                     // requires much more time due to the lag from VM agent
                     String mac = interfaceJson.get(MAC).asText();
-                    builder.macAddress(MacAddress.valueOf(mac))
+                    builder.vmName(vmName)
+                            .macAddress(MacAddress.valueOf(mac))
                             .networkId(network.networkId());
                     ports.add(builder.build());
                 }

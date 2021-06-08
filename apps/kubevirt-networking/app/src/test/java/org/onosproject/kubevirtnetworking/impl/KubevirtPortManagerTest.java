@@ -57,6 +57,7 @@ public class KubevirtPortManagerTest {
 
     private static final String PORT_MAC = "00:11:22:33:44:55";
     private static final KubevirtPort PORT = DefaultKubevirtPort.builder()
+            .vmName("test-vm-1")
             .networkId(NETWORK_ID)
             .deviceId(DeviceId.deviceId("dev-1"))
             .ipAddress(IpAddress.valueOf("20.20.20.20"))
@@ -64,6 +65,7 @@ public class KubevirtPortManagerTest {
             .portNumber(PortNumber.portNumber("1"))
             .build();
     private static final KubevirtPort PORT_UPDATED = DefaultKubevirtPort.builder()
+            .vmName("test-vm-1")
             .networkId(UPDATED_ID)
             .deviceId(DeviceId.deviceId("dev-1"))
             .ipAddress(IpAddress.valueOf("20.20.20.20"))
