@@ -37,6 +37,7 @@ public final class DefaultKubevirtPort implements KubevirtPort {
 
     private static final String NOT_NULL_MSG = "Port % cannot be null";
 
+    private final String vmName;
     private final String networkId;
     private final MacAddress macAddress;
     private final IpAddress ipAddress;
@@ -47,6 +48,7 @@ public final class DefaultKubevirtPort implements KubevirtPort {
     /**
      * Default constructor.
      *
+     * @param vmName            VM name
      * @param networkId         network identifier
      * @param macAddress        MAC address
      * @param ipAddress         IP address
@@ -54,14 +56,20 @@ public final class DefaultKubevirtPort implements KubevirtPort {
      * @param portNumber        port number
      * @param securityGroups    security groups
      */
-    public DefaultKubevirtPort(String networkId, MacAddress macAddress, IpAddress ipAddress,
+    public DefaultKubevirtPort(String vmName, String networkId, MacAddress macAddress, IpAddress ipAddress,
                                DeviceId deviceId, PortNumber portNumber, Set<String> securityGroups) {
+        this.vmName = vmName;
         this.networkId = networkId;
         this.macAddress = macAddress;
         this.ipAddress = ipAddress;
         this.deviceId = deviceId;
         this.portNumber = portNumber;
         this.securityGroups = securityGroups;
+    }
+
+    @Override
+    public String vmName() {
+        return vmName;
     }
 
     @Override
@@ -122,6 +130,7 @@ public final class DefaultKubevirtPort implements KubevirtPort {
     @Override
     public KubevirtPort updateIpAddress(IpAddress updateIpAddress) {
         return new Builder()
+                .vmName(vmName)
                 .networkId(networkId)
                 .macAddress(macAddress)
                 .ipAddress(updateIpAddress)
@@ -134,6 +143,7 @@ public final class DefaultKubevirtPort implements KubevirtPort {
     @Override
     public KubevirtPort updatePortNumber(PortNumber updatedPortNumber) {
         return new Builder()
+                .vmName(vmName)
                 .networkId(networkId)
                 .macAddress(macAddress)
                 .ipAddress(ipAddress)
@@ -146,6 +156,7 @@ public final class DefaultKubevirtPort implements KubevirtPort {
     @Override
     public KubevirtPort updateDeviceId(DeviceId updatedDeviceId) {
         return new Builder()
+                .vmName(vmName)
                 .networkId(networkId)
                 .macAddress(macAddress)
                 .ipAddress(ipAddress)
@@ -167,6 +178,7 @@ public final class DefaultKubevirtPort implements KubevirtPort {
     @Override
     public KubevirtPort updateSecurityGroups(Set<String> sgs) {
         return new Builder()
+                .vmName(vmName)
                 .networkId(networkId)
                 .macAddress(macAddress)
                 .ipAddress(ipAddress)
@@ -185,19 +197,21 @@ public final class DefaultKubevirtPort implements KubevirtPort {
             return false;
         }
         DefaultKubevirtPort that = (DefaultKubevirtPort) o;
-        return networkId.equals(that.networkId) && macAddress.equals(that.macAddress) &&
-                ipAddress.equals(that.ipAddress) && deviceId.equals(that.deviceId) &&
-                portNumber.equals(that.portNumber) && securityGroups.equals(that.securityGroups);
+        return vmName.equals(that.vmName) && networkId.equals(that.networkId) &&
+                macAddress.equals(that.macAddress) && ipAddress.equals(that.ipAddress) &&
+                deviceId.equals(that.deviceId) && portNumber.equals(that.portNumber) &&
+                securityGroups.equals(that.securityGroups);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(networkId, macAddress, ipAddress, deviceId, portNumber, securityGroups);
+        return Objects.hash(vmName, networkId, macAddress, ipAddress, deviceId, portNumber, securityGroups);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
+                .add("vmName", vmName)
                 .add("networkId", networkId)
                 .add("macAddress", macAddress)
                 .add("ipAddress", ipAddress)
@@ -221,6 +235,7 @@ public final class DefaultKubevirtPort implements KubevirtPort {
      */
     public static final class Builder implements KubevirtPort.Builder {
 
+        private String vmName;
         private String networkId;
         private MacAddress macAddress;
         private IpAddress ipAddress;
@@ -234,11 +249,18 @@ public final class DefaultKubevirtPort implements KubevirtPort {
 
         @Override
         public KubevirtPort build() {
+            checkArgument(vmName != null, NOT_NULL_MSG, "vmName");
             checkArgument(networkId != null, NOT_NULL_MSG, "networkId");
             checkArgument(macAddress != null, NOT_NULL_MSG, "macAddress");
 
-            return new DefaultKubevirtPort(networkId, macAddress, ipAddress,
-                    deviceId, portNumber, securityGroups);
+            return new DefaultKubevirtPort(vmName, networkId, macAddress,
+                    ipAddress, deviceId, portNumber, securityGroups);
+        }
+
+        @Override
+        public KubevirtPort.Builder vmName(String vmName) {
+            this.vmName = vmName;
+            return this;
         }
 
         @Override

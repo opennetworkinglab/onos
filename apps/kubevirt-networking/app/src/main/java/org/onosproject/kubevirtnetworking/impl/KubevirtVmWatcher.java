@@ -224,8 +224,11 @@ public class KubevirtVmWatcher {
                 return;
             }
 
+            String vmName = parseVmName(resource);
+
             parseMacAddresses(resource).forEach((mac, net) -> {
                 KubevirtPort port = DefaultKubevirtPort.builder()
+                        .vmName(vmName)
                         .macAddress(mac)
                         .networkId(net)
                         .build();
@@ -249,8 +252,11 @@ public class KubevirtVmWatcher {
                 return;
             }
 
+            String vmName = parseVmName(resource);
+
             parseMacAddresses(resource).forEach((mac, net) -> {
                 KubevirtPort port = DefaultKubevirtPort.builder()
+                        .vmName(vmName)
                         .macAddress(mac)
                         .networkId(net)
                         .build();
@@ -286,6 +292,22 @@ public class KubevirtVmWatcher {
 
         private boolean isMaster() {
             return Objects.equals(localNodeId, leadershipService.getLeader(appId.name()));
+        }
+
+        private String parseVmName(String resource) {
+            String vmName = null;
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode json = mapper.readTree(resource);
+                JsonNode nameJson = json.get(METADATA).get(NAME);
+                if (nameJson != null) {
+                    vmName = nameJson.asText();
+                }
+            } catch (IOException e) {
+                log.error("Failed to parse kubevirt VM name");
+            }
+
+            return vmName;
         }
 
         private Map<String, IpAddress> parseIpAddresses(String resource) {

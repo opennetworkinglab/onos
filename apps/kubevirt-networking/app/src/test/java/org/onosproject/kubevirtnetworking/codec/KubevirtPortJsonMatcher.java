@@ -30,6 +30,7 @@ public final class KubevirtPortJsonMatcher extends TypeSafeDiagnosingMatcher<Jso
 
     private final KubevirtPort port;
 
+    private static final String VM_NAME = "vmName";
     private static final String NETWORK_ID = "networkId";
     private static final String MAC_ADDRESS = "macAddress";
     private static final String IP_ADDRESS = "ipAddress";
@@ -42,6 +43,14 @@ public final class KubevirtPortJsonMatcher extends TypeSafeDiagnosingMatcher<Jso
 
     @Override
     protected boolean matchesSafely(JsonNode jsonNode, Description description) {
+        // check VM name
+        String jsonVmName = jsonNode.get(VM_NAME).asText();
+        String vmName = port.vmName();
+        if (!jsonVmName.equals(vmName)) {
+            description.appendText("VM name was " + jsonVmName);
+            return false;
+        }
+
         // check network ID
         String jsonNetworkId = jsonNode.get(NETWORK_ID).asText();
         String networkId = port.networkId();
