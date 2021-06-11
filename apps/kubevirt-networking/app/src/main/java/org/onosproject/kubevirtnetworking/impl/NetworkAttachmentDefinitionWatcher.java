@@ -258,7 +258,9 @@ public class NetworkAttachmentDefinitionWatcher {
             log.trace("Process NetworkAttachmentDefinition {} removal event from API server.",
                     name);
 
-            adminService.removeNetwork(name);
+            if (adminService.network(name) != null) {
+                adminService.removeNetwork(name);
+            }
         }
 
         private boolean isMaster() {
