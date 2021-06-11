@@ -24,6 +24,12 @@ control Acl (inout parsed_headers_t hdr,
              inout fabric_metadata_t fabric_metadata,
              inout standard_metadata_t standard_metadata) {
 
+    ipv4_addr_t ipv4_src    = 0;
+    ipv4_addr_t ipv4_dst    = 0;
+    bit<8> ip_proto         = 0;
+    l4_port_t l4_sport      = 0;
+    l4_port_t l4_dport      = 0;
+
     /*
      * ACL Table.
      */
@@ -59,18 +65,18 @@ control Acl (inout parsed_headers_t hdr,
 
     table acl {
         key = {
-            standard_metadata.ingress_port: ternary @name("ig_port"); // 9
-            fabric_metadata.ip_proto: ternary @name("ip_proto"); // 8
-            fabric_metadata.l4_sport: ternary @name("l4_sport"); // 16
-            fabric_metadata.l4_dport: ternary @name("l4_dport"); // 16
-            hdr.ethernet.dst_addr: ternary @name("eth_dst"); // 48
-            hdr.ethernet.src_addr: ternary @name("eth_src"); // 48
-            hdr.vlan_tag.vlan_id: ternary @name("vlan_id"); // 12
-            hdr.eth_type.value: ternary @name("eth_type"); //16
-            hdr.ipv4.src_addr: ternary @name("ipv4_src"); // 32
-            hdr.ipv4.dst_addr: ternary @name("ipv4_dst"); // 32
-            hdr.icmp.icmp_type: ternary @name("icmp_type"); // 8
-            hdr.icmp.icmp_code: ternary @name("icmp_code"); // 8
+            standard_metadata.ingress_port  : ternary @name("ig_port");   // 9
+            hdr.ethernet.dst_addr           : ternary @name("eth_dst");   // 48
+            hdr.ethernet.src_addr           : ternary @name("eth_src");   // 48
+            hdr.vlan_tag.vlan_id            : ternary @name("vlan_id");   // 12
+            hdr.eth_type.value              : ternary @name("eth_type");  // 16
+            ipv4_src                        : ternary @name("ipv4_src");  // 32
+            ipv4_dst                        : ternary @name("ipv4_dst");  // 32
+            ip_proto                        : ternary @name("ip_proto");  // 8
+            hdr.icmp.icmp_type              : ternary @name("icmp_type"); // 8
+            hdr.icmp.icmp_code              : ternary @name("icmp_code"); // 8
+            l4_sport                        : ternary @name("l4_sport");  // 16
+            l4_dport                        : ternary @name("l4_dport");  // 16
         }
 
         actions = {
@@ -87,6 +93,29 @@ control Acl (inout parsed_headers_t hdr,
     }
 
     apply {
+        if (hdr.gtpu.isValid() && hdr.inner_ipv4.isValid()) {
+            ipv4_src = hdr.inner_ipv4.src_addr;
+            ipv4_dst = hdr.inner_ipv4.dst_addr;
+            ip_proto = hdr.inner_ipv4.protocol;
+            if (hdr.inner_tcp.isValid()) {
+                l4_sport = hdr.inner_tcp.sport;
+                l4_dport = hdr.inner_tcp.dport;
+            } else if (hdr.inner_udp.isValid()) {
+                l4_sport = hdr.inner_udp.sport;
+                l4_dport = hdr.inner_udp.dport;
+            }
+        } else if (hdr.ipv4.isValid()) {
+            ipv4_src = hdr.ipv4.src_addr;
+            ipv4_dst = hdr.ipv4.dst_addr;
+            ip_proto = hdr.ipv4.protocol;
+            if (hdr.tcp.isValid()) {
+                l4_sport = hdr.tcp.sport;
+                l4_dport = hdr.tcp.dport;
+            } else if (hdr.udp.isValid()) {
+                l4_sport = hdr.udp.sport;
+                l4_dport = hdr.udp.dport;
+            }
+        }
         acl.apply();
     }
 }

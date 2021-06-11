@@ -395,6 +395,53 @@ public class FilteringObjectiveTranslatorTest extends BaseObjectiveTranslatorTes
         assertEquals(expectedTranslation, actualTranslation);
     }
 
+    /**
+     * Test no more ports scenario for filtering objective.
+     */
+    @Test
+    public void testNoMorePorts() throws FabricPipelinerException {
+        // Tagged port scenario
+        FilteringObjective filteringObjective = DefaultFilteringObjective.builder()
+                .withKey(Criteria.matchInPort(PORT_1))
+                .addCondition(Criteria.matchEthDst(ROUTER_MAC))
+                .addCondition(Criteria.matchVlanId(VLAN_100))
+                .withPriority(PRIORITY)
+                .fromApp(APP_ID)
+                .withMeta(DefaultTrafficTreatment.builder().wipeDeferred().build())
+                .permit()
+                .add();
+        ObjectiveTranslation actualTranslation = translator.translate(filteringObjective);
+        Collection<FlowRule> expectedFlowRules = Lists.newArrayList();
+        // Ingress port vlan rule
+        expectedFlowRules.add(buildExpectedVlanInPortRule(
+                PORT_1, VLAN_100, null, VlanId.NONE,
+                FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN));
+        // forwarding classifier ipv4
+        expectedFlowRules.addAll(buildExpectedFwdClassifierRule(
+                PORT_1,
+                ROUTER_MAC,
+                null,
+                Ethernet.TYPE_IPV4,
+                FilteringObjectiveTranslator.FWD_IPV4_ROUTING));
+        // forwarding classifier ipv6
+        expectedFlowRules.addAll(buildExpectedFwdClassifierRule(
+                PORT_1,
+                ROUTER_MAC,
+                null,
+                Ethernet.TYPE_IPV6,
+                FilteringObjectiveTranslator.FWD_IPV6_ROUTING));
+        // forwarding classifier mpls
+        expectedFlowRules.addAll(buildExpectedFwdClassifierRule(
+                PORT_1,
+                ROUTER_MAC,
+                null,
+                Ethernet.MPLS_UNICAST,
+                FilteringObjectiveTranslator.FWD_MPLS));
+
+        ObjectiveTranslation expectedTranslation = buildExpectedTranslation(expectedFlowRules);
+        assertEquals(expectedTranslation, actualTranslation);
+    }
+
     /* Utilities */
 
     private void assertError(ObjectiveError error, ObjectiveTranslation actualTranslation) {
