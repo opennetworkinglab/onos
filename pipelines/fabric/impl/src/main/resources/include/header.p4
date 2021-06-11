@@ -227,12 +227,12 @@ struct parsed_headers_t {
     ipv4_t gtpu_ipv4;
     udp_t gtpu_udp;
     gtpu_t outer_gtpu;
+#endif // WITH_SPGW
     gtpu_t gtpu;
     ipv4_t inner_ipv4;
     udp_t inner_udp;
     tcp_t inner_tcp;
     icmp_t inner_icmp;
-#endif // WITH_SPGW
     ipv4_t ipv4;
 #ifdef WITH_IPV6
     ipv6_t ipv6;

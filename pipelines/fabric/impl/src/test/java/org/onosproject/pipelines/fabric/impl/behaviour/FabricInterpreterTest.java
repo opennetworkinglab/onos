@@ -93,13 +93,47 @@ public class FabricInterpreterTest {
     }
 
     /**
-     * Map treatment to permit action.
+     * Map empty treatment to permit action.
      */
     @Test
     public void testFilteringTreatmentPermit() throws Exception {
         TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
         PiAction mappedAction = interpreter.mapTreatment(treatment,
                                                          FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN);
+        PiAction expectedAction = PiAction.builder()
+                .withId(FabricConstants.FABRIC_INGRESS_FILTERING_PERMIT)
+                .build();
+
+        assertEquals(expectedAction, mappedAction);
+    }
+
+    /**
+     * Map empty treatment and wipeDeferred to permit action.
+     */
+    @Test
+    public void testFilteringTreatmentPermit2() throws Exception {
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .wipeDeferred()
+                .build();
+        PiAction mappedAction = interpreter.mapTreatment(treatment,
+                FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN);
+        PiAction expectedAction = PiAction.builder()
+                .withId(FabricConstants.FABRIC_INGRESS_FILTERING_PERMIT)
+                .build();
+
+        assertEquals(expectedAction, mappedAction);
+    }
+
+    /**
+     * Map popVlan to permit action.
+     */
+    @Test
+    public void testFilteringTreatmentPermit3() throws Exception {
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .popVlan()
+                .build();
+        PiAction mappedAction = interpreter.mapTreatment(treatment,
+                FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN);
         PiAction expectedAction = PiAction.builder()
                 .withId(FabricConstants.FABRIC_INGRESS_FILTERING_PERMIT)
                 .build();
@@ -124,7 +158,7 @@ public class FabricInterpreterTest {
     }
 
     /**
-     * Map empty treatment for ACL table.
+     * Map empty treatment to NOP for ACL table.
      */
     @Test
     public void testAclTreatmentEmpty() throws Exception {
@@ -133,6 +167,22 @@ public class FabricInterpreterTest {
                 treatment, FabricConstants.FABRIC_INGRESS_ACL_ACL);
         PiAction expectedAction = PiAction.builder()
                 .withId(FabricConstants.FABRIC_INGRESS_ACL_NOP_ACL)
+                .build();
+        assertEquals(expectedAction, mappedAction);
+    }
+
+    /**
+     * Map wipeDeferred treatment to DROP for ACL table.
+     */
+    @Test
+    public void testAclTreatmentWipeDeferred() throws Exception {
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .wipeDeferred()
+                .build();
+        PiAction mappedAction = interpreter.mapTreatment(
+                treatment, FabricConstants.FABRIC_INGRESS_ACL_ACL);
+        PiAction expectedAction = PiAction.builder()
+                .withId(FabricConstants.FABRIC_INGRESS_ACL_DROP)
                 .build();
         assertEquals(expectedAction, mappedAction);
     }

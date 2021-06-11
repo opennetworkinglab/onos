@@ -168,68 +168,68 @@ tables {
   }
   match_fields {
     id: 2
-    name: "ip_proto"
-    bitwidth: 8
-    match_type: TERNARY
-  }
-  match_fields {
-    id: 3
-    name: "l4_sport"
-    bitwidth: 16
-    match_type: TERNARY
-  }
-  match_fields {
-    id: 4
-    name: "l4_dport"
-    bitwidth: 16
-    match_type: TERNARY
-  }
-  match_fields {
-    id: 5
     name: "eth_dst"
     bitwidth: 48
     match_type: TERNARY
   }
   match_fields {
-    id: 6
+    id: 3
     name: "eth_src"
     bitwidth: 48
     match_type: TERNARY
   }
   match_fields {
-    id: 7
+    id: 4
     name: "vlan_id"
     bitwidth: 12
     match_type: TERNARY
   }
   match_fields {
-    id: 8
+    id: 5
     name: "eth_type"
     bitwidth: 16
     match_type: TERNARY
   }
   match_fields {
-    id: 9
+    id: 6
     name: "ipv4_src"
     bitwidth: 32
     match_type: TERNARY
   }
   match_fields {
-    id: 10
+    id: 7
     name: "ipv4_dst"
     bitwidth: 32
     match_type: TERNARY
   }
   match_fields {
-    id: 11
+    id: 8
+    name: "ip_proto"
+    bitwidth: 8
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 9
     name: "icmp_type"
     bitwidth: 8
     match_type: TERNARY
   }
   match_fields {
-    id: 12
+    id: 10
     name: "icmp_code"
     bitwidth: 8
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 11
+    name: "l4_sport"
+    bitwidth: 16
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 12
+    name: "l4_dport"
+    bitwidth: 16
     match_type: TERNARY
   }
   action_refs {

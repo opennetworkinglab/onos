@@ -183,10 +183,8 @@ parser FabricParser (packet_in packet,
         fabric_metadata.l4_dport = hdr.udp.dport;
         gtpu_t gtpu = packet.lookahead<gtpu_t>();
         transition select(hdr.udp.dport, gtpu.version, gtpu.msgtype) {
-#ifdef WITH_SPGW
-            // Treat GTP control traffic as payload.
-            (UDP_PORT_GTPU, GTP_V1, GTP_GPDU): parse_gtpu;
-#endif // WITH_SPGW
+        // Treat GTP control traffic as payload.
+        (UDP_PORT_GTPU, GTP_V1, GTP_GPDU): parse_gtpu;
 #ifdef WITH_INT
             default: parse_int;
 #else
@@ -200,7 +198,6 @@ parser FabricParser (packet_in packet,
         transition accept;
     }
 
-#ifdef WITH_SPGW
     state parse_gtpu {
         packet.extract(hdr.gtpu);
         transition parse_inner_ipv4;
@@ -219,8 +216,10 @@ parser FabricParser (packet_in packet,
 
     state parse_inner_udp {
         packet.extract(hdr.inner_udp);
+#ifdef WITH_SPGW
         fabric_metadata.inner_l4_sport = hdr.inner_udp.sport;
         fabric_metadata.inner_l4_dport = hdr.inner_udp.dport;
+#endif // WITH_SPGW
 #ifdef WITH_INT
         transition parse_int;
 #else
@@ -228,18 +227,19 @@ parser FabricParser (packet_in packet,
 #endif // WITH_INT
     }
 
-        state parse_inner_tcp {
+    state parse_inner_tcp {
         packet.extract(hdr.inner_tcp);
+#ifdef WITH_SPGW
         fabric_metadata.inner_l4_sport = hdr.inner_tcp.sport;
         fabric_metadata.inner_l4_dport = hdr.inner_tcp.dport;
+#endif // WITH_SPGW
         transition accept;
     }
 
-        state parse_inner_icmp {
+    state parse_inner_icmp {
         packet.extract(hdr.inner_icmp);
         transition accept;
     }
-#endif // WITH_SPGW
 
 #ifdef WITH_INT
     state parse_int {
@@ -315,14 +315,12 @@ control FabricDeparser(packet_out packet,in parsed_headers_t hdr) {
         packet.emit(hdr.tcp);
         packet.emit(hdr.udp);
         packet.emit(hdr.icmp);
-#ifdef WITH_SPGW
         // if we parsed a GTPU packet but did not decap it
         packet.emit(hdr.gtpu);
         packet.emit(hdr.inner_ipv4);
         packet.emit(hdr.inner_tcp);
         packet.emit(hdr.inner_udp);
         packet.emit(hdr.inner_icmp);
-#endif // WITH_SPGW
 #ifdef WITH_INT
         packet.emit(hdr.intl4_shim);
         packet.emit(hdr.int_header);
