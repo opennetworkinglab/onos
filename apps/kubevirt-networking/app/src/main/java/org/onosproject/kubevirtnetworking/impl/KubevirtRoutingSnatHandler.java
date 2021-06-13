@@ -666,26 +666,29 @@ public class KubevirtRoutingSnatHandler {
             if (!isRelevantHelper()) {
                 return;
             }
-            if (!router.external().isEmpty() && router.peerRouter() != null) {
+
+
+            if (!router.external().isEmpty() && router.peerRouter() != null && router.electedGateway() != null) {
                 initGatewayNodeSnatForRouter(router, router.electedGateway(), false);
-            }
-            KubevirtNode gatewayNode = kubevirtNodeService.node(router.electedGateway());
 
-            router.internal()
-                    .stream()
-                    .filter(networkId -> kubevirtNetworkService.network(networkId) != null)
-                    .map(kubevirtNetworkService::network)
-                    .forEach(network -> {
-                        String routerSnatIp = router.external().keySet().stream().findAny().orElse(null);
-                        if (routerSnatIp == null) {
-                            return;
-                        }
+                KubevirtNode gatewayNode = kubevirtNodeService.node(router.electedGateway());
 
-                        kubevirtPortService.ports(network.networkId()).forEach(kubevirtPort -> {
-                            setStatefulSnatDownStreamRuleForKubevirtPort(router,
-                                    gatewayNode, kubevirtPort, false);
+                router.internal()
+                        .stream()
+                        .filter(networkId -> kubevirtNetworkService.network(networkId) != null)
+                        .map(kubevirtNetworkService::network)
+                        .forEach(network -> {
+                            String routerSnatIp = router.external().keySet().stream().findAny().orElse(null);
+                            if (routerSnatIp == null) {
+                                return;
+                            }
+
+                            kubevirtPortService.ports(network.networkId()).forEach(kubevirtPort -> {
+                                setStatefulSnatDownStreamRuleForKubevirtPort(router,
+                                        gatewayNode, kubevirtPort, false);
+                            });
                         });
-                    });
+            }
         }
 
         private void processRouterUpdate(KubevirtRouter router) {
