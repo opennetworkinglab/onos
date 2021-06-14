@@ -228,7 +228,7 @@ public class KubevirtNetworkHandler {
     private void createBridge(KubevirtNode node, KubevirtNetwork network) {
 
         Device tenantBridge = deviceService.getDevice(network.tenantDeviceId(node.hostname()));
-        if (tenantBridge != null) {
+        if (tenantBridge != null && deviceService.isAvailable(tenantBridge.id())) {
             log.warn("The tenant bridge {} already exists at node {}",
                     network.tenantBridgeName(), node.hostname());
             setDefaultRulesForTenantNetwork(node, network);
@@ -269,6 +269,9 @@ public class KubevirtNetworkHandler {
 
             BridgeConfig bridgeConfig = device.as(BridgeConfig.class);
             bridgeConfig.addBridge(builder.build());
+
+            log.info("Created a new tunnel bridge for network {} at node {}",
+                                        network.networkId(), node.hostname());
 
             waitFor(3);
         }
