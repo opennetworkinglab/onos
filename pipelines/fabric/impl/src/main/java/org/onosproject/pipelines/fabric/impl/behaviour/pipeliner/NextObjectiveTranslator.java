@@ -226,7 +226,7 @@ class NextObjectiveTranslator
         // Updated result builder with hashed group.
         final int groupId = selectGroup(obj, resultBuilder);
 
-        if (isGroupModifyOp(obj)) {
+        if (isGroupModifyOp(obj) || obj.op() == Objective.Operation.VERIFY) {
             // No changes to flow rules.
             return;
         }
@@ -394,10 +394,7 @@ class NextObjectiveTranslator
                 .collect(Collectors.toList());
 
         final int groupId = obj.id();
-        final PiGroupKey groupKey = new PiGroupKey(
-                hashedTableId,
-                FabricConstants.FABRIC_INGRESS_NEXT_HASHED_SELECTOR,
-                groupId);
+        final PiGroupKey groupKey = (PiGroupKey) getGroupKey(obj);
 
         resultBuilder.addGroup(new DefaultGroupDescription(
                 deviceId,
@@ -449,8 +446,7 @@ class NextObjectiveTranslator
         final int groupId = obj.id();
         // Use DefaultGroupKey instead of PiGroupKey as we don't have any
         // action profile to apply to the groups of ALL type.
-        final GroupKey groupKey = new DefaultGroupKey(
-                FabricPipeliner.KRYO.serialize(groupId));
+        final GroupKey groupKey = getGroupKey(obj);
 
         resultBuilder.addGroup(
                 new DefaultGroupDescription(
@@ -500,5 +496,18 @@ class NextObjectiveTranslator
 
     private boolean isXconnect(NextObjective obj) {
         return obj.appId().name().contains(XCONNECT);
+    }
+
+    // Builds up the group key based on the next objective type
+    public GroupKey getGroupKey(NextObjective objective) {
+        if (objective.type() == NextObjective.Type.HASHED || objective.type() == NextObjective.Type.SIMPLE) {
+            return new PiGroupKey(FabricConstants.FABRIC_INGRESS_NEXT_HASHED,
+                    FabricConstants.FABRIC_INGRESS_NEXT_HASHED_SELECTOR,
+                    objective.id());
+        } else if (objective.type() == NextObjective.Type.BROADCAST) {
+            return new DefaultGroupKey(
+                    FabricPipeliner.KRYO.serialize(objective.id()));
+        }
+        return null;
     }
 }
