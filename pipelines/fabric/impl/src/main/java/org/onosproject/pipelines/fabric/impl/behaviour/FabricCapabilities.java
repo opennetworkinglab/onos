@@ -28,6 +28,7 @@ import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.CPU_PORT_TXT;
+import static org.onosproject.pipelines.fabric.FabricConstants.FABRIC_INGRESS_SPGW_DOWNLINK_PDRS;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -86,6 +87,17 @@ public class FabricCapabilities {
                     .isPresent();
         }
         return false;
+    }
+
+    /**
+     * Returns true if the pipeconf supports UPF capabilities, false otherwise.
+     *
+     * @return boolean
+     */
+    public boolean supportUpf() {
+        return pipeconf.pipelineModel()
+                .table(FABRIC_INGRESS_SPGW_DOWNLINK_PDRS)
+                .isPresent();
     }
 
     /**

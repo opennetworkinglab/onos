@@ -1,0 +1,3 @@
+{
+  "managementAddress" : "grpc://localhost:1234?device_id=1"
+}

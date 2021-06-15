@@ -8,7 +8,12 @@ COMPILE_DEPS = CORE_DEPS + KRYO + [
     "//drivers/p4runtime:onos-drivers-p4runtime",
 ]
 
+TEST_DEPS = TEST_ADAPTERS + JACKSON + [
+    "//protocols/p4runtime/api:onos-protocols-p4runtime-api",
+    "@io_grpc_grpc_java//api",
+]
+
 osgi_jar_with_tests(
-    test_deps = TEST_ADAPTERS,
+    test_deps = TEST_DEPS,
     deps = COMPILE_DEPS,
 )
