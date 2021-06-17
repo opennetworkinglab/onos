@@ -45,6 +45,11 @@ public interface KubevirtNode {
          * Signifies that this is a gateway which is running on master node.
          */
         GATEWAY,
+
+        /**
+         * Signifies that this is a unmanaged node.
+         */
+        OTHER,
     }
 
     /**

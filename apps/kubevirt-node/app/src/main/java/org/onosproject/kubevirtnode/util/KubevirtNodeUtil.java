@@ -21,6 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import io.fabric8.kubernetes.api.model.Node;
 import io.fabric8.kubernetes.api.model.NodeAddress;
+import io.fabric8.kubernetes.api.model.NodeSpec;
+import io.fabric8.kubernetes.api.model.Taint;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -60,6 +62,7 @@ import static org.onlab.util.Tools.get;
 import static org.onosproject.kubevirtnode.api.Constants.SONA_PROJECT_DOMAIN;
 import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.GATEWAY;
 import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.MASTER;
+import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.OTHER;
 import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.WORKER;
 
 /**
@@ -85,7 +88,10 @@ public final class KubevirtNodeUtil {
     private static final String INTERFACE_KEY = "interface";
 
     private static final int PORT_NAME_MAX_LENGTH = 15;
-    private static final int DNS_DEFAULT_PORT = 53;
+
+    private static final String NO_SCHEDULE_EFFECT = "NoSchedule";
+    private static final String KUBEVIRT_IO_KEY = "kubevirt.io/drain";
+    private static final String DRAINING_VALUE = "draining";
 
     /**
      * Prevents object installation from external.
@@ -377,6 +383,23 @@ public final class KubevirtNodeUtil {
             }
         } catch (JSONException | JsonProcessingException e) {
             log.error("Failed to parse physnet config or gateway config object", e);
+        }
+
+        // if the node is taint with kubevirt.io key configured,
+        // we mark this node as OTHER type, and do not add it into the cluster
+        NodeSpec spec = node.getSpec();
+        if (spec.getTaints() != null) {
+            for (Taint taint : spec.getTaints()) {
+                String effect = taint.getEffect();
+                String key = taint.getKey();
+                String value = taint.getValue();
+
+                if (StringUtils.equals(effect, NO_SCHEDULE_EFFECT) &&
+                    StringUtils.equals(key, KUBEVIRT_IO_KEY) &&
+                    StringUtils.equals(value, DRAINING_VALUE)) {
+                    nodeType = OTHER;
+                }
+            }
         }
 
         return DefaultKubevirtNode.builder()
