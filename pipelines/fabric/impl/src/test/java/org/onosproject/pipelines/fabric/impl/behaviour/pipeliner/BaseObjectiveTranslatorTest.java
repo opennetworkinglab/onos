@@ -44,6 +44,8 @@ public class BaseObjectiveTranslatorTest {
     static final VlanId VLAN_200 = VlanId.vlanId("200");
     static final MacAddress HOST_MAC = MacAddress.valueOf("00:00:00:00:00:01");
     static final MacAddress ROUTER_MAC = MacAddress.valueOf("00:00:00:00:02:01");
+    static final MacAddress SPINE1_MAC = MacAddress.valueOf("00:00:00:00:03:01");
+    static final MacAddress SPINE2_MAC = MacAddress.valueOf("00:00:00:00:03:02");
     static final IpPrefix IPV4_UNICAST_ADDR = IpPrefix.valueOf("10.0.0.1/32");
     static final IpPrefix IPV4_MCAST_ADDR = IpPrefix.valueOf("224.0.0.1/32");
     static final IpPrefix IPV6_UNICAST_ADDR = IpPrefix.valueOf("2000::1/32");

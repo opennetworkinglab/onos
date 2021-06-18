@@ -42,61 +42,10 @@ control Next (inout parsed_headers_t hdr,
     }
 
     @hidden
-    action set_mpls_label(mpls_label_t label) {
-        fabric_metadata.mpls_label = label;
-    }
-
-    @hidden
     action routing(port_num_t port_num, mac_addr_t smac, mac_addr_t dmac) {
         rewrite_smac(smac);
         rewrite_dmac(dmac);
         output(port_num);
-    }
-
-    @hidden
-    action mpls_routing(port_num_t port_num, mac_addr_t smac, mac_addr_t dmac,
-                        mpls_label_t label) {
-        set_mpls_label(label);
-        routing(port_num, smac, dmac);
-    }
-
-    /*
-     * Next VLAN table.
-     * Modify VLAN ID based on next ID.
-     */
-    direct_counter(CounterType.packets_and_bytes) next_vlan_counter;
-
-    action set_vlan(vlan_id_t vlan_id) {
-        fabric_metadata.vlan_id = vlan_id;
-        next_vlan_counter.count();
-    }
-
-#ifdef WITH_DOUBLE_VLAN_TERMINATION
-    action set_double_vlan(vlan_id_t outer_vlan_id, vlan_id_t inner_vlan_id) {
-        set_vlan(outer_vlan_id);
-        fabric_metadata.push_double_vlan = _TRUE;
-        fabric_metadata.inner_vlan_id = inner_vlan_id;
-#ifdef WITH_BNG
-        fabric_metadata.bng.s_tag = outer_vlan_id;
-        fabric_metadata.bng.c_tag = inner_vlan_id;
-#endif // WITH_BNG
-    }
-#endif // WITH_DOUBLE_VLAN_TERMINATION
-
-    table next_vlan {
-        key = {
-            fabric_metadata.next_id: exact @name("next_id");
-        }
-        actions = {
-            set_vlan;
-#ifdef WITH_DOUBLE_VLAN_TERMINATION
-            set_double_vlan;
-#endif // WITH_DOUBLE_VLAN_TERMINATION
-            @defaultonly nop;
-        }
-        const default_action = nop();
-        counters = next_vlan_counter;
-        size = NEXT_VLAN_TABLE_SIZE;
     }
 
 #ifdef WITH_XCONNECT
@@ -149,12 +98,6 @@ control Next (inout parsed_headers_t hdr,
         simple_counter.count();
     }
 
-    action mpls_routing_simple(port_num_t port_num, mac_addr_t smac, mac_addr_t dmac,
-                               mpls_label_t label) {
-        mpls_routing(port_num, smac, dmac, label);
-        simple_counter.count();
-    }
-
     table simple {
         key = {
             fabric_metadata.next_id: exact @name("next_id");
@@ -162,7 +105,6 @@ control Next (inout parsed_headers_t hdr,
         actions = {
             output_simple;
             routing_simple;
-            mpls_routing_simple;
             @defaultonly nop;
         }
         const default_action = nop();
@@ -193,12 +135,6 @@ control Next (inout parsed_headers_t hdr,
         hashed_counter.count();
     }
 
-    action mpls_routing_hashed(port_num_t port_num, mac_addr_t smac, mac_addr_t dmac,
-                               mpls_label_t label) {
-        mpls_routing(port_num, smac, dmac, label);
-        hashed_counter.count();
-    }
-
     table hashed {
         key = {
             fabric_metadata.next_id: exact @name("next_id");
@@ -211,7 +147,6 @@ control Next (inout parsed_headers_t hdr,
         actions = {
             output_hashed;
             routing_hashed;
-            mpls_routing_hashed;
             @defaultonly nop;
         }
         implementation = hashed_selector;
@@ -258,7 +193,6 @@ control Next (inout parsed_headers_t hdr,
         hashed.apply();
 #endif // WITH_HASHED_NEXT
         multicast.apply();
-        next_vlan.apply();
     }
 }
 

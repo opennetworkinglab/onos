@@ -112,6 +112,18 @@ const spgw_interface_t SPGW_IFACE_ACCESS = 8w1;
 const spgw_interface_t SPGW_IFACE_CORE = 8w2;
 const spgw_interface_t SPGW_IFACE_FROM_DBUF = 8w3;
 
+// PORT types. Set by the control plane using the actions
+// of the filtering.ingress_port_vlan table.
+typedef bit<2> port_type_t;
+// Default value. Set by deny action.
+const port_type_t PORT_TYPE_UNKNOWN = 0x0;
+// Host-facing port on a leaf switch.
+const port_type_t PORT_TYPE_EDGE = 0x1;
+// Switch-facing port on a leaf or spine switch.
+const port_type_t PORT_TYPE_INFRA = 0x2;
+// ASIC-internal port such as the recirculation one (used for INT or UE-to-UE).
+const port_type_t PORT_TYPE_INTERNAL = 0x3;
+
 const bit<16> ETHERTYPE_QINQ = 0x88A8;
 const bit<16> ETHERTYPE_QINQ_NON_STD = 0x9100;
 const bit<16> ETHERTYPE_VLAN = 0x8100;

@@ -80,7 +80,8 @@ import static org.onosproject.net.flowobjective.NextObjective.Type.SIMPLE;
 import static org.onosproject.pipelines.fabric.impl.behaviour.FabricInterpreter.ONE;
 import static org.onosproject.pipelines.fabric.impl.behaviour.FabricInterpreter.ZERO;
 import static org.onosproject.pipelines.fabric.impl.behaviour.FabricUtils.outputPort;
-import static org.onosproject.pipelines.fabric.impl.behaviour.pipeliner.FilteringObjectiveTranslator.FWD_IPV4_ROUTING;
+import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.FWD_IPV4_ROUTING;
+import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.PORT_TYPE_INTERNAL;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -368,6 +369,7 @@ public class FabricPipeliner extends AbstractFabricHandlerBehavior
                         .withId(vlanValid ? FabricConstants.FABRIC_INGRESS_FILTERING_PERMIT
                                 : FabricConstants.FABRIC_INGRESS_FILTERING_PERMIT_WITH_INTERNAL_VLAN)
                         .withParameter(new PiActionParam(FabricConstants.VLAN_ID, vlanId))
+                        .withParameter(new PiActionParam(FabricConstants.PORT_TYPE, PORT_TYPE_INTERNAL))
                         .build())
                 .build();
         return DefaultFlowRule.builder()

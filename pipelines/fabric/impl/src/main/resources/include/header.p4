@@ -210,6 +210,7 @@ struct fabric_metadata_t {
 #ifdef WITH_INT
     int_metadata_t int_meta;
 #endif // WITH_INT
+    port_type_t   port_type;
 }
 
 struct parsed_headers_t {
