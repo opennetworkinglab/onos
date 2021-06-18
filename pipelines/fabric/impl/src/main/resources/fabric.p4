@@ -20,6 +20,7 @@
 #include "include/size.p4"
 #include "include/control/filtering.p4"
 #include "include/control/forwarding.p4"
+#include "include/control/pre_next.p4"
 #include "include/control/acl.p4"
 #include "include/control/next.p4"
 #include "include/control/packetio.p4"
@@ -50,6 +51,7 @@ control FabricIngress (inout parsed_headers_t hdr,
     PacketIoIngress() pkt_io_ingress;
     Filtering() filtering;
     Forwarding() forwarding;
+    PreNext() pre_next;
     Acl() acl;
     Next() next;
 #ifdef WITH_PORT_COUNTER
@@ -68,6 +70,9 @@ control FabricIngress (inout parsed_headers_t hdr,
         filtering.apply(hdr, fabric_metadata, standard_metadata);
         if (fabric_metadata.skip_forwarding == _FALSE) {
             forwarding.apply(hdr, fabric_metadata, standard_metadata);
+        }
+        if (fabric_metadata.skip_next == _FALSE) {
+            pre_next.apply(hdr, fabric_metadata);
         }
         acl.apply(hdr, fabric_metadata, standard_metadata);
         if (fabric_metadata.skip_next == _FALSE) {

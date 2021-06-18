@@ -44,15 +44,22 @@ import java.util.Collection;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.DEFAULT_PW_TRANSPORT_VLAN;
+import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.DEFAULT_VLAN;
+import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.ETH_TYPE_EXACT_MASK;
+import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.FWD_IPV4_ROUTING;
+import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.FWD_IPV6_ROUTING;
+import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.FWD_MPLS;
+import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.ONE;
+import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.PORT_TYPE_EDGE;
+import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.PORT_TYPE_INFRA;
+import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.ZERO;
 
 /**
  * Test cases for fabric.p4 pipeline filtering control block.
  */
 public class FilteringObjectiveTranslatorTest extends BaseObjectiveTranslatorTest {
 
-    public static final byte[] ONE = {1};
-    public static final byte[] ZERO = {0};
-    public static final short EXACT_MATCH_ETH_TYPE = (short) 0xFFFF;
     private FilteringObjectiveTranslator translator;
 
     @Before
@@ -77,6 +84,7 @@ public class FilteringObjectiveTranslatorTest extends BaseObjectiveTranslatorTes
                 VlanId.NONE,
                 VlanId.NONE,
                 VLAN_100,
+                PORT_TYPE_EDGE,
                 FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN));
 
         // forwarding classifier ipv4
@@ -85,7 +93,7 @@ public class FilteringObjectiveTranslatorTest extends BaseObjectiveTranslatorTes
                 ROUTER_MAC,
                 null,
                 Ethernet.TYPE_IPV4,
-                FilteringObjectiveTranslator.FWD_IPV4_ROUTING));
+                FWD_IPV4_ROUTING));
 
         // forwarding classifier ipv6
         expectedFlowRules.addAll(buildExpectedFwdClassifierRule(
@@ -93,7 +101,7 @@ public class FilteringObjectiveTranslatorTest extends BaseObjectiveTranslatorTes
                 ROUTER_MAC,
                 null,
                 Ethernet.TYPE_IPV6,
-                FilteringObjectiveTranslator.FWD_IPV6_ROUTING));
+                FWD_IPV6_ROUTING));
 
         // forwarding classifier mpls
         expectedFlowRules.addAll(buildExpectedFwdClassifierRule(
@@ -101,7 +109,7 @@ public class FilteringObjectiveTranslatorTest extends BaseObjectiveTranslatorTes
                 ROUTER_MAC,
                 null,
                 Ethernet.MPLS_UNICAST,
-                FilteringObjectiveTranslator.FWD_MPLS));
+                FWD_MPLS));
 
 //        ObjectiveTranslation.Builder expectedTranslationBuilder = ObjectiveTranslation.builder()
 //                .addFlowRule(inportFlowRuleExpected);
@@ -148,6 +156,7 @@ public class FilteringObjectiveTranslatorTest extends BaseObjectiveTranslatorTes
                 VlanId.NONE,
                 VlanId.NONE,
                 VLAN_100,
+                PORT_TYPE_EDGE,
                 FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN));
 
         // forwarding classifier
@@ -156,7 +165,7 @@ public class FilteringObjectiveTranslatorTest extends BaseObjectiveTranslatorTes
                 MacAddress.IPV4_MULTICAST,
                 MacAddress.IPV4_MULTICAST_MASK,
                 Ethernet.TYPE_IPV4,
-                FilteringObjectiveTranslator.FWD_IPV4_ROUTING));
+                FWD_IPV4_ROUTING));
 
         ObjectiveTranslation expectedTranslation = buildExpectedTranslation(expectedFlowRules);
 
@@ -192,6 +201,7 @@ public class FilteringObjectiveTranslatorTest extends BaseObjectiveTranslatorTes
                 VlanId.NONE,
                 VlanId.NONE,
                 VLAN_100,
+                PORT_TYPE_EDGE,
                 FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN));
 
         flowRules.addAll(buildExpectedFwdClassifierRule(
@@ -199,7 +209,7 @@ public class FilteringObjectiveTranslatorTest extends BaseObjectiveTranslatorTes
                 MacAddress.IPV6_MULTICAST,
                 MacAddress.IPV6_MULTICAST_MASK,
                 Ethernet.TYPE_IPV6,
-                FilteringObjectiveTranslator.FWD_IPV6_ROUTING));
+                FWD_IPV6_ROUTING));
 
         ObjectiveTranslation expectedTranslation = buildExpectedTranslation(flowRules);
 
@@ -222,6 +232,7 @@ public class FilteringObjectiveTranslatorTest extends BaseObjectiveTranslatorTes
                 VlanId.NONE,
                 VlanId.NONE,
                 VLAN_100,
+                PORT_TYPE_EDGE,
                 FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN);
 
         // No rules in forwarding classifier, will do default action: set fwd type to bridging
@@ -297,18 +308,18 @@ public class FilteringObjectiveTranslatorTest extends BaseObjectiveTranslatorTes
         Collection<FlowRule> expectedFlowRules = Lists.newArrayList();
         // Ingress port vlan rule
         expectedFlowRules.add(buildExpectedVlanInPortRule(
-                PORT_1, VLAN_100, VLAN_200, VlanId.NONE,
+                PORT_1, VLAN_100, VLAN_200, VlanId.NONE, PORT_TYPE_EDGE,
                 FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN));
         // Forwarding classifier rules (ipv6, ipv4, mpls)
         expectedFlowRules.addAll(buildExpectedFwdClassifierRule(
                 PORT_1, ROUTER_MAC, null, Ethernet.TYPE_IPV4,
-                FilteringObjectiveTranslator.FWD_IPV4_ROUTING));
+                FWD_IPV4_ROUTING));
         expectedFlowRules.addAll(buildExpectedFwdClassifierRule(
                 PORT_1, ROUTER_MAC, null, Ethernet.TYPE_IPV6,
-                FilteringObjectiveTranslator.FWD_IPV6_ROUTING));
+                FWD_IPV6_ROUTING));
         expectedFlowRules.addAll(buildExpectedFwdClassifierRule(
                 PORT_1, ROUTER_MAC, null, Ethernet.MPLS_UNICAST,
-                FilteringObjectiveTranslator.FWD_MPLS));
+                FWD_MPLS));
         ObjectiveTranslation expectedTranslation = buildExpectedTranslation(expectedFlowRules);
 
         assertEquals(expectedTranslation, actualTranslation);
@@ -349,7 +360,7 @@ public class FilteringObjectiveTranslatorTest extends BaseObjectiveTranslatorTes
      * ingress_port_vlan table.
      */
     @Test
-    public void testPortUpdate() throws FabricPipelinerException {
+    public void testIsPortUpdate() throws FabricPipelinerException {
         // Tagged port scenario
         FilteringObjective filteringObjective = DefaultFilteringObjective.builder()
                 .withKey(Criteria.matchInPort(PORT_1))
@@ -366,7 +377,7 @@ public class FilteringObjectiveTranslatorTest extends BaseObjectiveTranslatorTes
         Collection<FlowRule> expectedFlowRules = Lists.newArrayList();
         // Ingress port vlan rule
         expectedFlowRules.add(buildExpectedVlanInPortRule(
-                PORT_1, VLAN_100, null, VlanId.NONE,
+                PORT_1, VLAN_100, null, VlanId.NONE, PORT_TYPE_EDGE,
                 FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN));
         ObjectiveTranslation expectedTranslation = buildExpectedTranslation(expectedFlowRules);
         assertEquals(expectedTranslation, actualTranslation);
@@ -389,7 +400,7 @@ public class FilteringObjectiveTranslatorTest extends BaseObjectiveTranslatorTes
         expectedFlowRules = Lists.newArrayList();
         // Ingress port vlan rule
         expectedFlowRules.add(buildExpectedVlanInPortRule(
-                PORT_1, VlanId.NONE, null, VLAN_200,
+                PORT_1, VlanId.NONE, null, VLAN_200, PORT_TYPE_EDGE,
                 FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN));
         expectedTranslation = buildExpectedTranslation(expectedFlowRules);
         assertEquals(expectedTranslation, actualTranslation);
@@ -414,7 +425,7 @@ public class FilteringObjectiveTranslatorTest extends BaseObjectiveTranslatorTes
         Collection<FlowRule> expectedFlowRules = Lists.newArrayList();
         // Ingress port vlan rule
         expectedFlowRules.add(buildExpectedVlanInPortRule(
-                PORT_1, VLAN_100, null, VlanId.NONE,
+                PORT_1, VLAN_100, null, VlanId.NONE, PORT_TYPE_EDGE,
                 FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN));
         // forwarding classifier ipv4
         expectedFlowRules.addAll(buildExpectedFwdClassifierRule(
@@ -422,23 +433,106 @@ public class FilteringObjectiveTranslatorTest extends BaseObjectiveTranslatorTes
                 ROUTER_MAC,
                 null,
                 Ethernet.TYPE_IPV4,
-                FilteringObjectiveTranslator.FWD_IPV4_ROUTING));
+                FWD_IPV4_ROUTING));
         // forwarding classifier ipv6
         expectedFlowRules.addAll(buildExpectedFwdClassifierRule(
                 PORT_1,
                 ROUTER_MAC,
                 null,
                 Ethernet.TYPE_IPV6,
-                FilteringObjectiveTranslator.FWD_IPV6_ROUTING));
+                FWD_IPV6_ROUTING));
         // forwarding classifier mpls
         expectedFlowRules.addAll(buildExpectedFwdClassifierRule(
                 PORT_1,
                 ROUTER_MAC,
                 null,
                 Ethernet.MPLS_UNICAST,
-                FilteringObjectiveTranslator.FWD_MPLS));
+                FWD_MPLS));
 
         ObjectiveTranslation expectedTranslation = buildExpectedTranslation(expectedFlowRules);
+        assertEquals(expectedTranslation, actualTranslation);
+    }
+
+    /**
+     * Test is infra port scenarios for filtering objective.
+     */
+    @Test
+    public void testIsInfraPort() throws FabricPipelinerException {
+        // PW transport vlan
+        FilteringObjective filteringObjective = DefaultFilteringObjective.builder()
+                .withKey(Criteria.matchInPort(PORT_1))
+                .addCondition(Criteria.matchEthDst(ROUTER_MAC))
+                .addCondition(Criteria.matchVlanId(VlanId.vlanId((short) DEFAULT_PW_TRANSPORT_VLAN)))
+                .withPriority(PRIORITY)
+                .fromApp(APP_ID)
+                .permit()
+                .add();
+        ObjectiveTranslation actualTranslation = translator.translate(filteringObjective);
+
+        Collection<FlowRule> expectedFlowRules = Lists.newArrayList();
+        expectedFlowRules.add(buildExpectedVlanInPortRule(
+                PORT_1, VlanId.vlanId((short) DEFAULT_PW_TRANSPORT_VLAN), null, VlanId.NONE,
+                PORT_TYPE_INFRA, FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN));
+        expectedFlowRules.addAll(buildExpectedFwdClassifierRule(
+                PORT_1,
+                ROUTER_MAC,
+                null,
+                Ethernet.TYPE_IPV4,
+                FWD_IPV4_ROUTING));
+        expectedFlowRules.addAll(buildExpectedFwdClassifierRule(
+                PORT_1,
+                ROUTER_MAC,
+                null,
+                Ethernet.TYPE_IPV6,
+                FWD_IPV6_ROUTING));
+        expectedFlowRules.addAll(buildExpectedFwdClassifierRule(
+                PORT_1,
+                ROUTER_MAC,
+                null,
+                Ethernet.MPLS_UNICAST,
+                FWD_MPLS));
+
+        ObjectiveTranslation expectedTranslation = buildExpectedTranslation(expectedFlowRules);
+        assertEquals(expectedTranslation, actualTranslation);
+
+        // Untagged port scenario
+        filteringObjective = DefaultFilteringObjective.builder()
+                .withKey(Criteria.matchInPort(PORT_1))
+                .addCondition(Criteria.matchEthDst(ROUTER_MAC))
+                .addCondition(Criteria.matchVlanId(VlanId.NONE))
+                .withPriority(PRIORITY)
+                .fromApp(APP_ID)
+                .withMeta(DefaultTrafficTreatment.builder()
+                        .pushVlan()
+                        .setVlanId(VlanId.vlanId((short) DEFAULT_VLAN))
+                        .build())
+                .permit()
+                .add();
+        actualTranslation = translator.translate(filteringObjective);
+        expectedFlowRules = Lists.newArrayList();
+        expectedFlowRules.add(buildExpectedVlanInPortRule(
+                PORT_1, null, null, VlanId.vlanId((short) DEFAULT_VLAN),
+                PORT_TYPE_INFRA, FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN));
+        expectedFlowRules.addAll(buildExpectedFwdClassifierRule(
+                PORT_1,
+                ROUTER_MAC,
+                null,
+                Ethernet.TYPE_IPV4,
+                FWD_IPV4_ROUTING));
+        expectedFlowRules.addAll(buildExpectedFwdClassifierRule(
+                PORT_1,
+                ROUTER_MAC,
+                null,
+                Ethernet.TYPE_IPV6,
+                FWD_IPV6_ROUTING));
+        expectedFlowRules.addAll(buildExpectedFwdClassifierRule(
+                PORT_1,
+                ROUTER_MAC,
+                null,
+                Ethernet.MPLS_UNICAST,
+                FWD_MPLS));
+
+        expectedTranslation = buildExpectedTranslation(expectedFlowRules);
         assertEquals(expectedTranslation, actualTranslation);
     }
 
@@ -473,6 +567,7 @@ public class FilteringObjectiveTranslatorTest extends BaseObjectiveTranslatorTes
                                                  VlanId vlanId,
                                                  VlanId innerVlanId,
                                                  VlanId internalVlan,
+                                                 byte portType,
                                                  TableId tableId) {
 
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder()
@@ -482,8 +577,8 @@ public class FilteringObjectiveTranslatorTest extends BaseObjectiveTranslatorTes
         if (!vlanValid(vlanId)) {
             piAction = PiAction.builder()
                     .withId(FabricConstants.FABRIC_INGRESS_FILTERING_PERMIT_WITH_INTERNAL_VLAN)
-                    .withParameter(new PiActionParam(
-                            FabricConstants.VLAN_ID, internalVlan.toShort()))
+                    .withParameter(new PiActionParam(FabricConstants.VLAN_ID, internalVlan.toShort()))
+                    .withParameter(new PiActionParam(FabricConstants.PORT_TYPE, portType))
                     .build();
         } else {
             selector.matchVlanId(vlanId);
@@ -492,6 +587,7 @@ public class FilteringObjectiveTranslatorTest extends BaseObjectiveTranslatorTes
             }
             piAction = PiAction.builder()
                     .withId(FabricConstants.FABRIC_INGRESS_FILTERING_PERMIT)
+                    .withParameter(new PiActionParam(FabricConstants.PORT_TYPE, portType))
                     .build();
         }
 
@@ -567,13 +663,13 @@ public class FilteringObjectiveTranslatorTest extends BaseObjectiveTranslatorTes
         Collection<FlowRule> flowRules = Lists.newArrayList();
         TrafficSelector selectorIpv4 = selectorBuilder
                 .add(PiCriterion.builder()
-                             .matchTernary(FabricConstants.HDR_ETH_TYPE, Ethernet.MPLS_UNICAST, EXACT_MATCH_ETH_TYPE)
+                             .matchTernary(FabricConstants.HDR_ETH_TYPE, Ethernet.MPLS_UNICAST, ETH_TYPE_EXACT_MASK)
                              .matchExact(FabricConstants.HDR_IP_ETH_TYPE, Ethernet.TYPE_IPV4)
                              .build())
                 .build();
         TrafficSelector selectorIpv6 = selectorBuilder
                 .add(PiCriterion.builder()
-                             .matchTernary(FabricConstants.HDR_ETH_TYPE, Ethernet.MPLS_UNICAST, EXACT_MATCH_ETH_TYPE)
+                             .matchTernary(FabricConstants.HDR_ETH_TYPE, Ethernet.MPLS_UNICAST, ETH_TYPE_EXACT_MASK)
                              .matchExact(FabricConstants.HDR_IP_ETH_TYPE, Ethernet.TYPE_IPV6)
                              .build())
                 .build();

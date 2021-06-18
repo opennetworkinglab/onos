@@ -49,6 +49,7 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertTrue;
+import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.PORT_TYPE_INTERNAL;
 
 public class FabricPipelinerTest {
 
@@ -95,6 +96,7 @@ public class FabricPipelinerTest {
                 .piTableAction(PiAction.builder()
                         .withId(FabricConstants.FABRIC_INGRESS_FILTERING_PERMIT_WITH_INTERNAL_VLAN)
                         .withParameter(new PiActionParam(FabricConstants.VLAN_ID, DEFAULT_VLAN))
+                        .withParameter(new PiActionParam(FabricConstants.PORT_TYPE, PORT_TYPE_INTERNAL))
                         .build())
                 .build();
         final FlowRule expectedCpuIgVlanRule = DefaultFlowRule.builder()

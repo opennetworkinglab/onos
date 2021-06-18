@@ -68,18 +68,17 @@ public class FabricInterpreter extends AbstractFabricHandlerBehavior
     public static final byte[] ZERO = new byte[]{0};
 
     // Group tables by control block.
-    private static final Set<PiTableId> FILTERING_CTRL_TBLS = ImmutableSet.of(
-            FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN,
-            FabricConstants.FABRIC_INGRESS_FILTERING_FWD_CLASSIFIER);
     private static final Set<PiTableId> FORWARDING_CTRL_TBLS = ImmutableSet.of(
             FabricConstants.FABRIC_INGRESS_FORWARDING_MPLS,
             FabricConstants.FABRIC_INGRESS_FORWARDING_ROUTING_V4,
             FabricConstants.FABRIC_INGRESS_FORWARDING_ROUTING_V6,
             FabricConstants.FABRIC_INGRESS_FORWARDING_BRIDGING);
+    private static final Set<PiTableId> PRE_NEXT_CTRL_TBLS  = ImmutableSet.of(
+            FabricConstants.FABRIC_INGRESS_PRE_NEXT_NEXT_MPLS,
+            FabricConstants.FABRIC_INGRESS_PRE_NEXT_NEXT_VLAN);
     private static final Set<PiTableId> ACL_CTRL_TBLS = ImmutableSet.of(
             FabricConstants.FABRIC_INGRESS_ACL_ACL);
     private static final Set<PiTableId> NEXT_CTRL_TBLS = ImmutableSet.of(
-            FabricConstants.FABRIC_INGRESS_NEXT_NEXT_VLAN,
             FabricConstants.FABRIC_INGRESS_NEXT_SIMPLE,
             FabricConstants.FABRIC_INGRESS_NEXT_HASHED,
             FabricConstants.FABRIC_INGRESS_NEXT_XCONNECT);
@@ -166,10 +165,10 @@ public class FabricInterpreter extends AbstractFabricHandlerBehavior
     @Override
     public PiAction mapTreatment(TrafficTreatment treatment, PiTableId piTableId)
             throws PiInterpreterException {
-        if (FILTERING_CTRL_TBLS.contains(piTableId)) {
-            return treatmentInterpreter.mapFilteringTreatment(treatment, piTableId);
-        } else if (FORWARDING_CTRL_TBLS.contains(piTableId)) {
+        if (FORWARDING_CTRL_TBLS.contains(piTableId)) {
             return treatmentInterpreter.mapForwardingTreatment(treatment, piTableId);
+        } else if (PRE_NEXT_CTRL_TBLS.contains(piTableId)) {
+            return treatmentInterpreter.mapPreNextTreatment(treatment, piTableId);
         } else if (ACL_CTRL_TBLS.contains(piTableId)) {
             return treatmentInterpreter.mapAclTreatment(treatment, piTableId);
         } else if (NEXT_CTRL_TBLS.contains(piTableId)) {

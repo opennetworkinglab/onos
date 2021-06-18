@@ -77,6 +77,7 @@ control Acl (inout parsed_headers_t hdr,
             hdr.icmp.icmp_code              : ternary @name("icmp_code"); // 8
             l4_sport                        : ternary @name("l4_sport");  // 16
             l4_dport                        : ternary @name("l4_dport");  // 16
+            fabric_metadata.port_type       : ternary @name("port_type"); // 2
         }
 
         actions = {
