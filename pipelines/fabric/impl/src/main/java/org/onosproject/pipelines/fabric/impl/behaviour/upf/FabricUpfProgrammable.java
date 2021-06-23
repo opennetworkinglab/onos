@@ -18,14 +18,12 @@ package org.onosproject.pipelines.fabric.impl.behaviour.upf;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.drivers.p4runtime.AbstractP4RuntimeHandlerBehaviour;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.upf.ForwardingActionRule;
-import org.onosproject.net.behaviour.upf.GtpTunnel;
 import org.onosproject.net.behaviour.upf.PacketDetectionRule;
 import org.onosproject.net.behaviour.upf.PdrStats;
 import org.onosproject.net.behaviour.upf.UpfInterface;
@@ -98,15 +96,6 @@ public class FabricUpfProgrammable extends AbstractP4RuntimeHandlerBehaviour
     private long pdrCounterSize;
 
     private ApplicationId appId;
-
-    // FIXME: remove, buffer drain should be triggered by Up4Service
-    private BufferDrainer bufferDrainer;
-
-    // FIXME: dbuf tunnel should be managed by Up4Service
-    //  Up4Service should be responsible of setting up such tunnel, then transforming FARs for this
-    //  device accordingly. When the tunnel endpoint change, it should be up to Up4Service to update
-    //  the FAR on the device.
-    private GtpTunnel dbufTunnel;
 
     @Override
     protected boolean setupBehaviour(String opName) {
@@ -201,22 +190,6 @@ public class FabricUpfProgrammable extends AbstractP4RuntimeHandlerBehaviour
     }
 
     @Override
-    public void setBufferDrainer(BufferDrainer drainer) {
-        if (!setupBehaviour("setBufferDrainer()")) {
-            return;
-        }
-        this.bufferDrainer = drainer;
-    }
-
-    @Override
-    public void unsetBufferDrainer() {
-        if (!setupBehaviour("unsetBufferDrainer()")) {
-            return;
-        }
-        this.bufferDrainer = null;
-    }
-
-    @Override
     public void enablePscEncap(int defaultQfi) throws UpfProgrammableException {
         throw new UpfProgrammableException("PSC encap is not supported in fabric-v1model",
                                            UNSUPPORTED_OPERATION);
@@ -241,46 +214,6 @@ public class FabricUpfProgrammable extends AbstractP4RuntimeHandlerBehaviour
                         .build(),
                 data);
         packetService.emit(pkt);
-    }
-
-    @Override
-    public void setDbufTunnel(Ip4Address switchAddr, Ip4Address dbufAddr) {
-        if (!setupBehaviour("setDbufTunnel()")) {
-            return;
-        }
-        this.dbufTunnel = GtpTunnel.builder()
-                .setSrc(switchAddr)
-                .setDst(dbufAddr)
-                .setSrcPort((short) 2152)
-                .setTeid(0)
-                .build();
-    }
-
-    @Override
-    public void unsetDbufTunnel() {
-        if (!setupBehaviour("unsetDbufTunnel()")) {
-            return;
-        }
-        this.dbufTunnel = null;
-    }
-
-    /**
-     * Convert the given buffering FAR to a FAR that tunnels the packet to dbuf.
-     *
-     * @param far the FAR to convert
-     * @return the converted FAR
-     */
-    private ForwardingActionRule convertToDbufFar(ForwardingActionRule far) {
-        if (!far.buffers()) {
-            throw new IllegalArgumentException("Converting a non-buffering FAR to a dbuf FAR! This shouldn't happen.");
-        }
-        return ForwardingActionRule.builder()
-                .setFarId(far.farId())
-                .withSessionId(far.sessionId())
-                .setNotifyFlag(far.notifies())
-                .setBufferFlag(true)
-                .setTunnel(dbufTunnel)
-                .build();
     }
 
     @Override
@@ -475,11 +408,6 @@ public class FabricUpfProgrammable extends AbstractP4RuntimeHandlerBehaviour
         log.info("Installing {}", pdr.toString());
         flowRuleService.applyFlowRules(fabricPdr);
         log.debug("PDR added with flowID {}", fabricPdr.id().value());
-
-        // If the flow rule was applied and the PDR is downlink, add the PDR to the farID->PDR mapping
-        if (pdr.matchesUnencapped()) {
-            fabricUpfStore.learnFarIdToUeAddrs(pdr);
-        }
     }
 
 
@@ -488,28 +416,10 @@ public class FabricUpfProgrammable extends AbstractP4RuntimeHandlerBehaviour
         if (!setupBehaviour("addFar()")) {
             return;
         }
-        UpfRuleIdentifier ruleId = UpfRuleIdentifier.of(far.sessionId(), far.farId());
-        if (far.buffers()) {
-            // If the far has the buffer flag, modify its tunnel so it directs to dbuf
-            far = convertToDbufFar(far);
-            fabricUpfStore.learBufferingFarId(ruleId);
-        }
         FlowRule fabricFar = upfTranslator.farToFabricEntry(far, deviceId, appId, DEFAULT_PRIORITY);
         log.info("Installing {}", far.toString());
         flowRuleService.applyFlowRules(fabricFar);
         log.debug("FAR added with flowID {}", fabricFar.id().value());
-        if (!far.buffers() && fabricUpfStore.isFarIdBuffering(ruleId)) {
-            // If this FAR does not buffer but used to, then drain the buffer for every UE address
-            // that hits this FAR.
-            fabricUpfStore.forgetBufferingFarId(ruleId);
-            for (var ueAddr : fabricUpfStore.ueAddrsOfFarId(ruleId)) {
-                if (bufferDrainer == null) {
-                    log.warn("Unable to drain downlink buffer for UE {}, bufferDrainer is null", ueAddr);
-                } else {
-                    bufferDrainer.drain(ueAddr);
-                }
-            }
-        }
     }
 
     @Override
@@ -620,13 +530,6 @@ public class FabricUpfProgrammable extends AbstractP4RuntimeHandlerBehaviour
         }
         log.info("Removing {}", pdr.toString());
         removeEntry(match, tableId, false);
-
-        // Remove the PDR from the farID->PDR mapping
-        // This is an inefficient hotfix FIXME: remove UE addrs from the mapping in sublinear time
-        if (pdr.matchesUnencapped()) {
-            // Should we remove just from the map entry with key == far ID?
-            fabricUpfStore.forgetUeAddr(pdr.ueAddress());
-        }
     }
 
     @Override

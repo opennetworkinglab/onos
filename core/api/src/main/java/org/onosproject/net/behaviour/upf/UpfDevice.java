@@ -17,7 +17,6 @@
 package org.onosproject.net.behaviour.upf;
 
 import com.google.common.annotations.Beta;
-import org.onlab.packet.Ip4Address;
 
 import java.nio.ByteBuffer;
 import java.util.Collection;
@@ -151,7 +150,7 @@ public interface UpfDevice {
 
     /**
      * Read the counter contents for all cell indices that are valid on the hardware switch.
-     * @code maxCounterId} parameter is used to limit the number of counters
+     * {@code maxCounterId} parameter is used to limit the number of counters
      * retrieved from the UPF device. If the limit given is larger than the
      * physical limit, the physical limit will be used. A limit of -1 removes
      * limitations.
@@ -161,34 +160,6 @@ public interface UpfDevice {
      * @throws UpfProgrammableException if the counters are unable to be read
      */
     Collection<PdrStats> readAllCounters(long maxCounterId) throws UpfProgrammableException;
-
-    /**
-     * Set the source and destination of the GTPU tunnel used to send packets to a dbuf buffering
-     * device.
-     *
-     * @param switchAddr the address on the switch that sends and receives packets to and from dbuf
-     * @param dbufAddr   the dataplane address of dbuf
-     */
-    void setDbufTunnel(Ip4Address switchAddr, Ip4Address dbufAddr);
-
-    /**
-     * Removes the dbuf tunnel info if they were previously set using {@link
-     * #setDbufTunnel(Ip4Address, Ip4Address)}.
-     */
-    void unsetDbufTunnel();
-
-    /**
-     * Install a BufferDrainer reference that can be used to trigger the draining of a specific dbuf
-     * buffer back into the UPF device.
-     *
-     * @param drainer the BufferDrainer reference
-     */
-    void setBufferDrainer(UpfProgrammable.BufferDrainer drainer);
-
-    /**
-     * Removes the buffer drainer if one was set using {@link #setBufferDrainer(UpfProgrammable.BufferDrainer)}.
-     */
-    void unsetBufferDrainer();
 
     /**
      * Instructs the UPF-programmable device to use GTP-U extension PDU Session Container (PSC) when
@@ -213,7 +184,7 @@ public interface UpfDevice {
     /**
      * Sends the given data as a data plane packet-out through this device. Data is expected to
      * contain an Ethernet frame.
-     *
+     * <p>
      * The device should process the packet through the pipeline tables to select an output port
      * and to apply eventual modifications (e.g., MAC rewrite for routing, pushing a VLAN tag,
      * etc.).
@@ -221,18 +192,4 @@ public interface UpfDevice {
      * @param data Ethernet frame bytes
      */
     void sendPacketOut(ByteBuffer data);
-
-    /**
-     * Used by the UpfProgrammable to trigger buffer draining as needed. Install an instance using
-     * {@link UpfProgrammable#setBufferDrainer(UpfProgrammable.BufferDrainer)}
-     */
-    //TODO: remove from UpfDevice
-    interface BufferDrainer {
-        /**
-         * Drain the buffer that contains packets for the UE with the given address.
-         *
-         * @param ueAddr the address of the UE for which we should drain a buffer
-         */
-        void drain(Ip4Address ueAddr);
-    }
 }

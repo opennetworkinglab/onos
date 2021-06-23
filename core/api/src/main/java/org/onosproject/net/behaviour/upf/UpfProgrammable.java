@@ -19,7 +19,6 @@ package org.onosproject.net.behaviour.upf;
 import com.google.common.annotations.Beta;
 import org.onosproject.net.driver.HandlerBehaviour;
 
-
 /**
  * Provides means to update the device forwarding state to implement a 3GPP
  * User Plane Function. An implementation of this API should not write state
