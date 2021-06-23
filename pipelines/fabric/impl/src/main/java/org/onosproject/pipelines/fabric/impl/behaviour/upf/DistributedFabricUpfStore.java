@@ -19,13 +19,10 @@ package org.onosproject.pipelines.fabric.impl.behaviour.upf;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.Maps;
-import org.onlab.packet.Ip4Address;
 import org.onlab.util.ImmutableByteSequence;
 import org.onlab.util.KryoNamespace;
-import org.onosproject.net.behaviour.upf.PacketDetectionRule;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
-import org.onosproject.store.service.DistributedSet;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Serializer;
@@ -38,12 +35,8 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Distributed implementation of FabricUpfStore.
@@ -58,8 +51,6 @@ public final class DistributedFabricUpfStore implements FabricUpfStore {
     protected StorageService storageService;
 
     protected static final String FAR_ID_MAP_NAME = "fabric-upf-far-id";
-    protected static final String BUFFER_FAR_ID_SET_NAME = "fabric-upf-buffer-far-id";
-    protected static final String FAR_ID_UE_MAP_NAME = "fabric-upf-far-id-ue";
     protected static final KryoNamespace.Builder SERIALIZER = KryoNamespace.newBuilder()
             .register(KryoNamespaces.API)
             .register(UpfRuleIdentifier.class);
@@ -83,9 +74,6 @@ public final class DistributedFabricUpfStore implements FabricUpfStore {
     protected Map<Integer, UpfRuleIdentifier> reverseFarIdMap;
     private int nextGlobalFarId = 1;
 
-    protected DistributedSet<UpfRuleIdentifier> bufferFarIds;
-    protected ConsistentMap<UpfRuleIdentifier, Set<Ip4Address>> farIdToUeAddrs;
-
     @Activate
     protected void activate() {
         // Allow unit test to inject farIdMap here.
@@ -95,17 +83,6 @@ public final class DistributedFabricUpfStore implements FabricUpfStore {
                     .withRelaxedReadConsistency()
                     .withSerializer(Serializer.using(SERIALIZER.build()))
                     .build();
-            this.bufferFarIds = storageService.<UpfRuleIdentifier>setBuilder()
-                    .withName(BUFFER_FAR_ID_SET_NAME)
-                    .withRelaxedReadConsistency()
-                    .withSerializer(Serializer.using(SERIALIZER.build()))
-                    .build().asDistributedSet();
-            this.farIdToUeAddrs = storageService.<UpfRuleIdentifier, Set<Ip4Address>>consistentMapBuilder()
-                    .withName(FAR_ID_UE_MAP_NAME)
-                    .withRelaxedReadConsistency()
-                    .withSerializer(Serializer.using(SERIALIZER.build()))
-                    .build();
-
         }
         farIdMapListener = new FarIdMapListener();
         farIdMap.addListener(farIdMapListener);
@@ -129,8 +106,6 @@ public final class DistributedFabricUpfStore implements FabricUpfStore {
     public void reset() {
         farIdMap.clear();
         reverseFarIdMap.clear();
-        bufferFarIds.clear();
-        farIdToUeAddrs.clear();
         nextGlobalFarId = 0;
     }
 
@@ -169,59 +144,6 @@ public final class DistributedFabricUpfStore implements FabricUpfStore {
     @Override
     public UpfRuleIdentifier localFarIdOf(int globalFarId) {
         return reverseFarIdMap.get(globalFarId);
-    }
-
-    public void learnFarIdToUeAddrs(PacketDetectionRule pdr) {
-        UpfRuleIdentifier ruleId = UpfRuleIdentifier.of(pdr.sessionId(), pdr.farId());
-        farIdToUeAddrs.compute(ruleId, (k, set) -> {
-            if (set == null) {
-                set = new HashSet<>();
-            }
-            set.add(pdr.ueAddress());
-            return set;
-        });
-    }
-
-    @Override
-    public boolean isFarIdBuffering(UpfRuleIdentifier farId) {
-        checkNotNull(farId);
-        return bufferFarIds.contains(farId);
-    }
-
-    @Override
-    public void learBufferingFarId(UpfRuleIdentifier farId) {
-        checkNotNull(farId);
-        bufferFarIds.add(farId);
-    }
-
-    @Override
-    public void forgetBufferingFarId(UpfRuleIdentifier farId) {
-        checkNotNull(farId);
-        bufferFarIds.remove(farId);
-    }
-
-    @Override
-    public void forgetUeAddr(Ip4Address ueAddr) {
-        farIdToUeAddrs.keySet().forEach(
-                farId -> farIdToUeAddrs.computeIfPresent(farId, (farIdz, ueAddrs) -> {
-                    ueAddrs.remove(ueAddr);
-                    return ueAddrs;
-                }));
-    }
-
-    @Override
-    public Set<Ip4Address> ueAddrsOfFarId(UpfRuleIdentifier farId) {
-        return farIdToUeAddrs.getOrDefault(farId, Set.of()).value();
-    }
-
-    @Override
-    public Set<UpfRuleIdentifier> getBufferFarIds() {
-        return Set.copyOf(bufferFarIds);
-    }
-
-    @Override
-    public Map<UpfRuleIdentifier, Set<Ip4Address>> getFarIdToUeAddrs() {
-        return Map.copyOf(farIdToUeAddrs.asJavaMap());
     }
 
     // NOTE: FarIdMapListener is run on the same thread intentionally in order to ensure that

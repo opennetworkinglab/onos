@@ -16,16 +16,10 @@
 
 package org.onosproject.pipelines.fabric.impl.behaviour.upf;
 
-import org.onlab.packet.Ip4Address;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.TestConsistentMap;
-import org.onosproject.store.service.TestDistributedSet;
 
-import java.util.Set;
-
-import static org.onosproject.pipelines.fabric.impl.behaviour.upf.DistributedFabricUpfStore.BUFFER_FAR_ID_SET_NAME;
 import static org.onosproject.pipelines.fabric.impl.behaviour.upf.DistributedFabricUpfStore.FAR_ID_MAP_NAME;
-import static org.onosproject.pipelines.fabric.impl.behaviour.upf.DistributedFabricUpfStore.FAR_ID_UE_MAP_NAME;
 import static org.onosproject.pipelines.fabric.impl.behaviour.upf.DistributedFabricUpfStore.SERIALIZER;
 
 
@@ -42,22 +36,6 @@ public final class TestDistributedFabricUpfStore {
                 .withRelaxedReadConsistency()
                 .withSerializer(Serializer.using(SERIALIZER.build()));
         store.farIdMap = farIdMapBuilder.build();
-
-        TestDistributedSet.Builder<UpfRuleIdentifier> bufferFarIdsBuilder =
-                TestDistributedSet.builder();
-        bufferFarIdsBuilder
-                .withName(BUFFER_FAR_ID_SET_NAME)
-                .withRelaxedReadConsistency()
-                .withSerializer(Serializer.using(SERIALIZER.build()));
-        store.bufferFarIds = bufferFarIdsBuilder.build().asDistributedSet();
-
-        TestConsistentMap.Builder<UpfRuleIdentifier, Set<Ip4Address>> farIdToUeAddrsBuilder =
-                TestConsistentMap.builder();
-        farIdToUeAddrsBuilder
-                .withName(FAR_ID_UE_MAP_NAME)
-                .withRelaxedReadConsistency()
-                .withSerializer(Serializer.using(SERIALIZER.build()));
-        store.farIdToUeAddrs = farIdToUeAddrsBuilder.build();
 
         store.activate();
 
