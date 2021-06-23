@@ -99,9 +99,20 @@ public class FabricUpfProgrammable extends AbstractP4RuntimeHandlerBehaviour
 
     @Override
     protected boolean setupBehaviour(String opName) {
+        // Already initialized.
+        if (appId != null) {
+            return true;
+        }
+
         if (!super.setupBehaviour(opName)) {
             return false;
         }
+
+        if (!computeHardwareResourceSizes()) {
+            // error message will be printed by computeHardwareResourceSizes()
+            return false;
+        }
+
         flowRuleService = handler().get(FlowRuleService.class);
         packetService = handler().get(PacketService.class);
         fabricUpfStore = handler().get(FabricUpfStore.class);
@@ -126,10 +137,6 @@ public class FabricUpfProgrammable extends AbstractP4RuntimeHandlerBehaviour
     @Override
     public boolean init() {
         if (setupBehaviour("init()")) {
-            if (!computeHardwareResourceSizes()) {
-                // error message will be printed by computeHardwareResourceSizes()
-                return false;
-            }
             log.info("UpfProgrammable initialized for appId {} and deviceId {}", appId, deviceId);
             return true;
         }
@@ -327,7 +334,6 @@ public class FabricUpfProgrammable extends AbstractP4RuntimeHandlerBehaviour
         if (!setupBehaviour("pdrCounterSize()")) {
             return -1;
         }
-        computeHardwareResourceSizes();
         return pdrCounterSize;
     }
 
@@ -336,7 +342,6 @@ public class FabricUpfProgrammable extends AbstractP4RuntimeHandlerBehaviour
         if (!setupBehaviour("farTableSize()")) {
             return -1;
         }
-        computeHardwareResourceSizes();
         return farTableSize;
     }
 
@@ -345,7 +350,6 @@ public class FabricUpfProgrammable extends AbstractP4RuntimeHandlerBehaviour
         if (!setupBehaviour("pdrTableSize()")) {
             return -1;
         }
-        computeHardwareResourceSizes();
         return Math.min(encappedPdrTableSize, unencappedPdrTableSize) * 2;
     }
 
@@ -438,9 +442,6 @@ public class FabricUpfProgrammable extends AbstractP4RuntimeHandlerBehaviour
 
     private boolean removeEntry(PiCriterion match, PiTableId tableId, boolean failSilent)
             throws UpfProgrammableException {
-        if (!setupBehaviour("removeEntry()")) {
-            return false;
-        }
         FlowRule entry = DefaultFlowRule.builder()
                 .forDevice(deviceId).fromApp(appId).makePermanent()
                 .forTable(tableId)
@@ -534,6 +535,9 @@ public class FabricUpfProgrammable extends AbstractP4RuntimeHandlerBehaviour
 
     @Override
     public void removeFar(ForwardingActionRule far) throws UpfProgrammableException {
+        if (!setupBehaviour("removeFar()")) {
+            return;
+        }
         log.info("Removing {}", far.toString());
 
         PiCriterion match = PiCriterion.builder()
