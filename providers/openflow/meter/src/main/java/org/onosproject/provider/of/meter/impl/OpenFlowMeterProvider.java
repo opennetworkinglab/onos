@@ -23,12 +23,16 @@ import com.google.common.cache.RemovalCause;
 import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onlab.util.ItemNotFoundException;
+import org.onlab.util.Tools;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverService;
@@ -72,23 +76,31 @@ import org.projectfloodlight.openflow.protocol.errormsg.OFMeterModFailedErrorMsg
 import org.slf4j.Logger;
 
 import java.util.Collection;
+import java.util.Dictionary;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.onlab.util.Tools.getIntegerProperty;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.openflow.controller.Dpid.uri;
+import static org.onosproject.provider.of.meter.impl.OsgiPropertyConstants.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider which uses an OpenFlow controller to handle meters.
  */
-@Component(immediate = true, enabled = true)
+@Component(immediate = true, enabled = true, property = {
+        FORCE_STATS_AFTER_METER_REMOVAL + ":Boolean=" + FORCE_STATS_AFTER_METER_REMOVAL_ENABLED_DEFAULT,
+        METER_STATS_POLL_INTERVAL + ":Integer=" + METER_STATS_POLL_INTERVAL_DEFAULT,
+})
+
 public class OpenFlowMeterProvider extends AbstractProvider implements MeterProvider {
 
     private final Logger log = getLogger(getClass());
@@ -105,15 +117,20 @@ public class OpenFlowMeterProvider extends AbstractProvider implements MeterProv
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DriverService driverService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected ComponentConfigService cfgService;
+
     private MeterProviderService providerService;
+
+    private boolean forceStatsAfterMeterRemoval = FORCE_STATS_AFTER_METER_REMOVAL_ENABLED_DEFAULT;
+
+    private int meterStatsPollInterval = METER_STATS_POLL_INTERVAL_DEFAULT;
 
     private static final AtomicLong XID_COUNTER = new AtomicLong(1);
 
-    static final int POLL_INTERVAL = 10;
     static final long TIMEOUT = 30;
 
     private Cache<Long, MeterOperation> pendingOperations;
-
 
     private InternalMeterListener listener = new InternalMeterListener();
     private Map<Dpid, MeterStatsCollector> collectors = new ConcurrentHashMap<>();
@@ -134,7 +151,8 @@ public class OpenFlowMeterProvider extends AbstractProvider implements MeterProv
     }
 
     @Activate
-    public void activate() {
+    public void activate(ComponentContext context) {
+        cfgService.registerProperties(getClass());
         providerService = providerRegistry.register(this);
 
         pendingOperations = CacheBuilder.newBuilder()
@@ -151,17 +169,57 @@ public class OpenFlowMeterProvider extends AbstractProvider implements MeterProv
         controller.addEventListener(listener);
         controller.addListener(listener);
 
-        controller.getSwitches().forEach((sw -> createStatsCollection(sw)));
+        modified(context);
+
+        if (collectors.isEmpty()) {
+            controller.getSwitches().forEach((sw -> createStatsCollection(sw)));
+        }
     }
 
     @Deactivate
     public void deactivate() {
+        cfgService.unregisterProperties(getClass(), false);
         providerRegistry.unregister(this);
         collectors.values().forEach(MeterStatsCollector::stop);
         collectors.clear();
         controller.removeEventListener(listener);
         controller.removeListener(listener);
         providerService = null;
+    }
+
+    @Modified
+    public void modified(ComponentContext context) {
+        Dictionary<?, ?> properties = context != null ? context.getProperties() : new Properties();
+
+        // update FORCE_STATS_AFTER_METER_REMOVAL if needed
+        Boolean forceStatsAfterMeterRemovalEnabled =
+                Tools.isPropertyEnabled(properties, FORCE_STATS_AFTER_METER_REMOVAL);
+        if (forceStatsAfterMeterRemovalEnabled == null) {
+            log.info("forceStatsAfterMeterRemoval is not configured, " +
+                    "using current value of {}", forceStatsAfterMeterRemoval);
+        } else {
+            forceStatsAfterMeterRemoval = forceStatsAfterMeterRemovalEnabled;
+            log.info("Configured. forceStatsAfterMeterRemoval is {}",
+                    forceStatsAfterMeterRemovalEnabled ? "enabled" : "disabled");
+        }
+
+        // update METER_STATS_POLL_INTERVAL if needed
+        Integer newMeterPollInterval = getIntegerProperty(properties, METER_STATS_POLL_INTERVAL);
+        if (newMeterPollInterval != null && newMeterPollInterval > 0
+                && newMeterPollInterval != meterStatsPollInterval) {
+            meterStatsPollInterval = newMeterPollInterval;
+            // restart meter stats collectors, old instances will be automatically purged before creation
+            // in the call to createStatsCollection
+            controller.getSwitches().forEach((sw -> {
+                createStatsCollection(sw);
+            }));
+            log.info("Configured. meterStatsPollInterval to {}", newMeterPollInterval);
+        } else if (newMeterPollInterval != null && newMeterPollInterval <= 0) {
+            log.warn("meterStatsPollInterval must be greater than 0");
+            // Reset property with the old value
+            cfgService.setProperty(getClass().getName(), METER_STATS_POLL_INTERVAL,
+                    Integer.toString(meterStatsPollInterval));
+        }
     }
 
     @Override
@@ -193,7 +251,7 @@ public class OpenFlowMeterProvider extends AbstractProvider implements MeterProv
 
         performOperation(sw, meterOp);
 
-        if (meterOp.type().equals(MeterOperation.Type.REMOVE)) {
+        if (forceStatsAfterMeterRemoval && meterOp.type().equals(MeterOperation.Type.REMOVE)) {
             forceMeterStats(deviceId);
         }
 
@@ -242,7 +300,7 @@ public class OpenFlowMeterProvider extends AbstractProvider implements MeterProv
 
     private void createStatsCollection(OpenFlowSwitch sw) {
         if (sw != null && isMeterSupported(sw)) {
-            MeterStatsCollector msc = new MeterStatsCollector(sw, POLL_INTERVAL);
+            MeterStatsCollector msc = new MeterStatsCollector(sw, meterStatsPollInterval);
             stopCollectorIfNeeded(collectors.put(new Dpid(sw.getId()), msc));
             msc.start();
         }
