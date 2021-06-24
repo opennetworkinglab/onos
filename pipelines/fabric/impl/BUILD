@@ -1,4 +1,4 @@
-COMPILE_DEPS = CORE_DEPS + KRYO + [
+COMPILE_DEPS = CORE_DEPS + KRYO + CLI + [
     "//pipelines/fabric/api:onos-pipelines-fabric-api",
     "//protocols/p4runtime/model:onos-protocols-p4runtime-model",
     "//protocols/p4runtime/api:onos-protocols-p4runtime-api",
@@ -14,6 +14,7 @@ TEST_DEPS = TEST_ADAPTERS + JACKSON + [
 ]
 
 osgi_jar_with_tests(
+    karaf_command_packages = ["org.onosproject.pipelines.fabric.impl.behaviour.cli"],
     test_deps = TEST_DEPS,
     deps = COMPILE_DEPS,
 )
