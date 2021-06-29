@@ -28,6 +28,7 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.kubevirtnetworking.api.AbstractWatcher;
+import org.onosproject.kubevirtnetworking.api.KubevirtPeerRouter;
 import org.onosproject.kubevirtnetworking.api.KubevirtRouter;
 import org.onosproject.kubevirtnetworking.api.KubevirtRouterAdminService;
 import org.onosproject.kubevirtnetworking.api.KubevirtRouterService;
@@ -244,6 +245,16 @@ public class KubevirtRouterWatcher extends AbstractWatcher {
                     name);
 
             KubevirtRouter router = parseKubevirtRouter(resource);
+
+            KubevirtPeerRouter oldPeerRouter = adminService.router(router.name()).peerRouter();
+            if (oldPeerRouter != null
+                    && Objects.equals(oldPeerRouter.ipAddress(), router.peerRouter().ipAddress())
+                    && oldPeerRouter.macAddress() != null
+                    && router.peerRouter().macAddress() == null) {
+
+                router = router.updatePeerRouter(oldPeerRouter);
+            }
+
             if (router != null) {
                 adminService.updateRouter(router);
             }
