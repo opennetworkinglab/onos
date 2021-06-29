@@ -70,6 +70,14 @@ public class GrpcChannelControllerImpl implements GrpcChannelController {
     private static final String GRPCS = "grpcs";
 
     private static final int DEFAULT_MAX_INBOUND_MSG_SIZE = 256; // Megabytes.
+    // The maximum metadata size in Megabytes that a P4Runtime client should accept.
+    // This is necessary, because the P4Runtime protocol returns individual errors to
+    // requests in a batch all wrapped in a single status, which counts towards the
+    // metadata size limit.  For large batches, this easily exceeds the default of
+    // 8KB. According to the tests done with Stratum, 4MB will support batches of
+    // around 40000 entries, assuming 100 bytes per error, without exceeding the
+    // maximum metadata size. Setting here 10 times higher.
+    private static final int DEFAULT_MAX_INBOUND_META_SIZE = 40;
     private static final int MEGABYTES = 1024 * 1024;
 
     private static final PickFirstLoadBalancerProvider PICK_FIRST_LOAD_BALANCER_PROVIDER =
@@ -184,7 +192,9 @@ public class GrpcChannelControllerImpl implements GrpcChannelController {
                 .defaultLoadBalancingPolicy(
                         PICK_FIRST_LOAD_BALANCER_PROVIDER.getPolicyName())
                 .maxInboundMessageSize(
-                        DEFAULT_MAX_INBOUND_MSG_SIZE * MEGABYTES);
+                        DEFAULT_MAX_INBOUND_MSG_SIZE * MEGABYTES)
+                .maxInboundMetadataSize(
+                        DEFAULT_MAX_INBOUND_META_SIZE * MEGABYTES);
 
         if (useTls) {
             try {
