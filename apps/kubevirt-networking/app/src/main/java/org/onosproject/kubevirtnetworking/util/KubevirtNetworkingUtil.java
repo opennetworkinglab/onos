@@ -357,7 +357,15 @@ public final class KubevirtNetworkingUtil {
 
             Set<KubevirtPort> ports = new HashSet<>();
             for (JsonNode interfaceJson : interfacesJson) {
-                String name = interfaceJson.get(NAME).asText();
+                JsonNode jsonName = interfaceJson.get(NAME);
+
+                // in some cases, name attribute may not be available from the
+                // interface, we skip inspect this interface
+                if (jsonName == null) {
+                    continue;
+                }
+
+                String name = jsonName.asText();
                 KubevirtNetwork network = networks.stream()
                         .filter(n -> (NETWORK_PREFIX + n.name()).equals(name) ||
                                      (n.name() + "-net").equals(name))
