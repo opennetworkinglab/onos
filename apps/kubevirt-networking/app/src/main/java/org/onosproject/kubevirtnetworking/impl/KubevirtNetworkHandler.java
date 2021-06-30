@@ -229,7 +229,6 @@ public class KubevirtNetworkHandler {
         if (tenantBridge != null && deviceService.isAvailable(tenantBridge.id())) {
             log.warn("The tenant bridge {} already exists at node {}",
                     network.tenantBridgeName(), node.hostname());
-            setDefaultRulesForTenantNetwork(node, network);
             return;
         }
 
