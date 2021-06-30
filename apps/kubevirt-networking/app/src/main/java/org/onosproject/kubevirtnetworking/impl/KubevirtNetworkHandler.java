@@ -16,7 +16,6 @@
 package org.onosproject.kubevirtnetworking.impl;
 
 import com.google.common.collect.Lists;
-import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.packet.ARP;
 import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
@@ -64,7 +63,6 @@ import org.onosproject.net.behaviour.DefaultPatchDescription;
 import org.onosproject.net.behaviour.InterfaceConfig;
 import org.onosproject.net.behaviour.PatchDescription;
 import org.onosproject.net.device.DeviceAdminService;
-import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -302,8 +300,8 @@ public class KubevirtNetworkHandler {
         String tunToTenantIntf =
                 TUNNEL_TO_TENANT_PREFIX + segmentIdHex(network.segmentId());
 
-        if (!hasPort(DeviceId.deviceId(network.tenantBridgeName()), tenantToTunIntf)) {
-            // tenant bridge -> tunnel bridge
+        if (!hasPort(network.tenantDeviceId(node.hostname()), tenantToTunIntf)) {
+            // patch ports for tenant bridge -> tunnel bridge
             PatchDescription brTenantTunPatchDesc =
                     DefaultPatchDescription.builder()
                             .deviceId(network.tenantBridgeName())
@@ -316,7 +314,7 @@ public class KubevirtNetworkHandler {
             waitFor(1);
         }
 
-        if (!hasPort(DeviceId.deviceId(TUNNEL_BRIDGE), tunToTenantIntf)) {
+        if (!hasPort(node.tunBridge(), tunToTenantIntf)) {
             // tunnel bridge -> tenant bridge
             PatchDescription brTunTenantPatchDesc =
                     DefaultPatchDescription.builder()
@@ -941,11 +939,12 @@ public class KubevirtNetworkHandler {
     }
 
     private boolean hasPort(DeviceId deviceId, String portName) {
-        DeviceService deviceService = DefaultServiceDirectory.getService(DeviceService.class);
         Port port = deviceService.getPorts(deviceId).stream()
                 .filter(p -> p.isEnabled() &&
                         Objects.equals(p.annotations().value(PORT_NAME), portName))
                 .findAny().orElse(null);
+        log.info("The port {} already existed on device {}", portName, deviceId);
+
         return port != null;
     }
 
