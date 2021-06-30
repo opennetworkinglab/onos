@@ -297,6 +297,19 @@ public class KubevirtSecurityGroupHandler {
 
     private void initializeTenantAclTable(KubevirtNetwork network,
                                             DeviceId deviceId, boolean install) {
+        // FIXME: in bridge initialization phase, some patch ports may not be
+        // available until they are created, we wait for a while ensure all
+        // patch ports are created via network bootstrap
+        while (true) {
+            if (network.tenantToTunnelPort(deviceId) != null) {
+                break;
+            } else {
+                log.info("Wait for tenant patch ports creation for device {} " +
+                         "and network {}", deviceId, network.networkId());
+                waitFor(5);
+            }
+        }
+
         PortNumber patchPort = network.tenantToTunnelPort(deviceId);
         initializeAclTable(deviceId, TENANT_ACL_RECIRC_TABLE, patchPort, install);
     }
