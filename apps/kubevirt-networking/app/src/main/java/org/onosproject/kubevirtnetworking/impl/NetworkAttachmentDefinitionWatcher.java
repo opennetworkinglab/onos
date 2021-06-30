@@ -335,7 +335,7 @@ public class NetworkAttachmentDefinitionWatcher {
                     return builder.build();
                 }
             } catch (JSONException e) {
-                log.error("Failed to parse network attachment definition object");
+                log.error("Failed to parse network attachment definition object", e);
             }
 
             return null;
