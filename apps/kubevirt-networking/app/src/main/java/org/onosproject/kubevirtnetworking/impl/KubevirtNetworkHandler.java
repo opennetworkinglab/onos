@@ -504,21 +504,20 @@ public class KubevirtNetworkHandler {
         MacAddress routerMacAddress = getRouterMacAddress(router);
 
         if (routerMacAddress == null) {
-            log.warn("Setting gateway default eggress rule to gateway for tenant internal network because " +
-                    "there's no br-int port for device {}", gwDeviceId);
+            log.warn("Setting gateway default egress rule to gateway for tenant " +
+                "internal network because there's no br-int port for device {}", gwDeviceId);
             return;
         }
 
         KubevirtNode gwNode = kubevirtNodeService.node(gwDeviceId);
 
         if (gwNode == null) {
-            log.warn("Setting gateway default eggress rule to gateway for tenant internal network because " +
-                    "there's no gateway node for device {}", gwDeviceId);
+            log.warn("Setting gateway default egress rule to gateway for tenant " +
+                "internal network because there's no gateway node for device {}", gwDeviceId);
             return;
         }
 
-
-        PortNumber patchPortNumber = tunnelToTenantPort(workerNode, network);
+        PortNumber patchPortNumber = tunnelToTenantPort(deviceService, workerNode, network);
         if (patchPortNumber == null) {
             return;
         }
@@ -608,7 +607,7 @@ public class KubevirtNetworkHandler {
             return;
         }
 
-        PortNumber tunToIntPortNum = portNumber(gwNode.tunBridge(), TUNNEL_TO_INTEGRATION);
+        PortNumber tunToIntPortNum = portNumber(deviceService, gwNode.tunBridge(), TUNNEL_TO_INTEGRATION);
 
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
                 .matchTunnelId(Long.parseLong(network.segmentId()));

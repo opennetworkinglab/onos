@@ -27,7 +27,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.net.util.SubnetUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.Ip4Address;
@@ -405,11 +404,13 @@ public final class KubevirtNetworkingUtil {
     /**
      * Obtains the tunnel bridge to tenant bridge patch port number.
      *
+     * @param deviceService device service
      * @param node    kubevirt node
      * @param network kubevirt network
      * @return patch port number
      */
-    public static PortNumber tunnelToTenantPort(KubevirtNode node, KubevirtNetwork network) {
+    public static PortNumber tunnelToTenantPort(DeviceService deviceService,
+                             KubevirtNode node, KubevirtNetwork network) {
         if (network.segmentId() == null) {
             return null;
         }
@@ -419,7 +420,7 @@ public final class KubevirtNetworkingUtil {
         }
 
         String tunToTenantPortName = TUNNEL_TO_TENANT_PREFIX + segmentIdHex(network.segmentId());
-        return portNumber(node.tunBridge(), tunToTenantPortName);
+        return portNumber(deviceService, node.tunBridge(), tunToTenantPortName);
     }
 
     /**
@@ -463,8 +464,7 @@ public final class KubevirtNetworkingUtil {
         return "";
     }
 
-    public static PortNumber portNumber(DeviceId deviceId, String portName) {
-        DeviceService deviceService = DefaultServiceDirectory.getService(DeviceService.class);
+    public static PortNumber portNumber(DeviceService deviceService, DeviceId deviceId, String portName) {
         Port port = deviceService.getPorts(deviceId).stream()
                 .filter(p -> p.isEnabled() &&
                         Objects.equals(p.annotations().value(PORT_NAME), portName))

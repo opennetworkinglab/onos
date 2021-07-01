@@ -152,14 +152,17 @@ public class KubevirtSwitchingTenantHandler {
         for (KubevirtNode localNode : kubevirtNodeService.completeNodes(WORKER)) {
 
             while (true) {
-                if (tunnelToTenantPort(localNode, network) != null) {
+                KubevirtNode updatedNode = kubevirtNodeService.node(localNode.hostname());
+                if (tunnelToTenantPort(deviceService, updatedNode, network) != null) {
                     break;
                 } else {
+                    log.info("Waiting for tunnel to tenant patch port creation " +
+                             "on ingress rule setup on node {}", updatedNode);
                     waitFor(3);
                 }
             }
 
-            PortNumber patchPortNumber = tunnelToTenantPort(localNode, network);
+            PortNumber patchPortNumber = tunnelToTenantPort(deviceService, localNode, network);
 
             TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
                     .matchTunnelId(Long.parseLong(network.segmentId()));
@@ -182,10 +185,23 @@ public class KubevirtSwitchingTenantHandler {
 
     private void setIngressRules(KubevirtNode node, boolean install) {
         for (KubevirtNetwork network : kubevirtNetworkService.tenantNetworks()) {
-            PortNumber patchPortNumber = tunnelToTenantPort(node, network);
-            if (patchPortNumber == null) {
+
+            if (node == null || node.type() != WORKER) {
                 return;
             }
+
+            while (true) {
+                KubevirtNode updatedNode = kubevirtNodeService.node(node.hostname());
+                if (tunnelToTenantPort(deviceService, updatedNode, network) != null) {
+                    break;
+                } else {
+                    log.info("Waiting for tunnel to tenant patch port creation " +
+                             "on ingress rule setup on node {}", updatedNode);
+                    waitFor(3);
+                }
+            }
+
+            PortNumber patchPortNumber = tunnelToTenantPort(deviceService, node, network);
 
             TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
                     .matchTunnelId(Long.parseLong(network.segmentId()));
@@ -236,10 +252,18 @@ public class KubevirtSwitchingTenantHandler {
                 continue;
             }
 
-            PortNumber patchPortNumber = tunnelToTenantPort(remoteNode, network);
-            if (patchPortNumber == null) {
-                return;
+            while (true) {
+                KubevirtNode updatedNode = kubevirtNodeService.node(localNode.hostname());
+                if (tunnelToTenantPort(deviceService, updatedNode, network) != null) {
+                    break;
+                } else {
+                    log.info("Waiting for tunnel to tenant patch port creation " +
+                             "on egress rule setup on node {}", updatedNode);
+                    waitFor(3);
+                }
             }
+
+            PortNumber patchPortNumber = tunnelToTenantPort(deviceService, remoteNode, network);
 
             PortNumber tunnelPortNumber = tunnelPort(remoteNode, network);
             if (tunnelPortNumber == null) {
