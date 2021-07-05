@@ -58,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static org.onosproject.net.behaviour.upf.UpfProgrammableException.Type.UNSUPPORTED_OPERATION;
 import static org.onosproject.net.pi.model.PiCounterType.INDIRECT;
@@ -118,7 +119,7 @@ public class FabricUpfProgrammable extends AbstractP4RuntimeHandlerBehaviour
         fabricUpfStore = handler().get(FabricUpfStore.class);
         upfTranslator = new FabricUpfTranslator(fabricUpfStore);
         final CoreService coreService = handler().get(CoreService.class);
-        appId = coreService.getAppId(FabricPipeconfLoader.PIPELINE_APP_NAME);
+        appId = coreService.getAppId(FabricPipeconfLoader.PIPELINE_APP_NAME_UPF);
         if (appId == null) {
             log.warn("Application ID is null. Cannot initialize behaviour.");
             return false;
@@ -141,6 +142,12 @@ public class FabricUpfProgrammable extends AbstractP4RuntimeHandlerBehaviour
             return true;
         }
         return false;
+    }
+
+    @Override
+    public boolean fromThisUpf(FlowRule flowRule) {
+        return flowRule.deviceId().equals(this.deviceId) &&
+                flowRule.appId() == appId.id();
     }
 
     /**
@@ -229,7 +236,13 @@ public class FabricUpfProgrammable extends AbstractP4RuntimeHandlerBehaviour
             return;
         }
         log.info("Clearing all UPF-related table entries.");
-        flowRuleService.removeFlowRulesById(appId);
+        // Getting flow entries by device ID and filtering by Application ID
+        // is more efficient than getting by Application ID and filtering for a
+        // device ID.
+        List<FlowEntry> flowEntriesToRemove = StreamSupport.stream(
+                flowRuleService.getFlowEntries(deviceId).spliterator(), false)
+                .filter(flowEntry -> flowEntry.appId() == appId.id()).collect(Collectors.toList());
+        flowRuleService.removeFlowRules(flowEntriesToRemove.toArray(new FlowRule[0]));
         fabricUpfStore.reset();
     }
 
@@ -239,7 +252,7 @@ public class FabricUpfProgrammable extends AbstractP4RuntimeHandlerBehaviour
             return;
         }
         log.info("Clearing all UPF interfaces.");
-        for (FlowRule entry : flowRuleService.getFlowEntriesById(appId)) {
+        for (FlowRule entry : flowRuleService.getFlowEntries(deviceId)) {
             if (upfTranslator.isFabricInterface(entry)) {
                 flowRuleService.removeFlowRules(entry);
             }
@@ -254,7 +267,7 @@ public class FabricUpfProgrammable extends AbstractP4RuntimeHandlerBehaviour
         log.info("Clearing all UE sessions.");
         int pdrsCleared = 0;
         int farsCleared = 0;
-        for (FlowRule entry : flowRuleService.getFlowEntriesById(appId)) {
+        for (FlowRule entry : flowRuleService.getFlowEntries(deviceId)) {
             if (upfTranslator.isFabricPdr(entry)) {
                 pdrsCleared++;
                 flowRuleService.removeFlowRules(entry);
@@ -454,7 +467,7 @@ public class FabricUpfProgrammable extends AbstractP4RuntimeHandlerBehaviour
          *   with correct and complete actions and parameters, but P4Runtime deletion requests
          *   will not have those.
          */
-        for (FlowEntry installedEntry : flowRuleService.getFlowEntriesById(appId)) {
+        for (FlowEntry installedEntry : flowRuleService.getFlowEntries(deviceId)) {
             if (installedEntry.selector().equals(entry.selector())) {
                 log.info("Found matching entry to remove, it has FlowID {}", installedEntry.id());
                 flowRuleService.removeFlowRules(installedEntry);
@@ -474,7 +487,7 @@ public class FabricUpfProgrammable extends AbstractP4RuntimeHandlerBehaviour
             return null;
         }
         ArrayList<PacketDetectionRule> pdrs = new ArrayList<>();
-        for (FlowRule flowRule : flowRuleService.getFlowEntriesById(appId)) {
+        for (FlowRule flowRule : flowRuleService.getFlowEntries(deviceId)) {
             if (upfTranslator.isFabricPdr(flowRule)) {
                 pdrs.add(upfTranslator.fabricEntryToPdr(flowRule));
             }
@@ -488,7 +501,7 @@ public class FabricUpfProgrammable extends AbstractP4RuntimeHandlerBehaviour
             return null;
         }
         ArrayList<ForwardingActionRule> fars = new ArrayList<>();
-        for (FlowRule flowRule : flowRuleService.getFlowEntriesById(appId)) {
+        for (FlowRule flowRule : flowRuleService.getFlowEntries(deviceId)) {
             if (upfTranslator.isFabricFar(flowRule)) {
                 fars.add(upfTranslator.fabricEntryToFar(flowRule));
             }
@@ -502,7 +515,7 @@ public class FabricUpfProgrammable extends AbstractP4RuntimeHandlerBehaviour
             return null;
         }
         ArrayList<UpfInterface> ifaces = new ArrayList<>();
-        for (FlowRule flowRule : flowRuleService.getFlowEntriesById(appId)) {
+        for (FlowRule flowRule : flowRuleService.getFlowEntries(deviceId)) {
             if (upfTranslator.isFabricInterface(flowRule)) {
                 ifaces.add(upfTranslator.fabricEntryToInterface(flowRule));
             }
