@@ -56,6 +56,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 public final class FabricPipeconfLoader {
 
     public static final String PIPELINE_APP_NAME = "org.onosproject.pipelines.fabric";
+    public static final String PIPELINE_APP_NAME_UPF = "org.onosproject.pipelines.fabric.upf";
 
     private static Logger log = getLogger(FabricPipeconfLoader.class);
 
@@ -85,6 +86,7 @@ public final class FabricPipeconfLoader {
     @Activate
     public void activate() {
         coreService.registerApplication(PIPELINE_APP_NAME);
+        coreService.registerApplication(PIPELINE_APP_NAME_UPF);
         // Registers all pipeconf at component activation.
         pipeconfs = buildAllPipeconfs();
         pipeconfs.forEach(piPipeconfService::register);

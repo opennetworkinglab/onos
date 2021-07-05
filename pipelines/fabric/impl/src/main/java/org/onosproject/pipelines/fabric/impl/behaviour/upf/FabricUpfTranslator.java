@@ -410,32 +410,4 @@ public class FabricUpfTranslator {
                 .withPriority(priority)
                 .build();
     }
-
-//    public FlowRule buildGtpuWithPscEncapRule(DeviceId deviceId, ApplicationId appId, int qfi) {
-//        PiAction action = PiAction.builder()
-//                .withId(FABRIC_EGRESS_SPGW_GTPU_WITH_PSC)
-//                .withParameter(new PiActionParam(QFI, qfi))
-//                .build();
-//        // Default entry, no selector.
-//        return DefaultFlowRule.builder()
-//                .forDevice(deviceId).fromApp(appId).makePermanent()
-//                .forTable(FABRIC_EGRESS_SPGW_GTPU_ENCAP)
-//                .withTreatment(DefaultTrafficTreatment.builder().piTableAction(action).build())
-//                .withPriority(0)
-//                .build();
-//    }
-//
-//    public FlowRule buildGtpuOnlyEncapRule(DeviceId deviceId, ApplicationId appId) {
-//        PiAction action = PiAction.builder()
-//                .withId(FABRIC_EGRESS_SPGW_GTPU_ONLY)
-//                .build();
-//        // Default entry, no selector.
-//        return DefaultFlowRule.builder()
-//                .forDevice(deviceId).fromApp(appId).makePermanent()
-//                .forTable(FABRIC_EGRESS_SPGW_GTPU_ENCAP)
-//                .withTreatment(DefaultTrafficTreatment.builder().piTableAction(action).build())
-//                .withPriority(0)
-//                .build();
-//    }
-
 }
