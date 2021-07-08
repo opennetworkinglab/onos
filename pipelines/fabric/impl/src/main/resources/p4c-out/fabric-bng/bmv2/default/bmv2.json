@@ -1811,7 +1811,7 @@
               "type" : "hexstr",
               "value" : "0x06",
               "mask" : null,
-              "next_state" : "parse_tcp"
+              "next_state" : "parse_inner_tcp"
             },
             {
               "type" : "hexstr",
@@ -1823,7 +1823,7 @@
               "type" : "hexstr",
               "value" : "0x01",
               "mask" : null,
-              "next_state" : "parse_icmp"
+              "next_state" : "parse_inner_icmp"
             },
             {
               "type" : "default",
@@ -1848,6 +1848,54 @@
                 {
                   "type" : "regular",
                   "value" : "inner_udp"
+                }
+              ],
+              "op" : "extract"
+            }
+          ],
+          "transitions" : [
+            {
+              "type" : "default",
+              "value" : null,
+              "mask" : null,
+              "next_state" : null
+            }
+          ],
+          "transition_key" : []
+        },
+        {
+          "name" : "parse_inner_tcp",
+          "id" : 16,
+          "parser_ops" : [
+            {
+              "parameters" : [
+                {
+                  "type" : "regular",
+                  "value" : "inner_tcp"
+                }
+              ],
+              "op" : "extract"
+            }
+          ],
+          "transitions" : [
+            {
+              "type" : "default",
+              "value" : null,
+              "mask" : null,
+              "next_state" : null
+            }
+          ],
+          "transition_key" : []
+        },
+        {
+          "name" : "parse_inner_icmp",
+          "id" : 17,
+          "parser_ops" : [
+            {
+              "parameters" : [
+                {
+                  "type" : "regular",
+                  "value" : "inner_icmp"
                 }
               ],
               "op" : "extract"
