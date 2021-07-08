@@ -21,7 +21,7 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.kubevirtnode.api.KubevirtNode;
 import org.onosproject.kubevirtnode.api.KubevirtNodeAdminService;
 
-import static java.lang.Thread.sleep;
+import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.waitFor;
 import static org.onosproject.kubevirtnode.api.KubevirtNodeState.COMPLETE;
 import static org.onosproject.kubevirtnode.api.KubevirtNodeState.INIT;
 
@@ -33,8 +33,8 @@ import static org.onosproject.kubevirtnode.api.KubevirtNodeState.INIT;
         description = "Re-installs flow rules for KubeVirt networking")
 public class KubevirtSyncRulesCommand extends AbstractShellCommand {
 
-    private static final long SLEEP_MS = 5000; // we wait 5s for init each node
-    private static final long TIMEOUT_MS = 10000; // we wait 10s
+    private static final int  SLEEP_S = 1;     // we re-check the status on every 1s
+    private static final long TIMEOUT_MS = 15000;
 
     private static final String SUCCESS_MSG = "Successfully synchronize flow rules for node %s!";
     private static final String FAIL_MSG = "Failed to synchronize flow rules for node %s.";
@@ -45,14 +45,14 @@ public class KubevirtSyncRulesCommand extends AbstractShellCommand {
         // tries to re-configure flow rules for the complete node.
         KubevirtNodeAdminService nodeAdminService = get(KubevirtNodeAdminService.class);
         if (nodeAdminService == null) {
-            error("Failed to re-install flow rules for OpenStack networking.");
+            error("Failed to re-install flow rules for kubevirt networking.");
             return;
         }
 
         nodeAdminService.completeNodes().forEach(node ->
                 syncRulesBaseForNode(nodeAdminService, node));
 
-        print("Successfully requested re-installing flow rules.");
+        print("Done all flow rules synchronization, but some nodes may have issues.");
     }
 
     private void syncRulesBaseForNode(KubevirtNodeAdminService service, KubevirtNode node) {
@@ -65,18 +65,7 @@ public class KubevirtSyncRulesCommand extends AbstractShellCommand {
         while (service.node(node.hostname()).state() != COMPLETE) {
             long  waitMs = timeoutExpiredMs - System.currentTimeMillis();
 
-            try {
-                sleep(SLEEP_MS);
-            } catch (InterruptedException e) {
-                error("Exception caused during node synchronization...");
-            }
-
-            if (service.node(node.hostname()).state() == COMPLETE) {
-                break;
-            } else {
-                service.updateNode(updated);
-                print("Failed to synchronize flow rules, retrying...");
-            }
+            waitFor(SLEEP_S);
 
             if (waitMs <= 0) {
                 result = false;

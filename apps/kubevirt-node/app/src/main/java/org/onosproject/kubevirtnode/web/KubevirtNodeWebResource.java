@@ -45,12 +45,12 @@ import java.io.InputStream;
 import java.util.Set;
 
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
-import static java.lang.Thread.sleep;
 import static javax.ws.rs.core.Response.created;
 import static org.onlab.util.Tools.nullIsIllegal;
 import static org.onlab.util.Tools.readTreeFromStream;
 import static org.onosproject.kubevirtnode.api.KubevirtNodeState.COMPLETE;
 import static org.onosproject.kubevirtnode.api.KubevirtNodeState.INIT;
+import static org.onosproject.kubevirtnode.util.KubevirtNodeUtil.waitFor;
 
 /**
  * Handles REST API call of KubeVirt node config.
@@ -72,10 +72,9 @@ public class KubevirtNodeWebResource extends AbstractWebResource {
     private static final String API_CONFIG = "apiConfig";
     private static final String OK = "ok";
     private static final String ERROR = "error";
-    private static final String RESULT = "Result";
 
-    private static final long SLEEP_MS = 5000; // we wait 5s for init each node
-    private static final long TIMEOUT_MS = 10000; // we wait 10s
+    private static final int SLEEP_S = 1;     // we re-check the status on every 1s
+    private static final long TIMEOUT_MS = 15000;
 
     private static final String HOST_NAME = "hostname";
     private static final String ERROR_MESSAGE = " cannot be null";
@@ -268,7 +267,7 @@ public class KubevirtNodeWebResource extends AbstractWebResource {
 
         KubevirtNodeAdminService service = get(KubevirtNodeAdminService.class);
 
-        service.completeNodes().forEach(this::syncRulesBase);
+        service.completeNodes().forEach(node -> syncRulesBase(service, node));
         return ok(mapper().createObjectNode()).build();
     }
 
@@ -291,30 +290,17 @@ public class KubevirtNodeWebResource extends AbstractWebResource {
         return ok(jsonResult).build();
     }
 
-    private void syncRulesBase(KubevirtNode node) {
+    private void syncRulesBase(KubevirtNodeAdminService service, KubevirtNode node) {
         KubevirtNode updated = node.updateState(INIT);
-        KubevirtNodeAdminService service = get(KubevirtNodeAdminService.class);
         service.updateNode(updated);
 
         boolean result = true;
         long timeoutExpiredMs = System.currentTimeMillis() + TIMEOUT_MS;
 
         while (service.node(node.hostname()).state() != COMPLETE) {
-
             long  waitMs = timeoutExpiredMs - System.currentTimeMillis();
 
-            try {
-                sleep(SLEEP_MS);
-            } catch (InterruptedException e) {
-                log.error("Exception caused during node synchronization...");
-            }
-
-            if (service.node(node.hostname()).state() == COMPLETE) {
-                break;
-            } else {
-                service.updateNode(updated);
-                log.info("Failed to synchronize flow rules, retrying...");
-            }
+            waitFor(SLEEP_S);
 
             if (waitMs <= 0) {
                 result = false;
