@@ -428,4 +428,17 @@ public final class KubevirtNodeUtil {
         }
         return null;
     }
+
+    /**
+     * Waits for the given length of time.
+     *
+     * @param timeSecond the amount of time for wait in second unit
+     */
+    public static void waitFor(int timeSecond) {
+        try {
+            Thread.sleep(timeSecond * 1000L);
+        } catch (Exception e) {
+            log.error(e.toString());
+        }
+    }
 }
