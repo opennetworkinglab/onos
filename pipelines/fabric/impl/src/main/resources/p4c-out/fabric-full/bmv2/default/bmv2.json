@@ -2266,7 +2266,7 @@
               "type" : "hexstr",
               "value" : "0x06",
               "mask" : null,
-              "next_state" : "parse_tcp"
+              "next_state" : "parse_inner_tcp"
             },
             {
               "type" : "hexstr",
@@ -2278,7 +2278,7 @@
               "type" : "hexstr",
               "value" : "0x01",
               "mask" : null,
-              "next_state" : "parse_icmp"
+              "next_state" : "parse_inner_icmp"
             },
             {
               "type" : "default",
@@ -2345,8 +2345,82 @@
           "transition_key" : []
         },
         {
-          "name" : "parse_int",
+          "name" : "parse_inner_tcp",
           "id" : 17,
+          "parser_ops" : [
+            {
+              "parameters" : [
+                {
+                  "type" : "regular",
+                  "value" : "inner_tcp"
+                }
+              ],
+              "op" : "extract"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["scalars", "userMetadata._inner_l4_sport21"]
+                },
+                {
+                  "type" : "field",
+                  "value" : ["inner_tcp", "sport"]
+                }
+              ],
+              "op" : "set"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["scalars", "userMetadata._inner_l4_dport22"]
+                },
+                {
+                  "type" : "field",
+                  "value" : ["inner_tcp", "dport"]
+                }
+              ],
+              "op" : "set"
+            }
+          ],
+          "transitions" : [
+            {
+              "type" : "default",
+              "value" : null,
+              "mask" : null,
+              "next_state" : null
+            }
+          ],
+          "transition_key" : []
+        },
+        {
+          "name" : "parse_inner_icmp",
+          "id" : 18,
+          "parser_ops" : [
+            {
+              "parameters" : [
+                {
+                  "type" : "regular",
+                  "value" : "inner_icmp"
+                }
+              ],
+              "op" : "extract"
+            }
+          ],
+          "transitions" : [
+            {
+              "type" : "default",
+              "value" : null,
+              "mask" : null,
+              "next_state" : null
+            }
+          ],
+          "transition_key" : []
+        },
+        {
+          "name" : "parse_int",
+          "id" : 19,
           "parser_ops" : [],
           "transitions" : [
             {
@@ -2371,7 +2445,7 @@
         },
         {
           "name" : "parse_intl4_shim",
-          "id" : 18,
+          "id" : 20,
           "parser_ops" : [
             {
               "parameters" : [
@@ -2415,7 +2489,7 @@
         },
         {
           "name" : "parse_int_data",
-          "id" : 19,
+          "id" : 21,
           "parser_ops" : [
             {
               "parameters" : [
@@ -2512,7 +2586,7 @@
         },
         {
           "name" : "parse_intl4_tail",
-          "id" : 20,
+          "id" : 22,
           "parser_ops" : [
             {
               "parameters" : [

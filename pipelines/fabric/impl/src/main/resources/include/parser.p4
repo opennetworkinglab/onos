@@ -207,9 +207,9 @@ parser FabricParser (packet_in packet,
         packet.extract(hdr.inner_ipv4);
         last_ipv4_dscp = hdr.inner_ipv4.dscp;
         transition select(hdr.inner_ipv4.protocol) {
-            PROTO_TCP: parse_tcp;
+            PROTO_TCP: parse_inner_tcp;
             PROTO_UDP: parse_inner_udp;
-            PROTO_ICMP: parse_icmp;
+            PROTO_ICMP: parse_inner_icmp;
             default: accept;
         }
     }

@@ -1913,7 +1913,7 @@
               "type" : "hexstr",
               "value" : "0x06",
               "mask" : null,
-              "next_state" : "parse_tcp"
+              "next_state" : "parse_inner_tcp"
             },
             {
               "type" : "hexstr",
@@ -1925,7 +1925,7 @@
               "type" : "hexstr",
               "value" : "0x01",
               "mask" : null,
-              "next_state" : "parse_icmp"
+              "next_state" : "parse_inner_icmp"
             },
             {
               "type" : "default",
@@ -1966,8 +1966,56 @@
           "transition_key" : []
         },
         {
-          "name" : "parse_int",
+          "name" : "parse_inner_tcp",
           "id" : 15,
+          "parser_ops" : [
+            {
+              "parameters" : [
+                {
+                  "type" : "regular",
+                  "value" : "inner_tcp"
+                }
+              ],
+              "op" : "extract"
+            }
+          ],
+          "transitions" : [
+            {
+              "type" : "default",
+              "value" : null,
+              "mask" : null,
+              "next_state" : null
+            }
+          ],
+          "transition_key" : []
+        },
+        {
+          "name" : "parse_inner_icmp",
+          "id" : 16,
+          "parser_ops" : [
+            {
+              "parameters" : [
+                {
+                  "type" : "regular",
+                  "value" : "inner_icmp"
+                }
+              ],
+              "op" : "extract"
+            }
+          ],
+          "transitions" : [
+            {
+              "type" : "default",
+              "value" : null,
+              "mask" : null,
+              "next_state" : null
+            }
+          ],
+          "transition_key" : []
+        },
+        {
+          "name" : "parse_int",
+          "id" : 17,
           "parser_ops" : [],
           "transitions" : [
             {
@@ -1992,7 +2040,7 @@
         },
         {
           "name" : "parse_intl4_shim",
-          "id" : 16,
+          "id" : 18,
           "parser_ops" : [
             {
               "parameters" : [
@@ -2036,7 +2084,7 @@
         },
         {
           "name" : "parse_int_data",
-          "id" : 17,
+          "id" : 19,
           "parser_ops" : [],
           "transitions" : [
             {
@@ -2050,7 +2098,7 @@
         },
         {
           "name" : "parse_intl4_tail",
-          "id" : 18,
+          "id" : 20,
           "parser_ops" : [
             {
               "parameters" : [
