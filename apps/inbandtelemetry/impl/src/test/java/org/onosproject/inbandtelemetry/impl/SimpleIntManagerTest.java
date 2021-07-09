@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.After;
@@ -81,6 +82,7 @@ import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.onlab.junit.TestTools.assertAfter;
 import static org.onosproject.net.behaviour.inbandtelemetry.IntProgrammable.IntFunctionality.POSTCARD;
 import static org.onosproject.net.behaviour.inbandtelemetry.IntProgrammable.IntFunctionality.SINK;
 import static org.onosproject.net.behaviour.inbandtelemetry.IntProgrammable.IntFunctionality.SOURCE;
@@ -151,6 +153,7 @@ public class SimpleIntManagerTest {
         manager.hostService = hostService;
         manager.netcfgService = networkConfigService;
         manager.netcfgRegistry = networkConfigRegistry;
+        manager.eventExecutor = MoreExecutors.newDirectExecutorService();
 
         expect(coreService.registerApplication(APP_NAME))
                 .andReturn(APP_ID).anyTimes();
@@ -226,7 +229,7 @@ public class SimpleIntManagerTest {
 
         // The INT intent installation order can be random, so we need to collect
         // all expected INT intents and check if actual intent exists.
-        assertEquals(5, intentMap.size());
+        assertAfter(50, 100, () -> assertEquals(5, intentMap.size()));
         intentMap.entrySet().forEach(entry -> {
             IntIntent actualIntIntent = entry.getValue().value();
             assertTrue(expectedIntIntents.contains(actualIntIntent));
