@@ -508,26 +508,29 @@ public class MeterManager
 
         @Override
         public void event(DeviceEvent event) {
-            switch (event.type()) {
-                case DEVICE_REMOVED:
-                case DEVICE_AVAILABILITY_CHANGED:
-                    DeviceId deviceId = event.subject().id();
-                    if (!deviceService.isAvailable(deviceId)) {
-                        BasicDeviceConfig cfg = netCfgService.getConfig(deviceId, BasicDeviceConfig.class);
-                        //if purgeOnDisconnection is set for the device or it's a global configuration
-                        // lets remove the meters.
-                        boolean purge = cfg != null && cfg.isPurgeOnDisconnectionConfigured() ?
-                                cfg.purgeOnDisconnection() : purgeOnDisconnection;
-                        if (purge) {
-                            log.info("PurgeOnDisconnection is requested for device {}, " +
-                                             "removing meters", deviceId);
-                            store.purgeMeter(deviceId);
+            DeviceId deviceId = event.subject().id();
+            meterInstallers.execute(() -> {
+                switch (event.type()) {
+                    case DEVICE_REMOVED:
+                    case DEVICE_AVAILABILITY_CHANGED:
+                        if (!deviceService.isAvailable(deviceId)) {
+                            BasicDeviceConfig cfg = netCfgService.getConfig(deviceId, BasicDeviceConfig.class);
+                            //if purgeOnDisconnection is set for the device or it's a global configuration
+                            // lets remove the meters.
+                            boolean purge = cfg != null && cfg.isPurgeOnDisconnectionConfigured() ?
+                                    cfg.purgeOnDisconnection() : purgeOnDisconnection;
+                            if (purge) {
+                                log.info("PurgeOnDisconnection is requested for device {}, " +
+                                        "removing meters", deviceId);
+                                store.purgeMeter(deviceId);
+                            }
                         }
-                    }
-                    break;
-                default:
-                    break;
-            }
+                        break;
+                    default:
+                        break;
+                }
+            }, deviceId.hashCode());
+
         }
     }
 

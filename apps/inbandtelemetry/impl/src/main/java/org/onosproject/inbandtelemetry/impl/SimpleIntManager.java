@@ -72,6 +72,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -79,6 +80,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -152,6 +155,8 @@ public class SimpleIntManager implements IntService {
                 }
             };
 
+    protected ExecutorService eventExecutor;
+
     @Activate
     public void activate() {
 
@@ -206,6 +211,10 @@ public class SimpleIntManager implements IntService {
         // Bootstrap config for already existing devices.
         triggerAllDeviceConfigure();
 
+        // Bootstrap core event executor before adding listener
+        eventExecutor = newSingleThreadScheduledExecutor(groupedThreads(
+                "onos/int", "events-%d", log));
+
         hostService.addListener(hostListener);
         deviceService.addListener(deviceListener);
 
@@ -256,6 +265,8 @@ public class SimpleIntManager implements IntService {
         deviceService.getDevices().forEach(d -> cleanupDevice(d.id()));
         netcfgService.removeListener(appConfigListener);
         netcfgRegistry.unregisterConfigFactory(intAppConfigFactory);
+        eventExecutor.shutdownNow();
+        eventExecutor = null;
         log.info("Deactivated");
     }
 
@@ -503,30 +514,34 @@ public class SimpleIntManager implements IntService {
     private class InternalHostListener implements HostListener {
         @Override
         public void event(HostEvent event) {
-            final DeviceId deviceId = event.subject().location().deviceId();
-            triggerDeviceConfigure(deviceId);
+            eventExecutor.execute(() -> {
+                final DeviceId deviceId = event.subject().location().deviceId();
+                triggerDeviceConfigure(deviceId);
+            });
         }
     }
 
     private class InternalDeviceListener implements DeviceListener {
         @Override
         public void event(DeviceEvent event) {
-            switch (event.type()) {
-                case DEVICE_ADDED:
-                case DEVICE_UPDATED:
-                case DEVICE_REMOVED:
-                case DEVICE_SUSPENDED:
-                case DEVICE_AVAILABILITY_CHANGED:
-                case PORT_ADDED:
-                case PORT_UPDATED:
-                case PORT_REMOVED:
-                    triggerDeviceConfigure(event.subject().id());
-                    return;
-                case PORT_STATS_UPDATED:
-                    return;
-                default:
-                    log.warn("Unknown device event type {}", event.type());
-            }
+            eventExecutor.execute(() -> {
+                switch (event.type()) {
+                    case DEVICE_ADDED:
+                    case DEVICE_UPDATED:
+                    case DEVICE_REMOVED:
+                    case DEVICE_SUSPENDED:
+                    case DEVICE_AVAILABILITY_CHANGED:
+                    case PORT_ADDED:
+                    case PORT_UPDATED:
+                    case PORT_REMOVED:
+                        triggerDeviceConfigure(event.subject().id());
+                        return;
+                    case PORT_STATS_UPDATED:
+                        return;
+                    default:
+                        log.warn("Unknown device event type {}", event.type());
+                }
+            });
         }
     }
 
@@ -580,56 +595,56 @@ public class SimpleIntManager implements IntService {
 
         @Override
         public void event(NetworkConfigEvent event) {
-            switch (event.type()) {
-                case CONFIG_ADDED:
-                case CONFIG_UPDATED:
-                    event.config()
-                            .map(config -> (IntReportConfig) config)
-                            .ifPresent(config -> {
-                                IntDeviceConfig intDeviceConfig = IntDeviceConfig.builder()
-                                        .withMinFlowHopLatencyChangeNs(config.minFlowHopLatencyChangeNs())
-                                        .withCollectorPort(config.collectorPort())
-                                        .withCollectorIp(config.collectorIp())
-                                        .enabled(true)
-                                        .build();
-                                setConfig(intDeviceConfig);
+            eventExecutor.execute(() -> {
+                if (event.configClass() == IntReportConfig.class) {
+                    switch (event.type()) {
+                        case CONFIG_ADDED:
+                        case CONFIG_UPDATED:
+                            event.config()
+                                    .map(config -> (IntReportConfig) config)
+                                    .ifPresent(config -> {
+                                        IntDeviceConfig intDeviceConfig = IntDeviceConfig.builder()
+                                                .withMinFlowHopLatencyChangeNs(config.minFlowHopLatencyChangeNs())
+                                                .withCollectorPort(config.collectorPort())
+                                                .withCollectorIp(config.collectorIp())
+                                                .enabled(true)
+                                                .build();
+                                        setConfig(intDeviceConfig);
 
-                                // For each watched subnet, we install two INT rules.
-                                // One match on the source, another match on the destination.
-                                intentMap.clear();
-                                config.watchSubnets().forEach(subnet -> {
-                                    IntIntent.Builder intIntentBuilder = IntIntent.builder()
-                                            .withReportType(IntIntent.IntReportType.TRACKED_FLOW)
-                                            .withReportType(IntIntent.IntReportType.DROPPED_PACKET)
-                                            .withReportType(IntIntent.IntReportType.CONGESTED_QUEUE)
-                                            .withTelemetryMode(IntIntent.TelemetryMode.POSTCARD);
-                                    if (subnet.prefixLength() == 0) {
-                                        // Special case, match any packet
-                                        installIntIntent(intIntentBuilder
-                                                .withSelector(DefaultTrafficSelector.emptySelector())
-                                                .build());
-                                    } else {
-                                        TrafficSelector selector = DefaultTrafficSelector.builder()
-                                                .matchIPSrc(subnet)
-                                                .build();
-                                        installIntIntent(intIntentBuilder.withSelector(selector).build());
-                                        selector = DefaultTrafficSelector.builder()
-                                                .matchIPDst(subnet)
-                                                .build();
-                                        installIntIntent(intIntentBuilder.withSelector(selector).build());
-                                    }
-                                });
-                            });
-                    break;
-                // TODO: Support removing INT config.
-                default:
-                    break;
-            }
+                                        // For each watched subnet, we install two INT rules.
+                                        // One match on the source, another match on the destination.
+                                        intentMap.clear();
+                                        config.watchSubnets().forEach(subnet -> {
+                                            IntIntent.Builder intIntentBuilder = IntIntent.builder()
+                                                    .withReportType(IntIntent.IntReportType.TRACKED_FLOW)
+                                                    .withReportType(IntIntent.IntReportType.DROPPED_PACKET)
+                                                    .withReportType(IntIntent.IntReportType.CONGESTED_QUEUE)
+                                                    .withTelemetryMode(IntIntent.TelemetryMode.POSTCARD);
+                                            if (subnet.prefixLength() == 0) {
+                                                // Special case, match any packet
+                                                installIntIntent(intIntentBuilder
+                                                        .withSelector(DefaultTrafficSelector.emptySelector())
+                                                        .build());
+                                            } else {
+                                                TrafficSelector selector = DefaultTrafficSelector.builder()
+                                                        .matchIPSrc(subnet)
+                                                        .build();
+                                                installIntIntent(intIntentBuilder.withSelector(selector).build());
+                                                selector = DefaultTrafficSelector.builder()
+                                                        .matchIPDst(subnet)
+                                                        .build();
+                                                installIntIntent(intIntentBuilder.withSelector(selector).build());
+                                            }
+                                        });
+                                    });
+                            break;
+                        // TODO: Support removing INT config.
+                        default:
+                            break;
+                    }
+                }
+            });
         }
 
-        @Override
-        public boolean isRelevant(NetworkConfigEvent event) {
-            return event.configClass() == IntReportConfig.class;
-        }
     }
 }
