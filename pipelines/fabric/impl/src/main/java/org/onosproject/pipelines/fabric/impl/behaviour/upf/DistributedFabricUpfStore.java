@@ -18,15 +18,15 @@ package org.onosproject.pipelines.fabric.impl.behaviour.upf;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
-import com.google.common.collect.Maps;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
 import org.onlab.util.ImmutableByteSequence;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.service.ConsistentMap;
-import org.onosproject.store.service.MapEvent;
-import org.onosproject.store.service.MapEventListener;
-import org.onosproject.store.service.Serializer;
+import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.StorageService;
+import org.onosproject.store.service.WallClockTimestamp;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -36,7 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
-import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Distributed implementation of FabricUpfStore.
@@ -67,60 +67,54 @@ public final class DistributedFabricUpfStore implements FabricUpfStore {
             .put(9, 1)
             .build();
 
-    // Distributed local FAR ID to global FAR ID mapping
-    protected ConsistentMap<UpfRuleIdentifier, Integer> farIdMap;
-    private MapEventListener<UpfRuleIdentifier, Integer> farIdMapListener;
-    // Local, reversed copy of farIdMapper for better reverse lookup performance
-    protected Map<Integer, UpfRuleIdentifier> reverseFarIdMap;
-    private int nextGlobalFarId = 1;
+    // EC map to remember the mapping far_id -> rule_id this is mostly used during reads,
+    // it can be definitely removed by simplifying the logical pipeline
+    protected EventuallyConsistentMap<Integer, UpfRuleIdentifier> reverseFarIdMap;
 
     @Activate
     protected void activate() {
-        // Allow unit test to inject farIdMap here.
+        // Allow unit test to inject reverseFarIdMap here.
         if (storageService != null) {
-            this.farIdMap = storageService.<UpfRuleIdentifier, Integer>consistentMapBuilder()
+            this.reverseFarIdMap = storageService.<Integer, UpfRuleIdentifier>eventuallyConsistentMapBuilder()
                     .withName(FAR_ID_MAP_NAME)
-                    .withRelaxedReadConsistency()
-                    .withSerializer(Serializer.using(SERIALIZER.build()))
+                    .withSerializer(SERIALIZER)
+                    .withTimestampProvider((k, v) -> new WallClockTimestamp())
                     .build();
         }
-        farIdMapListener = new FarIdMapListener();
-        farIdMap.addListener(farIdMapListener);
-
-        reverseFarIdMap = Maps.newHashMap();
-        farIdMap.entrySet().forEach(entry -> reverseFarIdMap.put(entry.getValue().value(), entry.getKey()));
 
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
-        farIdMap.removeListener(farIdMapListener);
-        farIdMap.destroy();
-        reverseFarIdMap.clear();
+        reverseFarIdMap.destroy();
 
         log.info("Stopped");
     }
 
     @Override
     public void reset() {
-        farIdMap.clear();
         reverseFarIdMap.clear();
-        nextGlobalFarId = 0;
     }
 
     @Override
-    public Map<UpfRuleIdentifier, Integer> getFarIdMap() {
-        return Map.copyOf(farIdMap.asJavaMap());
+    public Map<Integer, UpfRuleIdentifier> getReverseFarIdMap() {
+        return reverseFarIdMap.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     @Override
     public int globalFarIdOf(UpfRuleIdentifier farIdPair) {
-        int globalFarId = farIdMap.compute(farIdPair,
-                (k, existingId) -> {
-                    return Objects.requireNonNullElseGet(existingId, () -> nextGlobalFarId++);
-                }).value();
+        int globalFarId = getGlobalFarIdOf(farIdPair);
+        reverseFarIdMap.put(globalFarId, farIdPair);
         log.info("{} translated to GlobalFarId={}", farIdPair, globalFarId);
+        return globalFarId;
+    }
+
+    @Override
+    public int removeGlobalFarId(UpfRuleIdentifier farIdPair) {
+        int globalFarId = getGlobalFarIdOf(farIdPair);
+        reverseFarIdMap.remove(globalFarId);
         return globalFarId;
     }
 
@@ -128,7 +122,12 @@ public final class DistributedFabricUpfStore implements FabricUpfStore {
     public int globalFarIdOf(ImmutableByteSequence pfcpSessionId, int sessionLocalFarId) {
         UpfRuleIdentifier farId = new UpfRuleIdentifier(pfcpSessionId, sessionLocalFarId);
         return globalFarIdOf(farId);
+    }
 
+    @Override
+    public int removeGlobalFarId(ImmutableByteSequence pfcpSessionId, int sessionLocalFarId) {
+        UpfRuleIdentifier farId = new UpfRuleIdentifier(pfcpSessionId, sessionLocalFarId);
+        return removeGlobalFarId(farId);
     }
 
     @Override
@@ -146,25 +145,14 @@ public final class DistributedFabricUpfStore implements FabricUpfStore {
         return reverseFarIdMap.get(globalFarId);
     }
 
-    // NOTE: FarIdMapListener is run on the same thread intentionally in order to ensure that
-    //       reverseFarIdMap update always finishes right after farIdMap is updated
-    private class FarIdMapListener implements MapEventListener<UpfRuleIdentifier, Integer> {
-        @Override
-        public void event(MapEvent<UpfRuleIdentifier, Integer> event) {
-            switch (event.type()) {
-                case INSERT:
-                    reverseFarIdMap.put(event.newValue().value(), event.key());
-                    break;
-                case UPDATE:
-                    reverseFarIdMap.remove(event.oldValue().value());
-                    reverseFarIdMap.put(event.newValue().value(), event.key());
-                    break;
-                case REMOVE:
-                    reverseFarIdMap.remove(event.oldValue().value());
-                    break;
-                default:
-                    break;
-            }
-        }
+    // Compute global far id by hashing the pfcp session id and the session local far
+    private int getGlobalFarIdOf(UpfRuleIdentifier farIdPair) {
+        HashFunction hashFunction = Hashing.murmur3_32();
+        HashCode hashCode = hashFunction.newHasher()
+                .putInt(farIdPair.getSessionLocalId())
+                .putBytes(farIdPair.getPfcpSessionId().asArray())
+                .hash();
+        return hashCode.asInt();
     }
+
 }

@@ -554,7 +554,7 @@ public class FabricUpfProgrammable extends AbstractP4RuntimeHandlerBehaviour
         log.info("Removing {}", far.toString());
 
         PiCriterion match = PiCriterion.builder()
-                .matchExact(HDR_FAR_ID, fabricUpfStore.globalFarIdOf(far.sessionId(), far.farId()))
+                .matchExact(HDR_FAR_ID, fabricUpfStore.removeGlobalFarId(far.sessionId(), far.farId()))
                 .build();
 
         removeEntry(match, FABRIC_INGRESS_SPGW_FARS, false);
