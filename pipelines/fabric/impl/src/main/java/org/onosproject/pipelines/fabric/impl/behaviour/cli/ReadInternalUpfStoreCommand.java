@@ -46,10 +46,10 @@ public class ReadInternalUpfStoreCommand extends AbstractShellCommand {
             return;
         }
 
-        Map<UpfRuleIdentifier, Integer> farIdMap = upfStore.getFarIdMap();
-        print("farIdMap size: " + farIdMap.size());
+        Map<Integer, UpfRuleIdentifier> reverseFarIdMap = upfStore.getReverseFarIdMap();
+        print("reverseFarIdMap size: " + reverseFarIdMap.size());
         if (verbose) {
-            farIdMap.entrySet().forEach(entry -> print(entry.toString()));
+            reverseFarIdMap.entrySet().forEach(entry -> print(entry.toString()));
         }
     }
 }

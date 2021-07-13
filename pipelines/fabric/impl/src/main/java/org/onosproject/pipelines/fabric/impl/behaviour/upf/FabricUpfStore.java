@@ -30,11 +30,11 @@ public interface FabricUpfStore {
     void reset();
 
     /**
-     * Returns the farIdMap.
+     * Returns the reverseFarIdMap.
      *
      * @return the farIdMap.
      */
-    Map<UpfRuleIdentifier, Integer> getFarIdMap();
+    Map<Integer, UpfRuleIdentifier> getReverseFarIdMap();
 
     /**
      * Get a globally unique integer identifier for the FAR identified by the given (Session ID, Far
@@ -46,6 +46,14 @@ public interface FabricUpfStore {
     int globalFarIdOf(UpfRuleIdentifier farIdPair);
 
     /**
+     * Remove the global far id from the system.
+     *
+     * @param farIdPair a RuleIdentifier instance uniquely identifying the FAR
+     * @return A globally unique integer identifier
+     */
+    int removeGlobalFarId(UpfRuleIdentifier farIdPair);
+
+    /**
      * Get a globally unique integer identifier for the FAR identified by the given (Session ID, Far
      * ID) pair.
      *
@@ -54,6 +62,15 @@ public interface FabricUpfStore {
      * @return A globally unique integer identifier
      */
     int globalFarIdOf(ImmutableByteSequence pfcpSessionId, int sessionLocalFarId);
+
+    /**
+     * Remove the global far id from the system.
+     *
+     * @param pfcpSessionId     The ID of the PFCP session that produced the FAR ID.
+     * @param sessionLocalFarId The FAR ID.
+     * @return A globally unique integer identifier
+     */
+    int removeGlobalFarId(ImmutableByteSequence pfcpSessionId, int sessionLocalFarId);
 
     /**
      * Get the corresponding PFCP session ID and session-local FAR ID from a globally unique FAR ID,

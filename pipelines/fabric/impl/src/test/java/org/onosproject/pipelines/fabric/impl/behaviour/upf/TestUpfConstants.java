@@ -16,6 +16,7 @@
 
 package org.onosproject.pipelines.fabric.impl.behaviour.upf;
 
+import com.google.common.hash.Hashing;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.util.ImmutableByteSequence;
@@ -75,9 +76,19 @@ public final class TestUpfConstants {
     public static final int DOWNLINK_COUNTER_CELL_ID = 2;
     public static final int PDR_ID = 0;  // TODO: PDR ID currently not stored on writes, so all reads are 0
     public static final int UPLINK_FAR_ID = 1;
-    public static final int UPLINK_PHYSICAL_FAR_ID = 4;
+    public static final int UPLINK_PHYSICAL_FAR_ID = Hashing.murmur3_32()
+            .newHasher()
+            .putInt(UPLINK_FAR_ID)
+            .putBytes(SESSION_ID.asArray())
+            .hash()
+            .asInt();
     public static final int DOWNLINK_FAR_ID = 2;
-    public static final int DOWNLINK_PHYSICAL_FAR_ID = 5;
+    public static final int DOWNLINK_PHYSICAL_FAR_ID = Hashing.murmur3_32()
+            .newHasher()
+            .putInt(DOWNLINK_FAR_ID)
+            .putBytes(SESSION_ID.asArray())
+            .hash()
+            .asInt();
 
     public static final int UPLINK_PRIORITY = 9;
     public static final int DOWNLINK_PRIORITY = 1;
