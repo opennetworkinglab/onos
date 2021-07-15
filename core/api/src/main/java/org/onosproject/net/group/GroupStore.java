@@ -17,6 +17,7 @@ package org.onosproject.net.group;
 
 import java.util.Collection;
 
+import org.onosproject.core.ApplicationId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.store.Store;
@@ -128,6 +129,14 @@ public interface GroupStore extends Store<GroupEvent, GroupStoreDelegate> {
      * @param deviceId device id
      */
     void purgeGroupEntry(DeviceId deviceId);
+
+    /**
+     * Removes all group entries of given device and given application from store.
+     *
+     * @param deviceId device id
+     * @param appId application id
+     */
+    void purgeGroupEntries(DeviceId deviceId, ApplicationId appId);
 
     /**
      * Removes all group entries from store.

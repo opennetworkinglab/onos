@@ -54,6 +54,7 @@ import java.util.concurrent.ExecutionException;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 import static org.onosproject.net.NetTestTools.APP_ID;
+import static org.onosproject.net.NetTestTools.APP_ID_2;
 import static org.onosproject.net.NetTestTools.did;
 
 /**
@@ -79,6 +80,7 @@ public class DistributedMeterStoreTest {
     // Meter ids used during the tests
     private MeterId mid1 = MeterId.meterId(1);
     private MeterId mid2 = MeterId.meterId(2);
+    private MeterId mid3 = MeterId.meterId(3);
     private MeterId mid10 = MeterId.meterId(10);
 
     // Bands used during the tests
@@ -92,6 +94,22 @@ public class DistributedMeterStoreTest {
             .forDevice(did1)
             .fromApp(APP_ID)
             .withId(mid1)
+            .withUnit(Meter.Unit.KB_PER_SEC)
+            .withBands(Collections.singletonList(b1))
+            .build();
+
+    private Meter m2 = DefaultMeter.builder()
+            .forDevice(did1)
+            .fromApp(APP_ID_2)
+            .withCellId(mid2)
+            .withUnit(Meter.Unit.KB_PER_SEC)
+            .withBands(Collections.singletonList(b1))
+            .build();
+
+    private Meter m3 = DefaultMeter.builder()
+            .forDevice(did2)
+            .fromApp(APP_ID_2)
+            .withCellId(mid3)
             .withUnit(Meter.Unit.KB_PER_SEC)
             .withBands(Collections.singletonList(b1))
             .build();
@@ -414,6 +432,31 @@ public class DistributedMeterStoreTest {
         assertThat(0, is(meterStore.getAllMeters().size()));
         assertThat(0, is(meterStore.getAllMeters(did1).size()));
         assertNull(meterStore.getMeter(keyOne));
+    }
+
+    /**
+     * Test purge meter given device and application.
+     */
+    @Test
+    public void testPurgeMeterDeviceAndApp() {
+        // Init the store
+        initMeterStore();
+        // add the meters
+        ((DefaultMeter) m1).setState(MeterState.PENDING_ADD);
+        ((DefaultMeter) m2).setState(MeterState.PENDING_ADD);
+        ((DefaultMeter) m3).setState(MeterState.PENDING_ADD);
+        meterStore.storeMeter(m1);
+        meterStore.storeMeter(m2);
+        meterStore.storeMeter(m3);
+        assertThat(3, is(meterStore.getAllMeters().size()));
+
+        meterStore.purgeMeters(did1, APP_ID_2);
+        // Verify delete
+        MeterKey keyTwo = MeterKey.key(did1, mid2);
+        assertThat(2, is(meterStore.getAllMeters().size()));
+        assertThat(1, is(meterStore.getAllMeters(did1).size()));
+        assertThat(1, is(meterStore.getAllMeters(did2).size()));
+        assertNull(meterStore.getMeter(keyTwo));
     }
 
     /**

@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.meter;
 
+import org.onosproject.core.ApplicationId;
 import org.onosproject.event.ListenerService;
 import org.onosproject.net.DeviceId;
 
@@ -93,8 +94,18 @@ public interface MeterService
      * Purges all the meters on the specified device.
      * @param deviceId device identifier
      */
-    default void purgeMeters(DeviceId deviceId){
+    default void purgeMeters(DeviceId deviceId) {
         //Default implementation does nothing
+    }
+
+    /**
+     * Purges all the meters on the given device and for the given application.
+     *
+     * @param deviceId device identifier
+     * @param appId application identifier
+     */
+    default void purgeMeters(DeviceId deviceId, ApplicationId appId) {
+        throw new UnsupportedOperationException("purgeMeter not implemented");
     }
 
 }

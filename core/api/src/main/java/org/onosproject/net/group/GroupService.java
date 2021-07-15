@@ -133,6 +133,16 @@ public interface GroupService
     void purgeGroupEntries(DeviceId deviceId);
 
     /**
+     * Purges all the group entries on the specified device and application.
+     *
+     * @param deviceId device identifier
+     * @param appId application identifier
+     */
+    default void purgeGroupEntries(DeviceId deviceId, ApplicationId appId) {
+        throw new UnsupportedOperationException("purgeGroupEntries not implemented");
+    }
+
+    /**
      * Purges all group entries.
      */
     default void purgeGroupEntries() {}
