@@ -23,6 +23,7 @@ import org.onlab.util.KryoNamespace;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.core.GroupId;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
@@ -1087,6 +1088,18 @@ public class DistributedGroupStore
 
         getGroupStoreKeyMap().entrySet().stream()
                 .filter(entry -> entry.getKey().deviceId().equals(deviceId))
+                .forEach(entriesPendingRemove::add);
+
+        purgeGroupEntries(entriesPendingRemove);
+    }
+
+    @Override
+    public void purgeGroupEntries(DeviceId deviceId, ApplicationId appId) {
+        Set<Entry<GroupStoreKeyMapKey, StoredGroupEntry>> entriesPendingRemove =
+                new HashSet<>();
+
+        getGroupStoreKeyMap().entrySet().stream()
+                .filter(entry -> entry.getKey().deviceId().equals(deviceId) && entry.getValue().appId().equals(appId))
                 .forEach(entriesPendingRemove::add);
 
         purgeGroupEntries(entriesPendingRemove);

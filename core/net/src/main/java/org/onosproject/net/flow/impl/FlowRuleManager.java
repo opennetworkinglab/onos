@@ -320,6 +320,15 @@ public class FlowRuleManager
     }
 
     @Override
+    public void purgeFlowRules(DeviceId deviceId, ApplicationId appId) {
+        checkPermission(FLOWRULE_WRITE);
+        checkNotNull(deviceId, DEVICE_ID_NULL);
+        checkNotNull(appId, "Application ID cannot be null!");
+
+        store.purgeFlowRules(deviceId, appId);
+    }
+
+    @Override
     public void removeFlowRules(FlowRule... flowRules) {
         checkPermission(FLOWRULE_WRITE);
 

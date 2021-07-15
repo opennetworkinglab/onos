@@ -17,6 +17,7 @@ package org.onosproject.store.trivial;
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Sets;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.group.DefaultGroup;
@@ -51,6 +52,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -478,6 +480,31 @@ public class SimpleGroupStore
 
         entryPendingRemove.forEach(entry -> {
             notifyDelegate(new GroupEvent(Type.GROUP_REMOVED, entry.getValue()));
+        });
+    }
+
+    @Override
+    public void purgeGroupEntries(DeviceId deviceId, ApplicationId appId) {
+        List<StoredGroupEntry> entryPendingRemove =
+                groupEntriesById.get(deviceId).values().stream()
+                        .filter(storedGroupEntry -> storedGroupEntry.appId().equals(appId))
+                        .collect(Collectors.toList());
+
+        entryPendingRemove.forEach(storedGroupEntry -> {
+            groupEntriesById.computeIfPresent(deviceId, (k, value) -> {
+                value.remove(storedGroupEntry.id());
+                if (value.isEmpty()) {
+                    return null;
+                }
+                return value;
+            });
+            groupEntriesByKey.computeIfPresent(deviceId, (k, value) -> {
+                value.remove(storedGroupEntry.appCookie());
+                if (value.isEmpty()) {
+                    return null;
+                }
+                return value;
+            });
         });
     }
 

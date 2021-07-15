@@ -21,6 +21,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.Maps;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.net.flow.DefaultFlowEntry;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowId;
@@ -269,6 +270,24 @@ public class FlowBucket {
     public void purge() {
         flowBucket.clear();
     }
+
+    /**
+     * Purge the entries with the given application ID.
+     *
+     * @param appId the application ID
+     * @param term  the term in which the purge occurred
+     * @param clock the logical clock
+     */
+    public void purge(ApplicationId appId, long term, LogicalClock clock) {
+        boolean anythingRemoved = flowBucket.values().removeIf(flowEntryMap -> {
+            flowEntryMap.values().removeIf(storedFlowEntry -> storedFlowEntry.appId() == appId.id());
+            return flowEntryMap.isEmpty();
+        });
+        if (anythingRemoved) {
+            recordUpdate(term, clock.getTimestamp());
+        }
+    }
+
 
     /**
      * Clears the bucket.

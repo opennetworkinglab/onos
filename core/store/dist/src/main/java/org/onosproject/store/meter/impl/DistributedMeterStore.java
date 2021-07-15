@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.math.RandomUtils;
 import org.onlab.util.KryoNamespace;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.MeterQuery;
 import org.onosproject.net.driver.DriverHandler;
@@ -440,14 +441,22 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
 
     @Override
     public void purgeMeter(DeviceId deviceId) {
-        // Purge api (typically used when the device is offline)
         List<Versioned<MeterData>> metersPendingRemove = meters.stream()
                 .filter(e -> Objects.equals(e.getKey().deviceId(), deviceId))
                 .map(Map.Entry::getValue)
                 .collect(Collectors.toList());
-        // Remove definitely the meter
         metersPendingRemove.forEach(versionedMeterKey
                 -> purgeMeter(versionedMeterKey.value().meter()));
+    }
+
+    @Override
+    public void purgeMeters(DeviceId deviceId, ApplicationId appId) {
+        List<Versioned<MeterData>> metersPendingRemove = meters.stream()
+                .filter(e -> Objects.equals(e.getKey().deviceId(), deviceId) &&
+                        e.getValue().value().meter().appId().equals(appId))
+                .map(Map.Entry::getValue)
+                .collect(Collectors.toList());
+        metersPendingRemove.forEach(versionedMeterKey -> deleteMeterNow(versionedMeterKey.value().meter()));
     }
 
     @Override

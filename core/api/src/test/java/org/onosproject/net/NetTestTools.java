@@ -57,6 +57,7 @@ public final class NetTestTools {
 
     public static final ProviderId PID = new ProviderId("of", "foo");
     public static final ApplicationId APP_ID = new TestApplicationId("foo");
+    public static final ApplicationId APP_ID_2 = new TestApplicationId("foo2");
     public static final NodeId NODE_ID = new NodeId("node1");
 
     // Short-hand for producing a device id from a string

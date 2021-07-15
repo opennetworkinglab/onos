@@ -38,7 +38,11 @@ public class FlowRuleServiceAdapter implements FlowRuleService {
     }
 
     @Override
-    public void purgeFlowRules(DeviceId deviceId){
+    public void purgeFlowRules(DeviceId deviceId) {
+    }
+
+    @Override
+    public void purgeFlowRules(DeviceId deviceId, ApplicationId appId) {
     }
 
     @Override
