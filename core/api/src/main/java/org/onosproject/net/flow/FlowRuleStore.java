@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.flow;
 
+import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.oldbatch.FlowRuleBatchEvent;
 import org.onosproject.net.flow.oldbatch.FlowRuleBatchOperation;
@@ -135,6 +136,15 @@ public interface FlowRuleStore extends Store<FlowRuleBatchEvent, FlowRuleStoreDe
      * @param deviceId device id
      */
     default void purgeFlowRule(DeviceId deviceId) {}
+
+    /**
+     * Removes all flow entries of given device and application ID from store.
+     *
+     * @param deviceId device id
+     * @param appId application id
+     * @return true if operation was successful, false otherwise.
+     */
+    boolean purgeFlowRules(DeviceId deviceId, ApplicationId appId);
 
     /**
      * Removes all flow entries from store.

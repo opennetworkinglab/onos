@@ -23,6 +23,7 @@ import org.onlab.util.TriConsumer;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.NetworkConfigRegistry;
@@ -329,6 +330,11 @@ public class MeterManager
     public void purgeMeters(DeviceId deviceId) {
         // We delegate directly to the store
         store.purgeMeter(deviceId);
+    }
+
+    @Override
+    public void purgeMeters(DeviceId deviceId, ApplicationId appId) {
+        store.purgeMeters(deviceId, appId);
     }
 
     private class InternalMeterProviderService

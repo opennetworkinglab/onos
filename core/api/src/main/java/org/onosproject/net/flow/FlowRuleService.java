@@ -115,6 +115,15 @@ public interface FlowRuleService
     void purgeFlowRules(DeviceId deviceId);
 
     /**
+     * Purges all the flow rules on the specified device from the given application id.
+     * @param deviceId device identifier
+     * @param appId application identifier
+     */
+    default void purgeFlowRules(DeviceId deviceId, ApplicationId appId) {
+        throw new UnsupportedOperationException("purgeFlowRules not implemented!");
+    }
+
+    /**
      * Removes the specified flow rules from their respective devices. If the
      * device is not presently connected to the controller, these flow will
      * be removed once the device reconnects.

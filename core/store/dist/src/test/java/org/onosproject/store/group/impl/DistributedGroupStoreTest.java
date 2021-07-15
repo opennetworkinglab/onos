@@ -69,6 +69,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.onosproject.net.NetTestTools.APP_ID;
+import static org.onosproject.net.NetTestTools.APP_ID_2;
 import static org.onosproject.net.NetTestTools.did;
 import static org.onosproject.net.group.GroupDescription.Type.ALL;
 import static org.onosproject.net.group.GroupDescription.Type.INDIRECT;
@@ -84,9 +85,13 @@ public class DistributedGroupStoreTest {
     private final GroupId groupId1 = new GroupId(1);
     private final GroupId groupId2 = new GroupId(2);
     private final GroupId groupId3 = new GroupId(3);
+    private final GroupId groupId4 = new GroupId(4);
+    private final GroupId groupId5 = new GroupId(5);
     private final GroupKey groupKey1 = new DefaultGroupKey("abc".getBytes());
     private final GroupKey groupKey2 = new DefaultGroupKey("def".getBytes());
     private final GroupKey groupKey3 = new DefaultGroupKey("ghi".getBytes());
+    private final GroupKey groupKey4 = new DefaultGroupKey("jkl".getBytes());
+    private final GroupKey groupKey5 = new DefaultGroupKey("mno".getBytes());
 
     private final TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
     private final TrafficTreatment treatment2 = DefaultTrafficTreatment.builder()
@@ -118,6 +123,20 @@ public class DistributedGroupStoreTest {
             groupKey3,
             groupId3.id(),
             APP_ID);
+    private final GroupDescription groupDescription4 = new DefaultGroupDescription(
+            deviceId2,
+            INDIRECT,
+            indirectGroupBuckets,
+            groupKey4,
+            groupId4.id(),
+            APP_ID_2);
+    private final GroupDescription groupDescription5 = new DefaultGroupDescription(
+            deviceId1,
+            INDIRECT,
+            indirectGroupBuckets,
+            groupKey5,
+            groupId5.id(),
+            APP_ID_2);
 
     private DistributedGroupStore groupStoreImpl;
     private GroupStore groupStore;
@@ -307,6 +326,30 @@ public class DistributedGroupStoreTest {
         groupStore.purgeGroupEntries();
         assertThat(groupStore.getGroupCount(deviceId1), is(0));
         assertThat(groupStore.getGroupCount(deviceId2), is(0));
+    }
+
+    /**
+     * Tests removing all groups on the given device from a specific application.
+     */
+    @Test
+    public void testRemoveGroupOnDeviceFromApp() throws Exception {
+        groupStore.deviceInitialAuditCompleted(deviceId1, true);
+        assertThat(groupStore.deviceInitialAuditStatus(deviceId1), is(true));
+        groupStore.deviceInitialAuditCompleted(deviceId2, true);
+        assertThat(groupStore.deviceInitialAuditStatus(deviceId2), is(true));
+
+        // Make sure the pending list starts out empty
+        assertThat(auditPendingReqQueue.size(), is(0));
+
+        groupStore.storeGroupDescription(groupDescription3);
+        groupStore.storeGroupDescription(groupDescription4);
+        groupStore.storeGroupDescription(groupDescription5);
+        assertThat(groupStore.getGroupCount(deviceId1), is(1));
+        assertThat(groupStore.getGroupCount(deviceId2), is(2));
+
+        groupStore.purgeGroupEntries(deviceId2, APP_ID_2);
+        assertThat(groupStore.getGroupCount(deviceId1), is(1));
+        assertThat(groupStore.getGroupCount(deviceId2), is(1));
     }
 
     /**

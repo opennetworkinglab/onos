@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.meter;
 
+import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.store.Store;
 
@@ -196,9 +197,19 @@ public interface MeterStore extends Store<MeterEvent, MeterStoreDelegate> {
 
     /**
      * Removes all meters of given device from store.
+     * This API is typically used when the device is offline.
      *
      * @param deviceId the device id
      */
     void purgeMeter(DeviceId deviceId);
+
+    /**
+     * Removes all meters of given device and for the given application from store.
+     * This API is typically used when the device is offline.
+     *
+     * @param deviceId the device id
+     * @param appId the application id
+     */
+    void purgeMeters(DeviceId deviceId, ApplicationId appId);
 
 }
