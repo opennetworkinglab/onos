@@ -697,6 +697,24 @@ public class KubevirtRoutingSnatHandler {
             }
             if (router.enableSnat() && !router.external().isEmpty() && router.peerRouter() != null) {
                 initGatewayNodeSnatForRouter(router, router.electedGateway(), true);
+
+                KubevirtNode gatewayNode = kubevirtNodeService.node(router.electedGateway());
+
+                router.internal()
+                        .stream()
+                        .filter(networkId -> kubevirtNetworkService.network(networkId) != null)
+                        .map(kubevirtNetworkService::network)
+                        .forEach(network -> {
+                            String routerSnatIp = router.external().keySet().stream().findAny().orElse(null);
+                            if (routerSnatIp == null) {
+                                return;
+                            }
+
+                            kubevirtPortService.ports(network.networkId()).forEach(kubevirtPort -> {
+                                setStatefulSnatDownStreamRuleForKubevirtPort(router,
+                                        gatewayNode, kubevirtPort, true);
+                            });
+                        });
             }
         }
 
