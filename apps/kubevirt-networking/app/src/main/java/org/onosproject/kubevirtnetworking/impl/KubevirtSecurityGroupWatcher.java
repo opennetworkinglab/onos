@@ -50,6 +50,7 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.kubevirtnetworking.api.Constants.KUBEVIRT_NETWORKING_APP_ID;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.k8sClient;
+import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.waitFor;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -327,6 +328,13 @@ public class KubevirtSecurityGroupWatcher extends AbstractWatcher {
 
             if (sgr != null) {
                 log.trace("Process Security Group Rule {} creating event from API server.", sgr.id());
+
+                KubevirtSecurityGroup sg = adminService.securityGroup(sgr.securityGroupId());
+                if (sg == null) {
+                    log.warn("Security Group {} is not found, we wait 5 seconds until " +
+                             "the group to be installed.", sgr.securityGroupId());
+                    waitFor(5);
+                }
 
                 if (adminService.securityGroupRule(sgr.id()) == null) {
                     adminService.createSecurityGroupRule(sgr);
