@@ -17,6 +17,7 @@ package org.onosproject.net.behaviour;
 
 import java.util.List;
 
+import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.DriverData;
 import org.onosproject.net.driver.DriverHandler;
@@ -45,6 +46,11 @@ public class PipelinerAdapter implements Pipeliner {
 
     @Override
     public void next(NextObjective nextObjective) {
+
+    }
+
+    @Override
+    public void purgeAll(ApplicationId appId) {
 
     }
 
