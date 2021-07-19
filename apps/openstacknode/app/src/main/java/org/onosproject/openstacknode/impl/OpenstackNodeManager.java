@@ -34,7 +34,6 @@ import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.onosproject.openstacknode.api.OpenstackNodeStore;
 import org.onosproject.openstacknode.api.OpenstackNodeStoreDelegate;
 import org.onosproject.ovsdb.controller.OvsdbController;
-import org.onosproject.store.service.AtomicCounter;
 import org.onosproject.store.service.StorageService;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
@@ -65,7 +64,6 @@ import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.CONTROLLE
 import static org.onosproject.openstacknode.impl.OsgiPropertyConstants.OVSDB_PORT;
 import static org.onosproject.openstacknode.impl.OsgiPropertyConstants.OVSDB_PORT_NUM_DEFAULT;
 import static org.onosproject.openstacknode.util.OpenstackNodeUtil.addOrRemoveSystemInterface;
-import static org.onosproject.openstacknode.util.OpenstackNodeUtil.genDpid;
 import static org.onosproject.openstacknode.util.OpenstackNodeUtil.isOvsdbConnected;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -98,6 +96,8 @@ public class OpenstackNodeManager
 
     private static final String NOT_DUPLICATED_MSG = "% cannot be duplicated";
 
+    private static final String OF_PREFIX = "of:";
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OpenstackNodeStore osNodeStore;
 
@@ -127,8 +127,6 @@ public class OpenstackNodeManager
 
     private final OpenstackNodeStoreDelegate delegate = new InternalNodeStoreDelegate();
 
-    private AtomicCounter deviceIdCounter;
-
     private ApplicationId appId;
 
     @Activate
@@ -137,8 +135,6 @@ public class OpenstackNodeManager
         osNodeStore.setDelegate(delegate);
 
         leadershipService.runForLeadership(appId.name());
-
-        deviceIdCounter = storageService.getAtomicCounter(DEVICE_ID_COUNTER_NAME);
 
         log.info("Started");
     }
@@ -171,7 +167,7 @@ public class OpenstackNodeManager
         OpenstackNode updatedNode;
 
         if (osNode.intgBridge() == null && osNode.type() != CONTROLLER) {
-            String deviceIdStr = genDpid(deviceIdCounter.incrementAndGet());
+            String deviceIdStr = genDpidFromName(INTEGRATION_BRIDGE + "-" + osNode.hostname());
             checkNotNull(deviceIdStr, ERR_NULL_DEVICE_ID);
             updatedNode = osNode.updateIntbridge(DeviceId.deviceId(deviceIdStr));
             checkArgument(!hasIntgBridge(updatedNode.intgBridge(), updatedNode.hostname()),
@@ -358,8 +354,7 @@ public class OpenstackNodeManager
             try {
                 ovsdbController.connect(osNode.managementIp(), tpPort(ovsdbPortNum));
             } catch (Exception e) {
-                log.error("Failed to connect to the openstackNode via ovsdb " +
-                                "protocol because of exception {}", e);
+                log.error("Failed to connect to the openstackNode via ovsdb protocol", e);
             }
         }
     }
@@ -372,6 +367,15 @@ public class OpenstackNodeManager
                 .findFirst();
 
         return existNode.isPresent();
+    }
+
+    private String genDpidFromName(String name) {
+        if (name != null) {
+            String hexString = Integer.toHexString(name.hashCode());
+            return OF_PREFIX + Strings.padStart(hexString, 16, '0');
+        }
+
+        return null;
     }
 
     private class InternalNodeStoreDelegate implements OpenstackNodeStoreDelegate {
