@@ -21,6 +21,7 @@ import com.google.common.cache.RemovalCause;
 import com.google.common.cache.RemovalNotification;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.util.KryoNamespace;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.NextGroup;
 import org.onosproject.net.behaviour.Pipeliner;
@@ -271,6 +272,11 @@ public class DefaultSingleTablePipeline extends AbstractHandlerBehaviour impleme
                 log.warn("Unsupported operation {}", nextObjective.op());
         }
         nextObjective.context().ifPresent(context -> context.onSuccess(nextObjective));
+    }
+
+    @Override
+    public void purgeAll(ApplicationId appId) {
+        flowRuleService.purgeFlowRules(deviceId, appId);
     }
 
     @Override

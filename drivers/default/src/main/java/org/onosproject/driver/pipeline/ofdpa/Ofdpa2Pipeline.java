@@ -477,6 +477,12 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         }
     }
 
+    @Override
+    public void purgeAll(ApplicationId appId) {
+        flowRuleService.purgeFlowRules(deviceId, appId);
+        groupService.purgeGroupEntries(deviceId, appId);
+    }
+
     //////////////////////////////////////
     //  Flow handling
     //////////////////////////////////////

@@ -25,6 +25,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang3.tuple.Pair;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 
 /**
@@ -127,6 +128,14 @@ public interface FlowObjectiveService {
      *          next-ids awaiting confirmation from the device-drivers.
      */
     List<String> getPendingFlowObjectives();
+
+    /**
+     * Purges all flow objectives on a given device and for a given application.
+     *
+     * @param deviceId device identifier
+     * @param appId application identifier
+     */
+    void purgeAll(DeviceId deviceId, ApplicationId appId);
 
     /**
      * Returns all filtering objective that are waiting for the completion of previous objective

@@ -23,6 +23,7 @@ import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.util.ItemNotFoundException;
 import org.onosproject.cluster.ClusterService;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
@@ -440,5 +441,10 @@ public class FlowObjectiveCompositionManager implements FlowObjectiveService {
     public List<String> getPendingFlowObjectives() {
         // TODO Implementation deferred as this is an experimental component.
         return ImmutableList.of();
+    }
+
+    @Override
+    public void purgeAll(DeviceId deviceId, ApplicationId appId) {
+        // TODO Implementation deferred as this is an experimental component.
     }
 }

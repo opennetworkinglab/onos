@@ -216,6 +216,11 @@ public class PicaPipeline extends AbstractHandlerBehaviour implements Pipeliner 
 
     }
 
+    @Override
+    public void purgeAll(ApplicationId appId) {
+        flowRuleService.purgeFlowRules(deviceId, appId);
+    }
+
     private Collection<FlowRule> processForward(ForwardingObjective fwd) {
         switch (fwd.flag()) {
             case SPECIFIC:

@@ -186,6 +186,11 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
         }
     }
 
+    @Override
+    public void purgeAll(ApplicationId appId) {
+        flowRuleService.purgeFlowRules(deviceId, appId);
+    }
+
     private void pass(Objective obj) {
         obj.context().ifPresent(context -> context.onSuccess(obj));
     }
