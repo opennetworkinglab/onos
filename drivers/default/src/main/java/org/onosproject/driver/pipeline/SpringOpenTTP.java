@@ -286,6 +286,12 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
         }
     }
 
+    @Override
+    public void purgeAll(ApplicationId appId) {
+        flowRuleService.purgeFlowRules(deviceId, appId);
+        groupService.purgeGroupEntries(deviceId, appId);
+    }
+
     private void removeGroup(NextObjective nextObjective) {
         log.debug("removeGroup in {}: for next objective id {}",
                   deviceId, nextObjective.id());

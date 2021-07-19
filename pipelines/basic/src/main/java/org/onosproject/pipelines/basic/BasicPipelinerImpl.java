@@ -16,6 +16,7 @@
 
 package org.onosproject.pipelines.basic;
 
+import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.NextGroup;
 import org.onosproject.net.behaviour.Pipeliner;
@@ -98,6 +99,11 @@ public class BasicPipelinerImpl extends AbstractHandlerBehaviour implements Pipe
     @Override
     public void next(NextObjective obj) {
         obj.context().ifPresent(c -> c.onError(obj, ObjectiveError.UNSUPPORTED));
+    }
+
+    @Override
+    public void purgeAll(ApplicationId appId) {
+        flowRuleService.purgeFlowRules(deviceId, appId);
     }
 
     @Override

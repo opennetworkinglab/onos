@@ -647,4 +647,10 @@ public abstract class AbstractCorsaPipeline extends AbstractHandlerBehaviour imp
             }
         }));
     }
+
+    @Override
+    public void purgeAll(ApplicationId appId) {
+        flowRuleService.purgeFlowRules(deviceId, appId);
+        groupService.purgeGroupEntries(deviceId, appId);
+    }
 }

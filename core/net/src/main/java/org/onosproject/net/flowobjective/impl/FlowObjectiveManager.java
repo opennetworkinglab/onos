@@ -27,6 +27,7 @@ import org.onlab.util.ItemNotFoundException;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.NextGroup;
@@ -833,5 +834,35 @@ public class FlowObjectiveManager implements FlowObjectiveService {
         }
 
         return pendingFlowObjectives;
+    }
+
+    @Override
+    public void purgeAll(DeviceId deviceId, ApplicationId appId) {
+        synchronized (pendingForwards) {
+            List<Integer> emptyPendingForwards = Lists.newArrayList();
+            pendingForwards.forEach((nextId, pendingObjectives) -> {
+                pendingObjectives.removeIf(pendingFlowObjective -> pendingFlowObjective.deviceId().equals(deviceId));
+                if (pendingObjectives.isEmpty()) {
+                    emptyPendingForwards.add(nextId);
+                }
+            });
+            emptyPendingForwards.forEach(pendingForwards::remove);
+        }
+        synchronized (pendingNexts) {
+            List<Integer> emptyPendingNexts = Lists.newArrayList();
+            pendingNexts.forEach((nextId, pendingObjectives) -> {
+                pendingObjectives.removeIf(pendingFlowObjective -> pendingFlowObjective.deviceId().equals(deviceId));
+                if (pendingObjectives.isEmpty()) {
+                    emptyPendingNexts.add(nextId);
+                }
+            });
+            emptyPendingNexts.forEach(pendingNexts::remove);
+        }
+        Pipeliner pipeliner = getDevicePipeliner(deviceId);
+        if (pipeliner != null) {
+            pipeliner.purgeAll(appId);
+        } else {
+            log.warn("Skip purgeAll, pipeliner not ready!");
+        }
     }
 }

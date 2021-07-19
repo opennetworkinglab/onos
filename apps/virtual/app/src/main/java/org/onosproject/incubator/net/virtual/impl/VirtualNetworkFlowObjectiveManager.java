@@ -26,6 +26,7 @@ import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.util.KryoNamespace;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.incubator.net.virtual.AbstractVnetService;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkFlowObjectiveStore;
@@ -246,6 +247,12 @@ public class VirtualNetworkFlowObjectiveManager extends AbstractVnetService
         }
 
         return pendingFlowObjectives;
+    }
+
+    @Override
+    public void purgeAll(DeviceId deviceId, ApplicationId appId) {
+        // TODO: purge queued flow objectives?
+        pipeliners.get(deviceId).purgeAll(appId);
     }
 
     private boolean queueFwdObjective(DeviceId deviceId, ForwardingObjective fwd) {
@@ -693,6 +700,11 @@ public class VirtualNetworkFlowObjectiveManager extends AbstractVnetService
                                                     new DefaultGroupKey(
                                                             appKryo.serialize(nextObjective.id()))));
             nextObjective.context().ifPresent(context -> context.onSuccess(nextObjective));
+        }
+
+        @Override
+        public void purgeAll(ApplicationId appId) {
+            flowRuleService.purgeFlowRules(deviceId, appId);
         }
 
         @Override

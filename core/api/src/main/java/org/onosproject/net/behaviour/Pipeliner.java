@@ -17,6 +17,7 @@ package org.onosproject.net.behaviour;
 
 import java.util.List;
 
+import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.HandlerBehaviour;
 import org.onosproject.net.flowobjective.FilteringObjective;
@@ -66,6 +67,13 @@ public interface Pipeliner extends HandlerBehaviour {
      * @param nextObjective a next objectives
      */
     void next(NextObjective nextObjective);
+
+    /**
+     * Purges all objectives for the given application.
+     *
+     * @param appId application identifier
+     */
+    void purgeAll(ApplicationId appId);
 
     /**
      *  Retrieves a mapping of the nextObjective to the groups in the dataplane,
