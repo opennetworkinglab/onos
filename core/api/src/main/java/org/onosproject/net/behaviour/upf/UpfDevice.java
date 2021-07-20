@@ -190,6 +190,7 @@ public interface UpfDevice {
      * etc.).
      *
      * @param data Ethernet frame bytes
+     * @throws UpfProgrammableException if operation is not available
      */
-    void sendPacketOut(ByteBuffer data);
+    void sendPacketOut(ByteBuffer data) throws UpfProgrammableException;
 }
