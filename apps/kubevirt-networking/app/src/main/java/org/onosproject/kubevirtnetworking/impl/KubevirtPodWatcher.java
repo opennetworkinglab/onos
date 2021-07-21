@@ -169,7 +169,7 @@ public class KubevirtPodWatcher {
         }
 
         private void processAddition(Pod pod) {
-            if (!isMaster()) {
+            if (!isMaster() || !isDefaultNs(pod)) {
                 return;
             }
 
@@ -182,7 +182,7 @@ public class KubevirtPodWatcher {
         }
 
         private void processModification(Pod pod) {
-            if (!isMaster()) {
+            if (!isMaster() || !isDefaultNs(pod)) {
                 return;
             }
 
@@ -195,7 +195,7 @@ public class KubevirtPodWatcher {
         }
 
         private void processDeletion(Pod pod) {
-            if (!isMaster()) {
+            if (!isMaster() || !isDefaultNs(pod)) {
                 return;
             }
 
@@ -207,6 +207,10 @@ public class KubevirtPodWatcher {
 
         private boolean isMaster() {
             return Objects.equals(localNodeId, leadershipService.getLeader(appId.name()));
+        }
+
+        private boolean isDefaultNs(Pod pod) {
+            return pod.getMetadata().getNamespace().equals("default");
         }
     }
 }

@@ -20,6 +20,7 @@ import io.fabric8.kubernetes.api.model.Affinity;
 import io.fabric8.kubernetes.api.model.Capabilities;
 import io.fabric8.kubernetes.api.model.ConfigMapEnvSource;
 import io.fabric8.kubernetes.api.model.ConfigMapKeySelector;
+import io.fabric8.kubernetes.api.model.ConfigMapProjection;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSource;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerPort;
@@ -28,6 +29,7 @@ import io.fabric8.kubernetes.api.model.ContainerStateRunning;
 import io.fabric8.kubernetes.api.model.ContainerStateTerminated;
 import io.fabric8.kubernetes.api.model.ContainerStateWaiting;
 import io.fabric8.kubernetes.api.model.ContainerStatus;
+import io.fabric8.kubernetes.api.model.DownwardAPIProjection;
 import io.fabric8.kubernetes.api.model.DownwardAPIVolumeFile;
 import io.fabric8.kubernetes.api.model.DownwardAPIVolumeSource;
 import io.fabric8.kubernetes.api.model.EmptyDirVolumeSource;
@@ -66,6 +68,7 @@ import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodStatus;
 import io.fabric8.kubernetes.api.model.PreferredSchedulingTerm;
 import io.fabric8.kubernetes.api.model.Probe;
+import io.fabric8.kubernetes.api.model.ProjectedVolumeSource;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceFieldSelector;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
@@ -73,13 +76,16 @@ import io.fabric8.kubernetes.api.model.SELinuxOptions;
 import io.fabric8.kubernetes.api.model.SeccompProfile;
 import io.fabric8.kubernetes.api.model.SecretEnvSource;
 import io.fabric8.kubernetes.api.model.SecretKeySelector;
+import io.fabric8.kubernetes.api.model.SecretProjection;
 import io.fabric8.kubernetes.api.model.SecretVolumeSource;
 import io.fabric8.kubernetes.api.model.SecurityContext;
+import io.fabric8.kubernetes.api.model.ServiceAccountTokenProjection;
 import io.fabric8.kubernetes.api.model.TCPSocketAction;
 import io.fabric8.kubernetes.api.model.Toleration;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeDevice;
 import io.fabric8.kubernetes.api.model.VolumeMount;
+import io.fabric8.kubernetes.api.model.VolumeProjection;
 import io.fabric8.kubernetes.api.model.WeightedPodAffinityTerm;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
@@ -193,6 +199,17 @@ public class DistributedKubevirtPodStore
             .register(IntOrString.class)
             .register(Toleration.class)
             .register(PersistentVolumeClaimVolumeSource.class)
+            .register(ProjectedVolumeSource.class)
+            .register(VolumeProjection.class)
+            .register(ConfigMapProjection.class)
+            .register(KeyToPath.class)
+            .register(DownwardAPIProjection.class)
+            .register(DownwardAPIVolumeFile.class)
+            .register(ObjectFieldSelector.class)
+            .register(ResourceFieldSelector.class)
+            .register(SecretProjection.class)
+            .register(Quantity.class)
+            .register(ServiceAccountTokenProjection.class)
             .register(SecretVolumeSource.class)
             .register(EmptyDirVolumeSource.class)
             .register(Quantity.class)
