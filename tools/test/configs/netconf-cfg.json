@@ -1,9 +1,9 @@
 {
   "devices": {
-    "netconf:192.168.56.104:830": {
+    "netconf:127.0.0.1:8181": {
       "netconf": {
-        "ip": "192.168.56.104",
-        "port": 830,
+        "ip": "127.0.0.1",
+        "port": 8181,
         "username": "mininet",
         "password": "mininet"
       },
