@@ -340,6 +340,11 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         }
 
         @Override
+        public Builder matchSrv6DstSid(IpPrefix ip) {
+            return add(Criteria.matchSrv6DstSid(ip));
+        }
+
+        @Override
         public Builder matchIPv6FlowLabel(int flowLabel) {
             return add(Criteria.matchIPv6FlowLabel(flowLabel));
         }

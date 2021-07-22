@@ -208,6 +208,7 @@ public final class EncodeInstructionCodecHelper {
             case IPV4_DST:
             case IPV6_SRC:
             case IPV6_DST:
+            case SRV6_DST_SID:
                 final L3ModificationInstruction.ModIPInstruction modIPInstruction =
                         (L3ModificationInstruction.ModIPInstruction) l3Instruction;
                 result.put(InstructionCodec.IP, modIPInstruction.ip().toString());

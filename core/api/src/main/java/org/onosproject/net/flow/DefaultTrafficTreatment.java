@@ -390,6 +390,26 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         }
 
         @Override
+        public Builder pushSRH() {
+            return add(Instructions.pushSRH());
+        }
+
+        @Override
+        public Builder popSRH() {
+            return add(Instructions.popSRH());
+        }
+
+        @Override
+        public Builder setSrv6SidList(List<IpAddress> sids) {
+            return add(Instructions.setSrv6SidList(sids));
+        }
+
+        @Override
+        public Builder setIpv6Dst(IpAddress addr) {
+            return add(Instructions.modL3IPv6Dst(addr));
+        }
+		
+        @Override
         public Builder setMplsBos(boolean mplsBos) {
             return add(Instructions.modMplsBos(mplsBos));
         }

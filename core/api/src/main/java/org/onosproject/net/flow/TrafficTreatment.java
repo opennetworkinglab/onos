@@ -470,6 +470,39 @@ public interface TrafficTreatment {
         Builder extension(ExtensionTreatment extension, DeviceId deviceId);
 
         /**
+         * Push SRV6  head.
+         *
+         * @return a treatment builder
+         */
+        @Beta
+        Builder pushSRH();
+
+        /**
+         * Pops SRV6 head.
+         *
+         * @return a treatment builder
+         */
+        @Beta
+        Builder popSRH();
+
+        /**
+         * Sets the SRV6 SID list.
+         *
+         * @param sids SRV6 SID list to set.
+         * @return a treatment builder
+         */
+        @Beta
+        Builder setSrv6SidList(List<IpAddress> sids);
+
+        /**
+         * Sets the dst l3 address v6.
+         *
+         * @param addr an ipv6
+         * @return a treatment builder
+         */
+        Builder setIpv6Dst(IpAddress addr);
+
+        /**
          * Add stat trigger instruction.
          *
          * @param statTriggerFieldMap defines stat trigger constraints

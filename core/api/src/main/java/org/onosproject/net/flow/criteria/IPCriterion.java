@@ -31,7 +31,7 @@ public final class IPCriterion implements Criterion {
      *
      * @param ip the IP prefix to match. Could be either IPv4 or IPv6
      * @param type the match type. Should be one of the following:
-     * Type.IPV4_SRC, Type.IPV4_DST, Type.IPV6_SRC, Type.IPV6_DST
+     * Type.IPV4_SRC, Type.IPV4_DST, Type.IPV6_SRC, Type.IPV6_DST,Type.SRV6_DST_SID
      */
     IPCriterion(IpPrefix ip, Type type) {
         this.ip = ip;

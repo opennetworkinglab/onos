@@ -121,6 +121,7 @@ public final class EncodeCriterionCodecHelper {
         formatMap.put(Criterion.Type.ICMPV4_CODE, new FormatIcmpV4Code());
         formatMap.put(Criterion.Type.IPV6_SRC, new FormatIp());
         formatMap.put(Criterion.Type.IPV6_DST, new FormatIp());
+        formatMap.put(Criterion.Type.SRV6_DST_SID, new FormatIp());
         formatMap.put(Criterion.Type.IPV6_FLABEL, new FormatIpV6FLabel());
         formatMap.put(Criterion.Type.ICMPV6_TYPE, new FormatIcmpV6Type());
         formatMap.put(Criterion.Type.ICMPV6_CODE, new FormatIcmpV6Code());

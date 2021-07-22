@@ -171,6 +171,10 @@ public final class DecodeInstructionCodecHelper {
             IpAddress ip = IpAddress.valueOf(nullIsIllegal(json.get(InstructionCodec.IP),
                     InstructionCodec.IP + InstructionCodec.MISSING_MEMBER_MESSAGE).asText());
             return Instructions.modL3IPv6Dst(ip);
+        } else if (subType.equals(L3ModificationInstruction.L3SubType.SRV6_DST_SID.name())) {
+            IpAddress ip = IpAddress.valueOf(nullIsIllegal(json.get(InstructionCodec.IP),
+                                                           InstructionCodec.IP + InstructionCodec.MISSING_MEMBER_MESSAGE).asText());
+            return Instructions.modL3Srv6DstSid(ip);
         } else if (subType.equals(L3ModificationInstruction.L3SubType.IPV6_FLABEL.name())) {
             int flowLabel = nullIsIllegal(json.get(InstructionCodec.FLOW_LABEL),
                     InstructionCodec.FLOW_LABEL + InstructionCodec.MISSING_MEMBER_MESSAGE).asInt();

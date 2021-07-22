@@ -405,6 +405,17 @@ public final class Criteria {
     }
 
     /**
+     * Creates a match on IPv6 dst SID field using the specified value.
+     *
+     * @param ip SRV6  destination SID value
+     * @return match criterion
+     */
+    public static Criterion matchSrv6DstSid(IpPrefix ip) {
+        return new IPCriterion(ip, Type.SRV6_DST_SID);
+    }
+
+
+    /**
      * Creates a match on IPv6 flow label field using the specified value.
      *
      * @param flowLabel IPv6 flow label (20 bits)

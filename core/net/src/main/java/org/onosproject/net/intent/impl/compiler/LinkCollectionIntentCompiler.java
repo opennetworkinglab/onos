@@ -277,6 +277,7 @@ public class LinkCollectionIntentCompiler
             case IPV4_DST:
             case IPV6_SRC:
             case IPV6_DST:
+            case SRV6_DST_SID:
             case IPV6_FLABEL:
             case ARP_SPA:
             case ARP_SHA:

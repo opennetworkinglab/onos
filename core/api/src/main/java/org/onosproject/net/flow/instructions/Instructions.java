@@ -40,11 +40,13 @@ import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModArpEth
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModArpOpInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPv6FlowLabelInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModTtlInstruction;
+import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModSrv6SidListInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction.L4SubType;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction.ModTransportPortInstruction;
 import org.onosproject.net.meter.MeterId;
 import org.onosproject.net.pi.runtime.PiTableAction;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -199,6 +201,37 @@ public final class Instructions {
     }
 
     /**
+     * Creates a push SRV6 header instruction.
+     *
+     * @return a L3 modification.
+     */
+    public static Instruction pushSRH() {
+        return new L3ModificationInstruction.ModSrv6HeaderInstruction(
+                L3ModificationInstruction.L3SubType.SRV6_SRH_PUSH);
+    }
+
+    /**
+     * Creates a pop SRV6 header instruction.
+     *
+     * @return a L3 modification.
+     */
+    public static Instruction popSRH() {
+        return new L3ModificationInstruction.ModSrv6HeaderInstruction(
+                L3ModificationInstruction.L3SubType.SRV6_SRH_POP);
+    }
+
+    /**
+     * Creates a SRV6 SID list modification.
+     *
+     * @param sids SRV6 SID list to set
+     * @return a L3 Modification
+     */
+    public static L3ModificationInstruction setSrv6SidList(List<IpAddress> sids) {
+        checkNotNull(sids, "SRV6 SID list cannot be null");
+        return new ModSrv6SidListInstruction(sids);
+    }
+
+    /**
      * Creates a MPLS BOS bit modification.
      *
      * @param mplsBos MPLS BOS bit to set (true) or unset (false)
@@ -259,6 +292,17 @@ public final class Instructions {
     public static L3ModificationInstruction modL3IPv6Dst(IpAddress addr) {
         checkNotNull(addr, "Dst l3 IPv6 address cannot be null");
         return new ModIPInstruction(L3SubType.IPV6_DST, addr);
+    }
+
+    /**
+     * Creates a L3 SRV6 DST SID modification.
+     *
+     * @param addr the SRV6 DST SID to modify to
+     * @return a L3 modification
+     */
+    public static L3ModificationInstruction modL3Srv6DstSid(IpAddress addr) {
+        checkNotNull(addr, "l3 SRV6 DST SID cannot be null");
+        return new ModIPInstruction(L3SubType.SRV6_DST_SID, addr);
     }
 
     /**
