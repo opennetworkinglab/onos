@@ -1,4 +1,4 @@
-COMPILE_DEPS = CORE_DEPS + ONOS_YANG + [
+COMPILE_DEPS = CORE_DEPS + JACKSON + ONOS_YANG + [
     "//models/polatis:onos-models-polatis",
     "//drivers/utilities:onos-drivers-utilities",
     "//protocols/netconf/api:onos-protocols-netconf-api",

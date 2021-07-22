@@ -49,19 +49,37 @@ public final class XmlConfigParser {
         //not called, preventing any allocation
     }
 
+    private static HierarchicalConfiguration loadXmlCommonPart(XMLConfiguration cfg, InputStream xmlStream)
+                   throws ParserConfigurationException, ConfigurationException {
+
+        DocumentBuilderFactory dbfactory = DocumentBuilderFactory.newInstance();
+        //Disabling DTDs in order to avoid XXE xml-based attacks.
+        disableFeature(dbfactory, DISALLOW_DTD_FEATURE);
+        disableFeature(dbfactory, DISALLOW_EXTERNAL_DTD);
+        dbfactory.setXIncludeAware(false);
+        dbfactory.setExpandEntityReferences(false);
+        cfg.setDocumentBuilder(dbfactory.newDocumentBuilder());
+        cfg.load(xmlStream);
+        return cfg;
+    }
 
     public static HierarchicalConfiguration loadXml(InputStream xmlStream) {
         try {
             XMLConfiguration cfg = new XMLConfiguration();
-            DocumentBuilderFactory dbfactory = DocumentBuilderFactory.newInstance();
-            //Disabling DTDs in order to avoid XXE xml-based attacks.
-            disableFeature(dbfactory, DISALLOW_DTD_FEATURE);
-            disableFeature(dbfactory, DISALLOW_EXTERNAL_DTD);
-            dbfactory.setXIncludeAware(false);
-            dbfactory.setExpandEntityReferences(false);
-            cfg.setDocumentBuilder(dbfactory.newDocumentBuilder());
-            cfg.load(xmlStream);
-            return cfg;
+            return loadXmlCommonPart(cfg, xmlStream);
+        } catch (ConfigurationException | ParserConfigurationException e) {
+            throw new IllegalArgumentException("Cannot load xml from Stream", e);
+        }
+    }
+
+    public static HierarchicalConfiguration loadXml(InputStream xmlStream, boolean withDelim) {
+        try {
+            XMLConfiguration cfg = new XMLConfiguration();
+            //Optionally disable default comma-based parsing on config values to allow JSON strings to be used therein
+            if (!withDelim) {
+                cfg.setDelimiterParsingDisabled(true);
+            }
+            return loadXmlCommonPart(cfg, xmlStream);
         } catch (ConfigurationException | ParserConfigurationException e) {
             throw new IllegalArgumentException("Cannot load xml from Stream", e);
         }
@@ -69,6 +87,10 @@ public final class XmlConfigParser {
 
     public static HierarchicalConfiguration loadXmlString(String xmlStr) {
         return loadXml(new ByteArrayInputStream(xmlStr.getBytes(StandardCharsets.UTF_8)));
+    }
+
+    public static HierarchicalConfiguration loadXmlString(String xmlStr, boolean withDelim) {
+        return loadXml(new ByteArrayInputStream(xmlStr.getBytes(StandardCharsets.UTF_8)), withDelim);
     }
 
     public static List<ControllerInfo> parseStreamControllers(HierarchicalConfiguration cfg) {

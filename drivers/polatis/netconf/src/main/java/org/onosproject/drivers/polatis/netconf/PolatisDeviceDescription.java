@@ -18,12 +18,9 @@ package org.onosproject.drivers.polatis.netconf;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceDescriptionDiscovery;
@@ -31,35 +28,32 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 
-import static org.onosproject.net.optical.device.OmsPortHelper.omsPortDescription;
-
 import org.onlab.packet.ChassisId;
-import org.onlab.util.Frequency;
-import org.onlab.util.Spectrum;
 
 import org.slf4j.Logger;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.Device.Type.FIBER_SWITCH;
 
+import static org.onosproject.drivers.polatis.netconf.PolatisUtility.getPortsFilter;
+import static org.onosproject.drivers.polatis.netconf.PolatisUtility.getProdInfoFilter;
+import static org.onosproject.drivers.polatis.netconf.PolatisUtility.parsePorts;
+import static org.onosproject.drivers.polatis.netconf.PolatisUtility.KEY_MANUFACTURER;
+import static org.onosproject.drivers.polatis.netconf.PolatisUtility.KEY_HWVERSION;
+import static org.onosproject.drivers.polatis.netconf.PolatisUtility.KEY_SWVERSION;
+import static org.onosproject.drivers.polatis.netconf.PolatisUtility.KEY_SERIALNUMBER;
+import static org.onosproject.drivers.polatis.netconf.PolatisUtility.KEY_INPUTPORTS;
+import static org.onosproject.drivers.polatis.netconf.PolatisUtility.KEY_OUTPUTPORTS;
+
 import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.configAt;
-import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.configsAt;
 import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.netconfGet;
 import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.subscribe;
-import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.xmlOpen;
-import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.xmlClose;
-import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.xmlEmpty;
-import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.KEY_PORT;
-import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.KEY_PORTID;
-import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.KEY_PORTCONFIG;
-import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.KEY_PRODINF;
-import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.KEY_PORTCONFIG_XMLNS;
-import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.KEY_PRODINF_XMLNS;
 import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.KEY_DATA_PRODINF;
-import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.KEY_DATA_PORTCONFIG;
 
 /**
  * Representation of device information and ports via NETCONF for all Polatis
@@ -67,17 +61,6 @@ import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.KEY_
  */
 public class PolatisDeviceDescription extends AbstractHandlerBehaviour
     implements DeviceDescriptionDiscovery {
-
-    public static final String DEFAULT_MANUFACTURER = "Polatis";
-    public static final String DEFAULT_DESCRIPTION_DATA = "Unknown";
-    public static final String KEY_MANUFACTURER = "manufacturer";
-    public static final String KEY_HWVERSION = "model-name";
-    public static final String KEY_SWVERSION = "software-version";
-    public static final String KEY_SERIALNUMBER = "serial-number";
-    public static final String KEY_PORTSTATUS = "status";
-    public static final String PORT_ENABLED = "ENABLED";
-    public static final String KEY_PORTLABEL = "label";
-    public static final int POLATIS_NUM_OF_WAVELENGTHS = 39;
 
     private final Logger log = getLogger(getClass());
 
@@ -89,32 +72,50 @@ public class PolatisDeviceDescription extends AbstractHandlerBehaviour
      */
     @Override
     public DeviceDescription discoverDeviceDetails() {
+        log.debug("Discovering Polatis device detais...");
         return parseProductInformation();
     }
 
     private DeviceDescription parseProductInformation() {
         DeviceService devsvc = checkNotNull(handler().get(DeviceService.class));
-        DeviceId devid = handler().data().deviceId();
-        Device dev = devsvc.getDevice(devid);
-        if (dev == null) {
-            return new DefaultDeviceDescription(devid.uri(), FIBER_SWITCH,
-                    DEFAULT_MANUFACTURER, DEFAULT_DESCRIPTION_DATA,
-                    DEFAULT_DESCRIPTION_DATA, DEFAULT_DESCRIPTION_DATA,
-                    new ChassisId());
-        }
-        String reply = netconfGet(handler(), getProductInformationFilter());
+        DeviceId devID = handler().data().deviceId();
+        String reply = netconfGet(handler(), getProdInfoFilter());
         subscribe(handler());
         HierarchicalConfiguration cfg = configAt(reply, KEY_DATA_PRODINF);
-        return new DefaultDeviceDescription(dev.id().uri(), FIBER_SWITCH,
+        String hw = cfg.getString(KEY_HWVERSION);
+        String numInputPorts = "0";
+        String numOutputPorts = "0";
+        if (!hw.equals("")) {
+            Pattern patternSize = Pattern.compile("\\d+x[\\dC]+");
+            Matcher matcher = patternSize.matcher(hw);
+            if (matcher.find()) {
+                String switchSize = matcher.group();
+                log.debug("Got switch size: " + switchSize);
+                Pattern patternNumber = Pattern.compile("[\\dC]+");
+                matcher = patternNumber.matcher(switchSize);
+                if (matcher.find()) {
+                    numInputPorts = matcher.group();
+                    log.debug("numInputPorts=" + numInputPorts);
+                    if (matcher.find()) {
+                        if (!matcher.group().equals("CC")) {
+                            numOutputPorts = matcher.group();
+                        }
+                    }
+                log.debug("numOutputPorts=" + numOutputPorts);
+                }
+            }
+        } else {
+            log.warn("Unable to determine type of Polatis switch " + devID.toString());
+        }
+        DefaultAnnotations annotations = DefaultAnnotations.builder()
+                .set(KEY_INPUTPORTS, numInputPorts)
+                .set(KEY_OUTPUTPORTS, numOutputPorts)
+                .build();
+
+        return new DefaultDeviceDescription(devID.uri(), FIBER_SWITCH,
                 cfg.getString(KEY_MANUFACTURER), cfg.getString(KEY_HWVERSION),
                 cfg.getString(KEY_SWVERSION), cfg.getString(KEY_SERIALNUMBER),
-                dev.chassisId());
-    }
-
-    private String getProductInformationFilter() {
-        return new StringBuilder(xmlOpen(KEY_PRODINF_XMLNS))
-                .append(xmlClose(KEY_PRODINF))
-                .toString();
+                new ChassisId(cfg.getString(KEY_SERIALNUMBER)), true, annotations);
     }
 
     /**
@@ -124,41 +125,14 @@ public class PolatisDeviceDescription extends AbstractHandlerBehaviour
      */
     @Override
     public List<PortDescription> discoverPortDetails() {
+        log.debug("Discovering ports on Polatis switch...");
+        DeviceService deviceService = handler().get(DeviceService.class);
+        DeviceId deviceID = handler().data().deviceId();
+        Device device = deviceService.getDevice(deviceID);
+        int numInputPorts = Integer.parseInt(device.annotations().value(KEY_INPUTPORTS));
+        int numOutputPorts = Integer.parseInt(device.annotations().value(KEY_OUTPUTPORTS));
         String reply = netconfGet(handler(), getPortsFilter());
-        List<PortDescription> descriptions = parsePorts(reply);
+        List<PortDescription> descriptions = parsePorts(reply, numInputPorts, numOutputPorts);
         return ImmutableList.copyOf(descriptions);
-    }
-
-    private String getPortsFilter() {
-        return new StringBuilder(xmlOpen(KEY_PORTCONFIG_XMLNS))
-                .append(xmlOpen(KEY_PORT))
-                .append(xmlEmpty(KEY_PORTID))
-                .append(xmlEmpty(KEY_PORTSTATUS))
-                .append(xmlEmpty(KEY_PORTLABEL))
-                .append(xmlClose(KEY_PORT))
-                .append(xmlClose(KEY_PORTCONFIG))
-                .toString();
-    }
-
-    private List<PortDescription> parsePorts(String content) {
-        List<HierarchicalConfiguration> subtrees = configsAt(content, KEY_DATA_PORTCONFIG);
-        List<PortDescription> portDescriptions = Lists.newArrayList();
-        for (HierarchicalConfiguration portConfig : subtrees) {
-            portDescriptions.add(parsePort(portConfig));
-        }
-        return portDescriptions;
-    }
-
-    private PortDescription parsePort(HierarchicalConfiguration cfg) {
-        PortNumber portNumber = PortNumber.portNumber(cfg.getLong(KEY_PORTID));
-        DefaultAnnotations annotations = DefaultAnnotations.builder()
-                .set(AnnotationKeys.PORT_NAME, cfg.getString(KEY_PORTLABEL))
-                .build();
-        return omsPortDescription(portNumber,
-                cfg.getString(KEY_PORTSTATUS).equals(PORT_ENABLED),
-                Spectrum.O_BAND_MIN, Spectrum.L_BAND_MAX,
-                Frequency.ofGHz((Spectrum.O_BAND_MIN.asGHz() -
-                        Spectrum.L_BAND_MAX.asGHz()) /
-                    POLATIS_NUM_OF_WAVELENGTHS), annotations);
     }
 }

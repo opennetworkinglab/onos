@@ -21,6 +21,12 @@
                    impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
                    impl="org.onosproject.drivers.polatis.netconf.PolatisDeviceDescription"/>
+        <behaviour api="org.onosproject.net.behaviour.LinkDiscovery"
+		   impl="org.onosproject.drivers.polatis.netconf.PolatisLinkDiscovery"/>
+	<behaviour api="org.onosproject.net.behaviour.PortAdmin"
+                   impl="org.onosproject.drivers.polatis.netconf.PolatisPortAdmin"/>
+        <behaviour api="org.onosproject.net.behaviour.InternalConnectivity"
+                   impl="org.onosproject.drivers.polatis.netconf.PolatisInternalConnectivity"/>
         <behaviour api="org.onosproject.net.behaviour.PowerConfig"
                    impl="org.onosproject.drivers.polatis.netconf.PolatisPowerConfig"/>
         <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"

@@ -43,16 +43,24 @@ public final class PolatisNetconfUtility {
     public static final String KEY_POLATIS_XMLNS = "xmlns=\"http://www.polatis.com/yang/polatis-switch\"";
     public static final String KEY_DATA = "data";
     public static final String KEY_PORT = "port";
+    public static final String KEY_PAIR = "pair";
+    public static final String KEY_PAIRS = "pairs";
     public static final String KEY_PORTID = "port-id";
+    public static final String KEY_PORTPEER = "portPeer";
+    public static final String KEY_PORTDIR = "portDir";
     public static final String KEY_PORTCONFIG = "port-config";
     public static final String KEY_SYSTEMALARMS = "system-alarms";
     public static final String KEY_ALARM = "alarm";
     public static final String KEY_CONNS = "cross-connects";
     public static final String KEY_PRODINF = "product-information";
+    public static final String KEY_PORTSETSTATE = "port-set-state";
+    public static final String KEY_RPCREPLY = "rpc-reply";
+    public static final String KEY_OK = "<ok/>";
     public static final String KEY_PORTCONFIG_XMLNS = String.format("%s %s", KEY_PORTCONFIG, KEY_XMLNS);
     public static final String KEY_SYSTEMALARMS_XMLNS = String.format("%s %s", KEY_SYSTEMALARMS, KEY_POLATIS_XMLNS);
     public static final String KEY_CONNS_XMLNS = String.format("%s %s", KEY_CONNS, KEY_XMLNS);
     public static final String KEY_PRODINF_XMLNS = String.format("%s %s", KEY_PRODINF, KEY_XMLNS);
+    public static final String KEY_PORTSETSTATE_XMLNS = String.format("%s %s", KEY_PORTSETSTATE, KEY_XMLNS);
     public static final String KEY_DATA_CONNS = String.format("%s.%s", KEY_DATA, KEY_CONNS);
     public static final String KEY_DATA_PRODINF = String.format("%s.%s", KEY_DATA, KEY_PRODINF);
     public static final String KEY_DATA_PORTCONFIG = String.format("%s.%s.%s", KEY_DATA, KEY_PORTCONFIG, KEY_PORT);
@@ -69,7 +77,7 @@ public final class PolatisNetconfUtility {
 
     public static final String CFG_MODE_MERGE = "merge";
 
-    private static final Logger log = getLogger(PolatisFlowRuleProgrammable.class);
+    private static final Logger log = getLogger(PolatisDeviceDescription.class);
 
     private PolatisNetconfUtility() {
     }
@@ -83,6 +91,23 @@ public final class PolatisNetconfUtility {
      */
     public static String netconfGet(DriverHandler handler, String filter) {
         NetconfSession session = getNetconfSession(handler);
+        String reply;
+        try {
+            reply = session.get(filter, null);
+        } catch (NetconfException e) {
+            throw new IllegalStateException(new NetconfException("Failed to retrieve configuration.", e));
+        }
+        return reply;
+    }
+
+    /**
+     * Retrieves session reply information for get operation.
+     *
+     * @param session explicit NETCONF session
+     * @param filter the filter string of xml content
+     * @return the reply string
+     */
+    public static String netconfGet(NetconfSession session, String filter) {
         String reply;
         try {
             reply = session.get(filter, null);
@@ -130,6 +155,24 @@ public final class PolatisNetconfUtility {
     }
 
     /**
+     * Makes a NETCONF RPC.
+     *
+     * @param handler parent driver handler
+     * @param body body of RPC
+     * @return the reply string
+     */
+    public static String netconfRpc(DriverHandler handler, String body) {
+        NetconfSession session = getNetconfSession(handler);
+        String reply;
+        try {
+            reply = session.doWrappedRpc(body);
+        } catch (NetconfException e) {
+            throw new IllegalStateException(new NetconfException("Failed to make RPC..", e));
+        }
+        return reply;
+    }
+
+    /**
      * Retrieves specified node hierarchical configuration from the xml information.
      *
      * @param content the xml information
@@ -139,7 +182,7 @@ public final class PolatisNetconfUtility {
     public static HierarchicalConfiguration configAt(String content, String key) {
         HierarchicalConfiguration info;
         try {
-            HierarchicalConfiguration cfg = XmlConfigParser.loadXmlString(content);
+            HierarchicalConfiguration cfg = XmlConfigParser.loadXmlString(content, false);
             info = cfg.configurationAt(key);
         } catch (IllegalArgumentException e) {
             // Accept null for information polling
@@ -158,8 +201,9 @@ public final class PolatisNetconfUtility {
     public static List<HierarchicalConfiguration> configsAt(String content, String key) {
         List<HierarchicalConfiguration> info;
         try {
-            HierarchicalConfiguration cfg = XmlConfigParser.loadXmlString(content);
+            HierarchicalConfiguration cfg = XmlConfigParser.loadXmlString(content, false);
             info = cfg.configurationsAt(key);
+
         } catch (IllegalArgumentException e) {
             // Accept empty for information polling
             return ImmutableList.of();
