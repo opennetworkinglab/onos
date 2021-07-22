@@ -15,7 +15,7 @@
     "url": "opennetworkinglab/onos"
   },
   "devDependencies": {
-    "bower": "^1.8.0",
+    "bower": "^1.8.8",
     "jasmine-core": "^2.4.1",
     "karma": "^0.13.22",
     "karma-babel-preprocessor": "^6.0.1",
