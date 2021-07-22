@@ -39,6 +39,7 @@ The following packages are required:
 * unzip
 * python2.7
 * python3 (needed by Bazel)
+* python3.6 (faces some issues)
 
 ### Build ONOS from source
 
