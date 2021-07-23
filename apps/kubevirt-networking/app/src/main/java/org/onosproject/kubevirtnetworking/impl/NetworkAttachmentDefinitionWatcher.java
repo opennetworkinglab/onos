@@ -272,6 +272,10 @@ public class NetworkAttachmentDefinitionWatcher {
                 JSONObject json = new JSONObject(resource);
                 String name = parseResourceName(resource);
                 JSONObject annots = json.getJSONObject("metadata").getJSONObject("annotations");
+                if (!annots.has(NETWORK_CONFIG)) {
+                    // SR-IOV network does not contain network-config field
+                    return null;
+                }
                 String networkConfig = annots.getString(NETWORK_CONFIG);
                 if (networkConfig != null) {
                     KubevirtNetwork.Builder builder = DefaultKubevirtNetwork.builder();
