@@ -417,7 +417,7 @@ public class MeterManager
                 // and we purge the meter from the store
                 } else if (m.state() == MeterState.PENDING_REMOVE) {
                     log.debug("Delete meter {} now in store", m.id());
-                    store.deleteMeterNow(m);
+                    store.purgeMeter(m);
                 }
             });
         }
@@ -425,6 +425,11 @@ public class MeterManager
         @Override
         public void pushMeterFeatures(DeviceId deviceId, MeterFeatures meterfeatures) {
             store.storeMeterFeatures(meterfeatures);
+        }
+
+        @Override
+        public void pushMeterFeatures(DeviceId deviceId, Collection<MeterFeatures> meterfeatures) {
+            meterfeatures.forEach(mf -> store.storeMeterFeatures(mf));
         }
 
         @Override
