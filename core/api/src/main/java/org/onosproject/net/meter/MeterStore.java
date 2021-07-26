@@ -112,15 +112,26 @@ public interface MeterStore extends Store<MeterEvent, MeterStoreDelegate> {
      * Delete this meter immediately.
      *
      * @param m a meter
+     * @deprecated in onos-2.5 renamed {@link #purgeMeter(Meter)}
      */
+    @Deprecated
     void deleteMeterNow(Meter m);
+
+    /**
+     * Delete this meter immediately.
+     *
+     * @param m a meter
+     */
+    void purgeMeter(Meter m);
 
     /**
      * Retrieve maximum meters available for the device.
      *
      * @param key the meter features key
      * @return the maximum number of meters supported by the device
+     * @deprecated in onos-2.5, Max meters is replaced by start and end index
      */
+    @Deprecated
     long getMaxMeters(MeterFeaturesKey key);
 
     /**
@@ -129,15 +140,30 @@ public interface MeterStore extends Store<MeterEvent, MeterStoreDelegate> {
      * @param deviceId the device id
      * @return the meter Id or null if it was not possible
      * to allocate a meter id
+     * @deprecated in onos-2.5 replaced by {@link #allocateMeterId(DeviceId, MeterScope)}
      */
+    @Deprecated
     MeterId allocateMeterId(DeviceId deviceId);
+
+    /**
+     * Allocates the first available MeterId.
+     *
+     * @param deviceId the device id
+     * @param meterScope the meter scope
+     * @return the meter Id or null if it was not possible
+     * to allocate a meter id
+     */
+    MeterCellId allocateMeterId(DeviceId deviceId, MeterScope meterScope);
 
     /**
      * Frees the given meter id.
      *
      * @param deviceId the device id
      * @param meterId  the id to be freed
+     * @deprecated in onos-2.5, freeing an ID is closely related to removal of a meter
+     * so, this function is no longer exposed on interface
      */
+    @Deprecated
     void freeMeterId(DeviceId deviceId, MeterId meterId);
 
     /**

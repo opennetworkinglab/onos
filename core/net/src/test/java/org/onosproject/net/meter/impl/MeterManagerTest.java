@@ -575,6 +575,12 @@ public class MeterManagerTest {
             mProgrammableAdded.setState(MeterState.ADDED);
             return CompletableFuture.completedFuture(ImmutableList.of(mProgrammableAdded));
         }
+
+        @Override
+        public CompletableFuture<Collection<MeterFeatures>> getMeterFeatures() {
+            //Currently unused.
+            return CompletableFuture.completedFuture(Collections.emptySet());
+        }
     }
 
     private class TestProvider extends AbstractProvider implements MeterProvider {

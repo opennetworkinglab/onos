@@ -42,4 +42,11 @@ public interface MeterProgrammable extends HandlerBehaviour {
      * @return completable future with the collection of meters
      */
     CompletableFuture<Collection<Meter>> getMeters();
+
+    /**
+     * Queries the meter features from the device.
+     *
+     * @return completable future with the collection of meter features
+     */
+    CompletableFuture<Collection<MeterFeatures>> getMeterFeatures();
 }

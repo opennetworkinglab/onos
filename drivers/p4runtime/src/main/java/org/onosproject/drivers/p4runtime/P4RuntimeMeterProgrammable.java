@@ -19,13 +19,18 @@ package org.onosproject.drivers.p4runtime;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Sets;
 import org.onosproject.drivers.p4runtime.mirror.P4RuntimeMeterMirror;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.meter.Band;
 import org.onosproject.net.meter.DefaultBand;
 import org.onosproject.net.meter.DefaultMeter;
+import org.onosproject.net.meter.DefaultMeterFeatures;
 import org.onosproject.net.meter.Meter;
+import org.onosproject.net.meter.MeterFeatures;
 import org.onosproject.net.meter.MeterOperation;
 import org.onosproject.net.meter.MeterProgrammable;
+import org.onosproject.net.meter.MeterScope;
 import org.onosproject.net.meter.MeterState;
 import org.onosproject.net.pi.model.PiMeterId;
 import org.onosproject.net.pi.model.PiMeterModel;
@@ -44,6 +49,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Implementation of MeterProgrammable behaviour for P4Runtime.
@@ -147,5 +154,91 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
                 .collect(Collectors.toList());
 
         return CompletableFuture.completedFuture(meters);
+    }
+
+    @Override
+    public CompletableFuture<Collection<MeterFeatures>> getMeterFeatures() {
+
+        if (!setupBehaviour("getMeterFeatures()")) {
+            return CompletableFuture.completedFuture(Collections.emptyList());
+        }
+
+        Collection<MeterFeatures> meterFeatures = new HashSet<>();
+        pipeconf.pipelineModel().meters().forEach(
+            m -> meterFeatures.add(new P4RuntimeMeterFeaturesBuilder(m, deviceId).build()));
+
+        return CompletableFuture.completedFuture(meterFeatures);
+    }
+
+    /**
+     * P4 meter features builder.
+     */
+    public class P4RuntimeMeterFeaturesBuilder {
+        private final PiMeterModel piMeterModel;
+        private DeviceId deviceId;
+
+        private static final long PI_METER_START_INDEX = 0L;
+        private static final short PI_METER_MAX_BAND = 2;
+        private static final short PI_METER_MAX_COLOR = 3;
+
+        public P4RuntimeMeterFeaturesBuilder(PiMeterModel piMeterModel, DeviceId deviceId) {
+            this.piMeterModel = checkNotNull(piMeterModel);
+            this.deviceId = deviceId;
+        }
+
+        /**
+         * To build a MeterFeatures using the PiMeterModel object
+         * retrieved from pipeconf.
+         *
+         * @return the meter features object
+         */
+        public MeterFeatures build() {
+            /*
+             * We set the basic values before to extract the other information.
+             */
+            MeterFeatures.Builder builder = DefaultMeterFeatures.builder()
+                    .forDevice(deviceId)
+                    // The scope value will be PiMeterId
+                    .withScope(MeterScope.of(piMeterModel.id().id()))
+                    .withMaxBands(PI_METER_MAX_BAND)
+                    .withMaxColors(PI_METER_MAX_COLOR)
+                    .withStartIndex(PI_METER_START_INDEX)
+                    .withEndIndex(piMeterModel.size() - 1);
+            /*
+             * Pi meter only support NONE type
+             */
+            Set<Band.Type> bands = Sets.newHashSet();
+            bands.add(Band.Type.NONE);
+            builder.withBandTypes(bands);
+            /*
+             * We extract the supported units;
+             */
+            Set<Meter.Unit> units = Sets.newHashSet();
+            if (piMeterModel.unit() == PiMeterModel.Unit.BYTES) {
+                units.add(Meter.Unit.KB_PER_SEC);
+            } else if (piMeterModel.unit() == PiMeterModel.Unit.PACKETS) {
+                units.add(Meter.Unit.PKTS_PER_SEC);
+            }
+            builder.withUnits(units);
+            /*
+             * Burst is supported ?
+             */
+            builder.hasBurst(true);
+            /*
+             * Stats are supported ?
+             */
+            builder.hasStats(false);
+
+            return builder.build();
+        }
+
+        /**
+         * To build an empty meter features.
+         * @param deviceId the device id
+         * @return the meter features
+         */
+        public MeterFeatures noMeterFeatures(DeviceId deviceId) {
+            return DefaultMeterFeatures.noMeterFeatures(deviceId);
+        }
     }
 }

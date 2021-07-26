@@ -24,6 +24,7 @@ import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.meter.Meter;
+import org.onosproject.net.meter.MeterFeatures;
 import org.onosproject.net.meter.MeterOperation;
 import org.onosproject.net.meter.MeterOperations;
 import org.onosproject.net.meter.MeterProgrammable;
@@ -36,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
@@ -147,6 +149,17 @@ public class MeterDriverProvider extends AbstractProvider implements MeterProvid
         meterProviderService.pushMeterMetrics(deviceId, meters);
     }
 
+    private void getMeterFeatures(DeviceId deviceId) {
+        Collection<MeterFeatures> meterFeatures = Collections.emptySet();
+        try {
+            meterFeatures = getMeterProgrammable(deviceId).getMeterFeatures().get(pollFrequency, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            log.warn("Unable to get the Meter Features from {}, error: {}", deviceId, e.getMessage());
+            log.debug("Exception: ", e);
+        }
+        meterProviderService.pushMeterFeatures(deviceId, meterFeatures);
+    }
+
     private MeterProgrammable getMeterProgrammable(DeviceId deviceId) {
         Device device = deviceService.getDevice(deviceId);
         if (device.is(MeterProgrammable.class)) {
@@ -173,6 +186,19 @@ public class MeterDriverProvider extends AbstractProvider implements MeterProvid
 
         private void handleEvent(DeviceEvent event) {
             Device device = event.subject();
+
+            switch (event.type()) {
+                case DEVICE_ADDED:
+                    getMeterFeatures(device.id());
+                    break;
+                case DEVICE_REMOVED:
+                case DEVICE_SUSPENDED:
+                    meterProviderService.deleteMeterFeatures(device.id());
+                    break;
+                default:
+                    break;
+            }
+
             boolean isRelevant = mastershipService.isLocalMaster(device.id()) &&
                     deviceService.isAvailable(device.id());
 

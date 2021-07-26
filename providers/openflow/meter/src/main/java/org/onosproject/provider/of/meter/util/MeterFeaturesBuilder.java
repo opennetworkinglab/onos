@@ -53,6 +53,8 @@ public class MeterFeaturesBuilder {
     private final OFMeterFeatures ofMeterFeatures;
     private DeviceId deviceId;
 
+    private static final long OF_METER_START_INDEX = 1L;
+
     public MeterFeaturesBuilder(OFMeterFeatures features, DeviceId deviceId) {
         this.ofMeterFeatures = checkNotNull(features);
         this.deviceId = deviceId;
@@ -72,7 +74,8 @@ public class MeterFeaturesBuilder {
                 .forDevice(deviceId)
                 .withMaxBands(ofMeterFeatures.getMaxBands())
                 .withMaxColors(ofMeterFeatures.getMaxColor())
-                .withMaxMeters(ofMeterFeatures.getMaxMeter());
+                .withStartIndex(OF_METER_START_INDEX)
+                .withEndIndex(ofMeterFeatures.getMaxMeter());
         /*
          * We extract the supported band types.
          */
