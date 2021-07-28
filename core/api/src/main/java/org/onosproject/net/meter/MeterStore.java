@@ -27,11 +27,21 @@ import java.util.concurrent.CompletableFuture;
 public interface MeterStore extends Store<MeterEvent, MeterStoreDelegate> {
 
     /**
-     * Adds a meter to the store.
+     * Adds a meter to the store or updates a meter in the store.
      *
      * @param meter a meter
      * @return a future indicating the result of the store operation
      */
+    CompletableFuture<MeterStoreResult> addOrUpdateMeter(Meter meter);
+
+    /**
+     * Adds a meter to the store.
+     *
+     * @param meter a meter
+     * @return a future indicating the result of the store operation
+     * @deprecated in onos-2.5 replaced by {@link #addOrUpdateMeter(Meter)}
+     */
+    @Deprecated
     CompletableFuture<MeterStoreResult> storeMeter(Meter meter);
 
     /**
@@ -51,6 +61,14 @@ public interface MeterStore extends Store<MeterEvent, MeterStoreDelegate> {
     MeterStoreResult storeMeterFeatures(MeterFeatures meterfeatures);
 
     /**
+     * Adds a collection of meter features to the store.
+     *
+     * @param meterfeatures the collection of meter features
+     * @return the result of the store operation
+     */
+    MeterStoreResult storeMeterFeatures(Collection<MeterFeatures> meterfeatures);
+
+    /**
      * Deletes the meter features from the store.
      *
      * @param deviceId the device id
@@ -59,11 +77,21 @@ public interface MeterStore extends Store<MeterEvent, MeterStoreDelegate> {
     MeterStoreResult deleteMeterFeatures(DeviceId deviceId);
 
     /**
+     * Deletes a collection of meter features from the store.
+     *
+     * @param meterfeatures a collection of meter features
+     * @return a future indicating the result of the store operation
+     */
+    MeterStoreResult deleteMeterFeatures(Collection<MeterFeatures> meterfeatures);
+
+    /**
      * Updates a meter whose meter id is the same as the passed meter.
      *
      * @param meter a new meter
      * @return a future indicating the result of the store operation
+     * @deprecated in onos-2.5 replaced by {@link #addOrUpdateMeter(Meter)}
      */
+    @Deprecated
     CompletableFuture<MeterStoreResult> updateMeter(Meter meter);
 
     /**
