@@ -80,20 +80,4 @@ public interface FabricUpfStore {
      * @return the corresponding PFCP session ID and session-local FAR ID, as a RuleIdentifier
      */
     UpfRuleIdentifier localFarIdOf(int globalFarId);
-
-    /**
-     * Get the corresponding queue Id from scheduling priority.
-     *
-     * @param schedulingPriority QCI scheduling priority
-     * @return the corresponding queue ID
-     */
-    String queueIdOf(int schedulingPriority);
-
-    /**
-     * Get the corresponding queue Id from scheduling priority.
-     *
-     * @param queueId Tofino queue Id
-     * @return the corresponding scheduling priroity
-     */
-    String schedulingPriorityOf(int queueId);
 }

@@ -45,6 +45,8 @@ control DecapGtpu(inout parsed_headers_t hdr,
         hdr.ipv4 = hdr.inner_ipv4;
         hdr.inner_ipv4.setInvalid();
         hdr.gtpu.setInvalid();
+        hdr.gtpu_options.setInvalid();
+        hdr.gtpu_ext_psc.setInvalid();
     }
     @hidden
     action decap_inner_tcp() {
@@ -115,10 +117,11 @@ control SpgwIngress(inout parsed_headers_t hdr,
     //===== Interface Tables ======//
     //=============================//
 
-    action load_iface(spgw_interface_t src_iface) {
+    action load_iface(spgw_interface_t src_iface, slice_id_t slice_id) {
         // Interface type can be access, core, from_dbuf (see InterfaceType enum)
         fabric_md.spgw.src_iface = src_iface;
         fabric_md.spgw.skip_spgw = _FALSE;
+        fabric_md.slice_id = slice_id;
     }
     action iface_miss() {
         fabric_md.spgw.src_iface = SPGW_IFACE_UNKNOWN;
@@ -143,21 +146,26 @@ control SpgwIngress(inout parsed_headers_t hdr,
     //=============================//
     //===== PDR Tables ======//
     //=============================//
-
     action load_pdr(pdr_ctr_id_t  ctr_id,
                     far_id_t      far_id,
-                    bit<1>        needs_gtpu_decap) {
+                    bit<1>        needs_gtpu_decap,
+                    tc_t          tc) {
         fabric_md.spgw.ctr_id = ctr_id;
         fabric_md.spgw.far_id = far_id;
         fabric_md.spgw.needs_gtpu_decap = (_BOOL)needs_gtpu_decap;
+        fabric_md.tc = tc;
     }
 
-    action load_pdr_qos(pdr_ctr_id_t ctr_id,
-                        far_id_t     far_id,
-                        bit<1>       needs_gtpu_decap,
-                        qid_t        qid) {
-        load_pdr(ctr_id, far_id, needs_gtpu_decap);
-        // we cannot set the qid, since bmv2 does not support it
+    action load_pdr_qos(pdr_ctr_id_t  ctr_id,
+                        far_id_t      far_id,
+                        bit<1>        needs_gtpu_decap,
+                        // Used to push QFI, valid for 5G traffic only
+                        bit<1>        needs_qfi_push,
+                        qfi_t         qfi,
+                        tc_t          tc) {
+        load_pdr(ctr_id, far_id, needs_gtpu_decap, tc);
+        fabric_md.spgw.qfi = qfi;
+        fabric_md.spgw.needs_qfi_push = (_BOOL)needs_qfi_push;
     }
 
     // These two tables scale well and cover the average case PDR
@@ -177,6 +185,10 @@ control SpgwIngress(inout parsed_headers_t hdr,
         key = {
             hdr.ipv4.dst_addr           : exact @name("tunnel_ipv4_dst");
             hdr.gtpu.teid               : exact @name("teid");
+            // Match valid only for 5G traffic
+            hdr.gtpu_ext_psc.isValid()  : exact @name("has_qfi");
+            // QFI metadata is 0 when gptu_ext_psc is invalid.
+            fabric_md.spgw.qfi          : exact @name("qfi");
         }
         actions = {
             load_pdr;
@@ -294,7 +306,6 @@ control SpgwEgress(
 
     counter(MAX_PDR_COUNTERS, CounterType.packets_and_bytes) pdr_counter;
 
-
     @hidden
     action gtpu_encap() {
         hdr.gtpu_ipv4.setValid();
@@ -320,7 +331,6 @@ control SpgwEgress(
                 + (UDP_HDR_SIZE + GTP_HDR_SIZE);
         hdr.gtpu_udp.checksum = 0; // Updated later, if WITH_SPGW_UDP_CSUM_UPDATE
 
-
         hdr.outer_gtpu.setValid();
         hdr.outer_gtpu.version = GTP_V1;
         hdr.outer_gtpu.pt = GTP_PROTOCOL_TYPE_GTP;
@@ -333,10 +343,35 @@ control SpgwEgress(
         hdr.outer_gtpu.teid = fabric_md.spgw.teid;
     }
 
+    @hidden
+    action gtpu_encap_qfi() {
+        gtpu_encap();
+        hdr.gtpu_ipv4.total_len = hdr.ipv4.total_len
+                    + IPV4_HDR_SIZE + UDP_HDR_SIZE + GTP_HDR_SIZE
+                    + GTPU_OPTIONS_HDR_BYTES + GTPU_EXT_PSC_HDR_BYTES;
+        hdr.gtpu_udp.len = fabric_md.spgw.ipv4_len
+                    + UDP_HDR_SIZE + GTP_HDR_SIZE
+                    + GTPU_OPTIONS_HDR_BYTES + GTPU_EXT_PSC_HDR_BYTES;
+        hdr.outer_gtpu.msglen = fabric_md.spgw.ipv4_len
+                    + GTPU_OPTIONS_HDR_BYTES + GTPU_EXT_PSC_HDR_BYTES;
+        hdr.outer_gtpu.ex_flag = 1;
+        hdr.outer_gtpu_options.setValid();
+        hdr.outer_gtpu_options.next_ext = GTPU_NEXT_EXT_PSC;
+        hdr.outer_gtpu_ext_psc.setValid();
+        hdr.outer_gtpu_ext_psc.type = GTPU_EXT_PSC_TYPE_DL;
+        hdr.outer_gtpu_ext_psc.len = GTPU_EXT_PSC_LEN;
+        hdr.outer_gtpu_ext_psc.qfi = fabric_md.spgw.qfi;
+        hdr.outer_gtpu_ext_psc.next_ext = GTPU_NEXT_EXT_NONE;
+    }
+
     apply {
         if (fabric_md.spgw.skip_spgw == _FALSE) {
             if (fabric_md.spgw.needs_gtpu_encap == _TRUE) {
-                gtpu_encap();
+                if (fabric_md.spgw.needs_qfi_push == _TRUE) {
+                    gtpu_encap_qfi();
+                } else {
+                    gtpu_encap();
+                }
             }
             if (fabric_md.spgw.skip_egress_pdr_ctr == _FALSE) {
                 pdr_counter.count(fabric_md.spgw.ctr_id);

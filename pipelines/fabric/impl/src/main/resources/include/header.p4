@@ -139,6 +139,25 @@ header gtpu_t {
     teid_t  teid;       /* tunnel endpoint id */
 }
 
+// Follows gtpu_t if any of ex_flag, seq_flag, or npdu_flag is 1.
+header gtpu_options_t {
+    bit<16> seq_num;   /* Sequence number */
+    bit<8>  n_pdu_num; /* N-PDU number */
+    bit<8>  next_ext;  /* Next extension header */
+}
+
+// GTPU extension: PDU Session Container (PSC) -- 3GPP TS 38.415 version 15.2.0
+// https://www.etsi.org/deliver/etsi_ts/138400_138499/138415/15.02.00_60/ts_138415v150200p.pdf
+header gtpu_ext_psc_t {
+    bit<8> len;      /* Length in 4-octet units (common to all extensions) */
+    bit<4> type;     /* Uplink or downlink */
+    bit<4> spare0;   /* Reserved */
+    bit<1> ppp;      /* Paging Policy Presence (UL only, not supported) */
+    bit<1> rqi;      /* Reflective QoS Indicator (UL only) */
+    qfi_t  qfi;      /* QoS Flow Identifier */
+    bit<8> next_ext;
+}
+
 #ifdef WITH_SPGW
 struct spgw_meta_t {
     bit<16>           ipv4_len;
@@ -149,11 +168,13 @@ struct spgw_meta_t {
     pdr_ctr_id_t      ctr_id;
     far_id_t          far_id;
     spgw_interface_t  src_iface;
+    qfi_t             qfi;
     _BOOL             skip_spgw;
     _BOOL             notify_spgwc;
     _BOOL             needs_gtpu_encap;
     _BOOL             needs_gtpu_decap;
     _BOOL             skip_egress_pdr_ctr;
+    _BOOL             needs_qfi_push;
 }
 #endif // WITH_SPGW
 
@@ -174,8 +195,25 @@ struct bng_meta_t {
 }
 #endif // WITH_BNG
 
+// Used for table lookup. Initialized with the parsed headers, or 0 if invalid.
+// Never updated by the pipe. When both outer and inner IPv4 headers are valid,
+// this should always carry the inner ones. The assumption is that we terminate
+// GTP tunnels in the fabric, so we are more interested in observing/blocking
+// the inner flows. We might revisit this decision in the future.
+struct lookup_metadata_t {
+    _BOOL                   is_ipv4;
+    bit<32>                 ipv4_src;
+    bit<32>                 ipv4_dst;
+    bit<8>                  ip_proto;
+    l4_port_t               l4_sport;
+    l4_port_t               l4_dport;
+    bit<8>                  icmp_type;
+    bit<8>                  icmp_code;
+}
+
 //Custom metadata definition
 struct fabric_metadata_t {
+    lookup_metadata_t lkp;
     bit<16>       ip_eth_type;
     vlan_id_t     vlan_id;
     bit<3>        vlan_pri;
@@ -199,6 +237,10 @@ struct fabric_metadata_t {
     bit<16>       l4_dport;
     bit<32>       ipv4_src_addr;
     bit<32>       ipv4_dst_addr;
+    slice_id_t    slice_id;
+    bit<2>        packet_color;
+    tc_t          tc;
+    bit<6>        dscp;
 #ifdef WITH_SPGW
     bit<16>       inner_l4_sport;
     bit<16>       inner_l4_dport;
@@ -228,8 +270,12 @@ struct parsed_headers_t {
     ipv4_t gtpu_ipv4;
     udp_t gtpu_udp;
     gtpu_t outer_gtpu;
+    gtpu_options_t outer_gtpu_options;
+    gtpu_ext_psc_t outer_gtpu_ext_psc;
 #endif // WITH_SPGW
     gtpu_t gtpu;
+    gtpu_options_t gtpu_options;
+    gtpu_ext_psc_t gtpu_ext_psc;
     ipv4_t inner_ipv4;
     udp_t inner_udp;
     tcp_t inner_tcp;
