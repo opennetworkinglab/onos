@@ -16,8 +16,6 @@
 
 package org.onosproject.pipelines.fabric.impl.behaviour.upf;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.ImmutableBiMap;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
@@ -41,7 +39,6 @@ import java.util.stream.Collectors;
 /**
  * Distributed implementation of FabricUpfStore.
  */
-// FIXME: this store is generic and not tied to a single device, should we have a store based on deviceId?
 @Component(immediate = true, service = FabricUpfStore.class)
 public final class DistributedFabricUpfStore implements FabricUpfStore {
 
@@ -54,18 +51,6 @@ public final class DistributedFabricUpfStore implements FabricUpfStore {
     protected static final KryoNamespace.Builder SERIALIZER = KryoNamespace.newBuilder()
             .register(KryoNamespaces.API)
             .register(UpfRuleIdentifier.class);
-
-    // TODO: check queue IDs for BMv2, is priority inverted?
-    // Mapping between scheduling priority ranges with BMv2 priority queues
-    private static final BiMap<Integer, Integer> SCHEDULING_PRIORITY_MAP
-            = new ImmutableBiMap.Builder<Integer, Integer>()
-            // Highest scheduling priority for 3GPP is 1 and highest BMv2 queue priority is 7
-            .put(1, 5)
-            .put(6, 4)
-            .put(7, 3)
-            .put(8, 2)
-            .put(9, 1)
-            .build();
 
     // EC map to remember the mapping far_id -> rule_id this is mostly used during reads,
     // it can be definitely removed by simplifying the logical pipeline
@@ -128,16 +113,6 @@ public final class DistributedFabricUpfStore implements FabricUpfStore {
     public int removeGlobalFarId(ImmutableByteSequence pfcpSessionId, int sessionLocalFarId) {
         UpfRuleIdentifier farId = new UpfRuleIdentifier(pfcpSessionId, sessionLocalFarId);
         return removeGlobalFarId(farId);
-    }
-
-    @Override
-    public String queueIdOf(int schedulingPriority) {
-        return (SCHEDULING_PRIORITY_MAP.get(schedulingPriority)).toString();
-    }
-
-    @Override
-    public String schedulingPriorityOf(int queueId) {
-        return (SCHEDULING_PRIORITY_MAP.inverse().get(queueId)).toString();
     }
 
     @Override

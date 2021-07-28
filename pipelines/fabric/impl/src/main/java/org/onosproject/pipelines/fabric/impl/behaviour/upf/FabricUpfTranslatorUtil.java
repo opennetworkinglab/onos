@@ -94,9 +94,19 @@ final class FabricUpfTranslatorUtil {
         return byteSeqToInt(getFieldValue(criterion, fieldId));
     }
 
+    static byte getFieldByte(PiCriterion criterion, PiMatchFieldId fieldId)
+            throws UpfProgrammableException {
+        return byteSeqToByte(getFieldValue(criterion, fieldId));
+    }
+
     static int getParamInt(PiAction action, PiActionParamId paramId)
             throws UpfProgrammableException {
         return byteSeqToInt(getParamValue(action, paramId));
+    }
+
+    static byte getParamByte(PiAction action, PiActionParamId paramId)
+            throws UpfProgrammableException {
+        return byteSeqToByte(getParamValue(action, paramId));
     }
 
     static Ip4Address getParamAddress(PiAction action, PiActionParamId paramId)
@@ -124,6 +134,14 @@ final class FabricUpfTranslatorUtil {
             return sequence.fit(32).asReadOnlyBuffer().getInt();
         } catch (ImmutableByteSequence.ByteSequenceTrimException e) {
             throw new IllegalArgumentException("Attempted to convert a >4 byte wide sequence to an integer!");
+        }
+    }
+
+    static byte byteSeqToByte(ImmutableByteSequence sequence) {
+        try {
+            return sequence.fit(8).asReadOnlyBuffer().get();
+        } catch (ImmutableByteSequence.ByteSequenceTrimException e) {
+            throw new IllegalArgumentException("Attempted to convert a >1 byte wide sequence to a byte!");
         }
     }
 

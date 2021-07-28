@@ -25,6 +25,9 @@ public final class Constants {
     public static final byte[] ONE = new byte[]{1};
     public static final byte[] ZERO = new byte[]{0};
 
+    public static final byte FALSE = (byte) 0x00;
+    public static final byte TRUE = (byte) 0x01;
+
     public static final long PORT_TYPE_MASK = 0x3;
     public static final byte PORT_TYPE_EDGE = 0x1;
     public static final byte PORT_TYPE_INFRA = 0x2;
@@ -39,6 +42,12 @@ public final class Constants {
 
     public static final int DEFAULT_VLAN = 4094;
     public static final int DEFAULT_PW_TRANSPORT_VLAN = 4090;
+
+    // Default Slice and Traffic Class IDs
+    public static final int DEFAULT_SLICE_ID = 0;
+    public static final int DEFAULT_TC = 0;
+    public static final byte DEFAULT_QFI = (byte) 0x00;
+
 
     // hide default constructor
     private Constants() {
