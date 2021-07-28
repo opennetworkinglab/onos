@@ -54,18 +54,28 @@ import static org.onosproject.pipelines.fabric.FabricConstants.FABRIC_INGRESS_SP
 import static org.onosproject.pipelines.fabric.FabricConstants.FAR_ID;
 import static org.onosproject.pipelines.fabric.FabricConstants.HDR_FAR_ID;
 import static org.onosproject.pipelines.fabric.FabricConstants.HDR_GTPU_IS_VALID;
+import static org.onosproject.pipelines.fabric.FabricConstants.HDR_HAS_QFI;
 import static org.onosproject.pipelines.fabric.FabricConstants.HDR_IPV4_DST_ADDR;
+import static org.onosproject.pipelines.fabric.FabricConstants.HDR_QFI;
 import static org.onosproject.pipelines.fabric.FabricConstants.HDR_TEID;
 import static org.onosproject.pipelines.fabric.FabricConstants.HDR_TUNNEL_IPV4_DST;
 import static org.onosproject.pipelines.fabric.FabricConstants.HDR_UE_ADDR;
 import static org.onosproject.pipelines.fabric.FabricConstants.NEEDS_GTPU_DECAP;
+import static org.onosproject.pipelines.fabric.FabricConstants.NEEDS_QFI_PUSH;
 import static org.onosproject.pipelines.fabric.FabricConstants.NOTIFY_CP;
-import static org.onosproject.pipelines.fabric.FabricConstants.QID;
+import static org.onosproject.pipelines.fabric.FabricConstants.QFI;
+import static org.onosproject.pipelines.fabric.FabricConstants.SLICE_ID;
 import static org.onosproject.pipelines.fabric.FabricConstants.SRC_IFACE;
+import static org.onosproject.pipelines.fabric.FabricConstants.TC;
 import static org.onosproject.pipelines.fabric.FabricConstants.TEID;
 import static org.onosproject.pipelines.fabric.FabricConstants.TUNNEL_DST_ADDR;
 import static org.onosproject.pipelines.fabric.FabricConstants.TUNNEL_SRC_ADDR;
 import static org.onosproject.pipelines.fabric.FabricConstants.TUNNEL_SRC_PORT;
+import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.DEFAULT_QFI;
+import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.DEFAULT_SLICE_ID;
+import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.DEFAULT_TC;
+import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.FALSE;
+import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.TRUE;
 
 /**
  * Provides logic to translate UPF entities into pipeline-specific ones and vice-versa.
@@ -140,23 +150,17 @@ public class FabricUpfTranslator {
             throw new UpfProgrammableException(String.format("Unable to find local far id of %s", globalFarId));
         }
 
-        PiActionId actionId = action.id();
-        if (actionId.equals(FABRIC_INGRESS_SPGW_LOAD_PDR)) {
-            int schedulingPriority = 0;
-            pdrBuilder.withSchedulingPriority(schedulingPriority);
-        } else if (actionId.equals(FABRIC_INGRESS_SPGW_LOAD_PDR_QOS)) {
-            int queueId = FabricUpfTranslatorUtil.getParamInt(action, QID);
-            String schedulingPriority = fabricUpfStore.schedulingPriorityOf(queueId);
-            if (schedulingPriority == null) {
-                throw new UpfProgrammableException("Undefined Scheduling Priority");
-            }
-            pdrBuilder.withSchedulingPriority(Integer.parseInt(schedulingPriority));
-        } else {
-            throw new UpfProgrammableException("Unknown action ID");
-        }
         pdrBuilder.withCounterId(FabricUpfTranslatorUtil.getParamInt(action, CTR_ID))
                 .withLocalFarId(farId.getSessionLocalId())
                 .withSessionId(farId.getPfcpSessionId());
+
+        PiActionId actionId = action.id();
+        if (actionId.equals(FABRIC_INGRESS_SPGW_LOAD_PDR_QOS)) {
+            pdrBuilder.withQfi(FabricUpfTranslatorUtil.getParamByte(action, QFI));
+            if (FabricUpfTranslatorUtil.getParamByte(action, NEEDS_QFI_PUSH) == TRUE) {
+                pdrBuilder.withQfiPush();
+            }
+        }
 
         if (FabricUpfTranslatorUtil.fieldIsPresent(match, HDR_TEID)) {
             // F-TEID is only present for GTP-matching PDRs
@@ -164,6 +168,11 @@ public class FabricUpfTranslator {
             Ip4Address tunnelDst = FabricUpfTranslatorUtil.getFieldAddress(match, HDR_TUNNEL_IPV4_DST);
             pdrBuilder.withTeid(teid)
                     .withTunnelDst(tunnelDst);
+            if (FabricUpfTranslatorUtil.fieldIsPresent(match, HDR_HAS_QFI) &&
+                    FabricUpfTranslatorUtil.getFieldByte(match, HDR_HAS_QFI) == TRUE) {
+                pdrBuilder.withQfi(FabricUpfTranslatorUtil.getFieldByte(match, HDR_QFI));
+                pdrBuilder.withQfiMatch();
+            }
         } else if (FabricUpfTranslatorUtil.fieldIsPresent(match, HDR_UE_ADDR)) {
             // And UE address is only present for non-GTP-matching PDRs
             pdrBuilder.withUeAddr(FabricUpfTranslatorUtil.getFieldAddress(match, HDR_UE_ADDR));
@@ -324,45 +333,52 @@ public class FabricUpfTranslator {
      */
     public FlowRule pdrToFabricEntry(PacketDetectionRule pdr, DeviceId deviceId, ApplicationId appId, int priority)
             throws UpfProgrammableException {
-        PiCriterion match;
-        PiTableId tableId;
-        PiAction action;
+        final PiCriterion match;
+        final PiTableId tableId;
+        final PiAction action;
 
-        if (pdr.matchesEncapped()) {
-            match = PiCriterion.builder()
-                    .matchExact(HDR_TEID, pdr.teid().asArray())
-                    .matchExact(HDR_TUNNEL_IPV4_DST, pdr.tunnelDest().toInt())
-                    .build();
-            tableId = FABRIC_INGRESS_SPGW_UPLINK_PDRS;
-        } else if (pdr.matchesUnencapped()) {
-            match = PiCriterion.builder()
-                    .matchExact(HDR_UE_ADDR, pdr.ueAddress().toInt())
-                    .build();
-            tableId = FABRIC_INGRESS_SPGW_DOWNLINK_PDRS;
-        } else {
-            throw new UpfProgrammableException("Flexible PDRs not yet supported! Cannot translate " + pdr.toString());
-        }
+        final PiCriterion.Builder matchBuilder = PiCriterion.builder();
 
-        PiAction.Builder builder = PiAction.builder()
+        PiAction.Builder actionBuilder = PiAction.builder()
                 .withParameters(Arrays.asList(
                         new PiActionParam(CTR_ID, pdr.counterId()),
                         new PiActionParam(FAR_ID, fabricUpfStore.globalFarIdOf(pdr.sessionId(), pdr.farId())),
-                        new PiActionParam(NEEDS_GTPU_DECAP, pdr.matchesEncapped() ? 1 : 0)
+                        new PiActionParam(NEEDS_GTPU_DECAP, pdr.matchesEncapped() ?
+                                TRUE : FALSE),
+                        new PiActionParam(TC, DEFAULT_TC)
                 ));
-        if (pdr.hasSchedulingPriority()) {
-            String queueId = fabricUpfStore.queueIdOf(pdr.schedulingPriority());
-            if (queueId == null) {
-                throw new UpfProgrammableException("Udefined Scheduling Priority");
+        PiActionId actionId = FABRIC_INGRESS_SPGW_LOAD_PDR;
+        if (pdr.matchesEncapped()) {
+            tableId = FABRIC_INGRESS_SPGW_UPLINK_PDRS;
+            matchBuilder.matchExact(HDR_TEID, pdr.teid().asArray())
+                    .matchExact(HDR_TUNNEL_IPV4_DST, pdr.tunnelDest().toInt());
+            if (pdr.matchQfi()) {
+                matchBuilder.matchExact(HDR_HAS_QFI, TRUE)
+                        .matchExact(HDR_QFI, pdr.qfi());
+            } else {
+                matchBuilder.matchExact(HDR_HAS_QFI, FALSE)
+                        .matchExact(HDR_QFI, DEFAULT_QFI);
+                if (pdr.hasQfi()) {
+                    actionId = FABRIC_INGRESS_SPGW_LOAD_PDR_QOS;
+                    actionBuilder.withParameter(new PiActionParam(QFI, pdr.qfi()))
+                            .withParameter(new PiActionParam(NEEDS_QFI_PUSH, FALSE));
+                }
             }
-            action = builder
-                    .withId(FABRIC_INGRESS_SPGW_LOAD_PDR_QOS)
-                    .withParameter(new PiActionParam(QID, Integer.parseInt(queueId)))
-                    .build();
+        } else if (pdr.matchesUnencapped()) {
+            tableId = FABRIC_INGRESS_SPGW_DOWNLINK_PDRS;
+            matchBuilder.matchExact(HDR_UE_ADDR, pdr.ueAddress().toInt());
+            if (pdr.hasQfi()) {
+                actionBuilder.withParameter(new PiActionParam(QFI, pdr.qfi()));
+                actionId = FABRIC_INGRESS_SPGW_LOAD_PDR_QOS;
+            }
+            actionBuilder.withParameter(
+                    new PiActionParam(NEEDS_QFI_PUSH, pdr.pushQfi() ? TRUE : FALSE));
         } else {
-            action = builder
-                    .withId(FABRIC_INGRESS_SPGW_LOAD_PDR)
-                    .build();
+            throw new UpfProgrammableException("Flexible PDRs not yet supported! Cannot translate " + pdr);
         }
+        match = matchBuilder.build();
+        action = actionBuilder.withId(actionId)
+                .build();
         return DefaultFlowRule.builder()
                 .forDevice(deviceId).fromApp(appId).makePermanent()
                 .forTable(tableId)
@@ -407,6 +423,7 @@ public class FabricUpfTranslator {
         PiAction action = PiAction.builder()
                 .withId(FABRIC_INGRESS_SPGW_LOAD_IFACE)
                 .withParameter(new PiActionParam(SRC_IFACE, interfaceTypeInt))
+                .withParameter(new PiActionParam(SLICE_ID, DEFAULT_SLICE_ID))
                 .build();
         return DefaultFlowRule.builder()
                 .forDevice(deviceId).fromApp(appId).makePermanent()

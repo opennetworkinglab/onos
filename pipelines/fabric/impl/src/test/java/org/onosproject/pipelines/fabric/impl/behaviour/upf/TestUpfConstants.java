@@ -50,18 +50,28 @@ import static org.onosproject.pipelines.fabric.FabricConstants.FABRIC_INGRESS_SP
 import static org.onosproject.pipelines.fabric.FabricConstants.FAR_ID;
 import static org.onosproject.pipelines.fabric.FabricConstants.HDR_FAR_ID;
 import static org.onosproject.pipelines.fabric.FabricConstants.HDR_GTPU_IS_VALID;
+import static org.onosproject.pipelines.fabric.FabricConstants.HDR_HAS_QFI;
 import static org.onosproject.pipelines.fabric.FabricConstants.HDR_IPV4_DST_ADDR;
+import static org.onosproject.pipelines.fabric.FabricConstants.HDR_QFI;
 import static org.onosproject.pipelines.fabric.FabricConstants.HDR_TEID;
 import static org.onosproject.pipelines.fabric.FabricConstants.HDR_TUNNEL_IPV4_DST;
 import static org.onosproject.pipelines.fabric.FabricConstants.HDR_UE_ADDR;
 import static org.onosproject.pipelines.fabric.FabricConstants.NEEDS_GTPU_DECAP;
+import static org.onosproject.pipelines.fabric.FabricConstants.NEEDS_QFI_PUSH;
 import static org.onosproject.pipelines.fabric.FabricConstants.NOTIFY_CP;
-import static org.onosproject.pipelines.fabric.FabricConstants.QID;
+import static org.onosproject.pipelines.fabric.FabricConstants.QFI;
+import static org.onosproject.pipelines.fabric.FabricConstants.SLICE_ID;
 import static org.onosproject.pipelines.fabric.FabricConstants.SRC_IFACE;
+import static org.onosproject.pipelines.fabric.FabricConstants.TC;
 import static org.onosproject.pipelines.fabric.FabricConstants.TEID;
 import static org.onosproject.pipelines.fabric.FabricConstants.TUNNEL_DST_ADDR;
 import static org.onosproject.pipelines.fabric.FabricConstants.TUNNEL_SRC_ADDR;
 import static org.onosproject.pipelines.fabric.FabricConstants.TUNNEL_SRC_PORT;
+import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.DEFAULT_QFI;
+import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.DEFAULT_SLICE_ID;
+import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.DEFAULT_TC;
+import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.FALSE;
+import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.TRUE;
 import static org.onosproject.pipelines.fabric.impl.behaviour.upf.FabricUpfTranslator.INTERFACE_ACCESS;
 import static org.onosproject.pipelines.fabric.impl.behaviour.upf.FabricUpfTranslator.INTERFACE_CORE;
 
@@ -90,11 +100,8 @@ public final class TestUpfConstants {
             .hash()
             .asInt();
 
-    public static final int UPLINK_PRIORITY = 9;
-    public static final int DOWNLINK_PRIORITY = 1;
-    public static final int UPLINK_QID = 1;
-    public static final int DOWNLINK_QID = 5;
-    public static final int DEFAULT_SCHEDULING_PRIORITY = 0;
+    public static final byte UPLINK_QFI = 1;
+    public static final byte DOWNLINK_QFI = 5;
 
     public static final ImmutableByteSequence TEID_VALUE = ImmutableByteSequence.copyFrom(0xff);
     public static final Ip4Address UE_ADDR = Ip4Address.valueOf("17.0.0.1");
@@ -116,7 +123,6 @@ public final class TestUpfConstants {
             .withLocalFarId(UPLINK_FAR_ID)
             .withSessionId(SESSION_ID)
             .withCounterId(UPLINK_COUNTER_CELL_ID)
-            .withSchedulingPriority(DEFAULT_SCHEDULING_PRIORITY)
             .build();
 
     public static final PacketDetectionRule DOWNLINK_PDR = PacketDetectionRule.builder()
@@ -124,24 +130,42 @@ public final class TestUpfConstants {
             .withLocalFarId(DOWNLINK_FAR_ID)
             .withSessionId(SESSION_ID)
             .withCounterId(DOWNLINK_COUNTER_CELL_ID)
-            .withSchedulingPriority(DEFAULT_SCHEDULING_PRIORITY)
             .build();
 
-    public static final PacketDetectionRule UPLINK_PRIORITY_PDR = PacketDetectionRule.builder()
+    public static final PacketDetectionRule UPLINK_QOS_PDR = PacketDetectionRule.builder()
             .withTunnelDst(S1U_ADDR)
             .withTeid(TEID_VALUE)
             .withLocalFarId(UPLINK_FAR_ID)
             .withSessionId(SESSION_ID)
             .withCounterId(UPLINK_COUNTER_CELL_ID)
-            .withSchedulingPriority(UPLINK_PRIORITY)
+            .withQfi(UPLINK_QFI)
+            .withQfiMatch()
             .build();
 
-    public static final PacketDetectionRule DOWNLINK_PRIORITY_PDR = PacketDetectionRule.builder()
+    public static final PacketDetectionRule UPLINK_QOS_4G_PDR = PacketDetectionRule.builder()
+            .withTunnelDst(S1U_ADDR)
+            .withTeid(TEID_VALUE)
+            .withLocalFarId(UPLINK_FAR_ID)
+            .withSessionId(SESSION_ID)
+            .withCounterId(UPLINK_COUNTER_CELL_ID)
+            .withQfi(UPLINK_QFI)
+            .build();
+
+    public static final PacketDetectionRule DOWNLINK_QOS_PDR = PacketDetectionRule.builder()
             .withUeAddr(UE_ADDR)
             .withLocalFarId(DOWNLINK_FAR_ID)
             .withSessionId(SESSION_ID)
             .withCounterId(DOWNLINK_COUNTER_CELL_ID)
-            .withSchedulingPriority(DOWNLINK_PRIORITY)
+            .withQfi(DOWNLINK_QFI)
+            .withQfiPush()
+            .build();
+
+    public static final PacketDetectionRule DOWNLINK_QOS_4G_PDR = PacketDetectionRule.builder()
+            .withUeAddr(UE_ADDR)
+            .withLocalFarId(DOWNLINK_FAR_ID)
+            .withSessionId(SESSION_ID)
+            .withCounterId(DOWNLINK_COUNTER_CELL_ID)
+            .withQfi(DOWNLINK_QFI)
             .build();
 
     public static final ForwardingActionRule UPLINK_FAR = ForwardingActionRule.builder()
@@ -158,13 +182,38 @@ public final class TestUpfConstants {
 
     public static final UpfInterface DOWNLINK_INTERFACE = UpfInterface.createUePoolFrom(UE_POOL);
 
-    public static final FlowRule FABRIC_UPLINK_PRIORITY_PDR = DefaultFlowRule.builder()
+    public static final FlowRule FABRIC_UPLINK_QOS_PDR = DefaultFlowRule.builder()
             .forDevice(DEVICE_ID).fromApp(APP_ID).makePermanent()
             .forTable(FABRIC_INGRESS_SPGW_UPLINK_PDRS)
             .withSelector(DefaultTrafficSelector.builder()
                                   .matchPi(PiCriterion.builder()
                                                    .matchExact(HDR_TEID, TEID_VALUE.asArray())
                                                    .matchExact(HDR_TUNNEL_IPV4_DST, S1U_ADDR.toInt())
+                                                   .matchExact(HDR_HAS_QFI, TRUE)
+                                                   .matchExact(HDR_QFI, UPLINK_QFI)
+                                           .build()).build())
+            .withTreatment(DefaultTrafficTreatment.builder()
+                                   .piTableAction(PiAction.builder()
+                                                          .withId(FABRIC_INGRESS_SPGW_LOAD_PDR)
+                                                          .withParameters(Arrays.asList(
+                                                                  new PiActionParam(CTR_ID, UPLINK_COUNTER_CELL_ID),
+                                                                  new PiActionParam(FAR_ID, UPLINK_PHYSICAL_FAR_ID),
+                                                                  new PiActionParam(NEEDS_GTPU_DECAP, TRUE),
+                                                                  new PiActionParam(TC, DEFAULT_TC)
+                                                          ))
+                                                          .build()).build())
+            .withPriority(DEFAULT_PRIORITY)
+            .build();
+
+    public static final FlowRule FABRIC_UPLINK_QOS_4G_PDR = DefaultFlowRule.builder()
+            .forDevice(DEVICE_ID).fromApp(APP_ID).makePermanent()
+            .forTable(FABRIC_INGRESS_SPGW_UPLINK_PDRS)
+            .withSelector(DefaultTrafficSelector.builder()
+                                  .matchPi(PiCriterion.builder()
+                                                   .matchExact(HDR_TEID, TEID_VALUE.asArray())
+                                                   .matchExact(HDR_TUNNEL_IPV4_DST, S1U_ADDR.toInt())
+                                                   .matchExact(HDR_HAS_QFI, FALSE)
+                                                   .matchExact(HDR_QFI, DEFAULT_QFI)
                                                    .build()).build())
             .withTreatment(DefaultTrafficTreatment.builder()
                                    .piTableAction(PiAction.builder()
@@ -172,14 +221,17 @@ public final class TestUpfConstants {
                                                           .withParameters(Arrays.asList(
                                                                   new PiActionParam(CTR_ID, UPLINK_COUNTER_CELL_ID),
                                                                   new PiActionParam(FAR_ID, UPLINK_PHYSICAL_FAR_ID),
-                                                                  new PiActionParam(NEEDS_GTPU_DECAP, 1),
-                                                                  new PiActionParam(QID, UPLINK_QID)
+                                                                  new PiActionParam(NEEDS_GTPU_DECAP, TRUE),
+                                                                  new PiActionParam(NEEDS_QFI_PUSH, FALSE),
+                                                                  new PiActionParam(QFI,
+                                                                                    UPLINK_QFI),
+                                                                  new PiActionParam(TC, DEFAULT_TC)
                                                           ))
                                                           .build()).build())
             .withPriority(DEFAULT_PRIORITY)
             .build();
 
-    public static final FlowRule FABRIC_DOWNLINK_PRIORITY_PDR = DefaultFlowRule.builder()
+    public static final FlowRule FABRIC_DOWNLINK_QOS_PDR = DefaultFlowRule.builder()
             .forDevice(DEVICE_ID).fromApp(APP_ID).makePermanent()
             .forTable(FABRIC_INGRESS_SPGW_DOWNLINK_PDRS)
             .withSelector(DefaultTrafficSelector.builder()
@@ -192,8 +244,32 @@ public final class TestUpfConstants {
                                                           .withParameters(Arrays.asList(
                                                                   new PiActionParam(CTR_ID, DOWNLINK_COUNTER_CELL_ID),
                                                                   new PiActionParam(FAR_ID, DOWNLINK_PHYSICAL_FAR_ID),
-                                                                  new PiActionParam(NEEDS_GTPU_DECAP, 0),
-                                                                  new PiActionParam(QID, DOWNLINK_QID)
+                                                                  new PiActionParam(QFI, DOWNLINK_QFI),
+                                                                  new PiActionParam(NEEDS_GTPU_DECAP, FALSE),
+                                                                  new PiActionParam(NEEDS_QFI_PUSH, TRUE),
+                                                                  new PiActionParam(TC, DEFAULT_TC)
+                                                          ))
+                                                          .build()).build())
+            .withPriority(DEFAULT_PRIORITY)
+            .build();
+
+    public static final FlowRule FABRIC_DOWNLINK_QOS_4G_PDR = DefaultFlowRule.builder()
+            .forDevice(DEVICE_ID).fromApp(APP_ID).makePermanent()
+            .forTable(FABRIC_INGRESS_SPGW_DOWNLINK_PDRS)
+            .withSelector(DefaultTrafficSelector.builder()
+                                  .matchPi(PiCriterion.builder()
+                                                   .matchExact(HDR_UE_ADDR, UE_ADDR.toInt())
+                                                   .build()).build())
+            .withTreatment(DefaultTrafficTreatment.builder()
+                                   .piTableAction(PiAction.builder()
+                                                          .withId(FABRIC_INGRESS_SPGW_LOAD_PDR_QOS)
+                                                          .withParameters(Arrays.asList(
+                                                                  new PiActionParam(CTR_ID, DOWNLINK_COUNTER_CELL_ID),
+                                                                  new PiActionParam(FAR_ID, DOWNLINK_PHYSICAL_FAR_ID),
+                                                                  new PiActionParam(QFI, DOWNLINK_QFI),
+                                                                  new PiActionParam(NEEDS_GTPU_DECAP, FALSE),
+                                                                  new PiActionParam(NEEDS_QFI_PUSH, FALSE),
+                                                                  new PiActionParam(TC, DEFAULT_TC)
                                                           ))
                                                           .build()).build())
             .withPriority(DEFAULT_PRIORITY)
@@ -206,6 +282,8 @@ public final class TestUpfConstants {
                                   .matchPi(PiCriterion.builder()
                                                    .matchExact(HDR_TEID, TEID_VALUE.asArray())
                                                    .matchExact(HDR_TUNNEL_IPV4_DST, S1U_ADDR.toInt())
+                                                   .matchExact(HDR_HAS_QFI, FALSE)
+                                                   .matchExact(HDR_QFI, DEFAULT_QFI)
                                                    .build()).build())
             .withTreatment(DefaultTrafficTreatment.builder()
                                    .piTableAction(PiAction.builder()
@@ -213,7 +291,8 @@ public final class TestUpfConstants {
                                                           .withParameters(Arrays.asList(
                                                                   new PiActionParam(CTR_ID, UPLINK_COUNTER_CELL_ID),
                                                                   new PiActionParam(FAR_ID, UPLINK_PHYSICAL_FAR_ID),
-                                                                  new PiActionParam(NEEDS_GTPU_DECAP, 1)
+                                                                  new PiActionParam(NEEDS_GTPU_DECAP, TRUE),
+                                                                  new PiActionParam(TC, DEFAULT_TC)
                                                           ))
                                                           .build()).build())
             .withPriority(DEFAULT_PRIORITY)
@@ -232,7 +311,8 @@ public final class TestUpfConstants {
                                                           .withParameters(Arrays.asList(
                                                                   new PiActionParam(CTR_ID, DOWNLINK_COUNTER_CELL_ID),
                                                                   new PiActionParam(FAR_ID, DOWNLINK_PHYSICAL_FAR_ID),
-                                                                  new PiActionParam(NEEDS_GTPU_DECAP, 0)
+                                                                  new PiActionParam(NEEDS_GTPU_DECAP, FALSE),
+                                                                  new PiActionParam(TC, DEFAULT_TC)
                                                           ))
                                                           .build()).build())
             .withPriority(DEFAULT_PRIORITY)
@@ -293,6 +373,7 @@ public final class TestUpfConstants {
                                            PiAction.builder()
                                                    .withId(FABRIC_INGRESS_SPGW_LOAD_IFACE)
                                                    .withParameter(new PiActionParam(SRC_IFACE, INTERFACE_ACCESS))
+                                                   .withParameter(new PiActionParam(SLICE_ID, DEFAULT_SLICE_ID))
                                                    .build()).build())
             .withPriority(DEFAULT_PRIORITY)
             .build();
@@ -311,6 +392,7 @@ public final class TestUpfConstants {
                                    .piTableAction(PiAction.builder()
                                                           .withId(FABRIC_INGRESS_SPGW_LOAD_IFACE)
                                                           .withParameter(new PiActionParam(SRC_IFACE, INTERFACE_CORE))
+                                                          .withParameter(new PiActionParam(SLICE_ID, DEFAULT_SLICE_ID))
                                                           .build()).build())
             .withPriority(DEFAULT_PRIORITY)
             .build();

@@ -73,10 +73,20 @@
 #define UDP_HDR_SIZE 8
 #define GTP_HDR_SIZE 8
 
+#define GTPU_OPTIONS_HDR_BYTES 4
+#define GTPU_EXT_PSC_HDR_BYTES 4
+
 #define UDP_PORT_GTPU 2152
 #define GTP_GPDU 0xff
 #define GTP_V1 0x01
 #define GTP_PROTOCOL_TYPE_GTP 0x01
+#define GTPU_NEXT_EXT_NONE 0x0
+#define GTPU_NEXT_EXT_PSC 0x85
+// 1*4-octets
+#define GTPU_EXT_PSC_LEN 8w1
+
+const bit<4> GTPU_EXT_PSC_TYPE_DL = 4w0; // Downlink
+const bit<4> GTPU_EXT_PSC_TYPE_UL = 4w1; // Uplink
 
 #define PKT_INSTANCE_TYPE_NORMAL 0
 #define PKT_INSTANCE_TYPE_INGRESS_CLONE 1
@@ -95,6 +105,12 @@ typedef bit<16> mcast_group_id_t;
 typedef bit<12> vlan_id_t;
 typedef bit<32> ipv4_addr_t;
 typedef bit<16> l4_port_t;
+typedef bit<SLICE_ID_WIDTH> slice_id_t;
+typedef bit<TC_WIDTH> tc_t; // Traffic Class (for QoS) within a slice
+typedef bit<SLICE_TC_WIDTH> slice_tc_t; // Slice and TC identifier
+
+const slice_id_t DEFAULT_SLICE_ID = 0;
+const tc_t DEFAULT_TC = 0;
 
 // SPGW types
 typedef bit<2> direction_t;
@@ -105,6 +121,7 @@ typedef bit<32> pcc_rule_id_t;
 typedef bit<32> far_id_t;
 typedef bit<32> pdr_ctr_id_t;
 typedef bit<32> teid_t;
+typedef bit<6> qfi_t;
 typedef bit<5> qid_t;
 
 const spgw_interface_t SPGW_IFACE_UNKNOWN = 8w0;

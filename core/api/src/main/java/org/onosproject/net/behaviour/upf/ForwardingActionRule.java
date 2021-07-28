@@ -86,7 +86,8 @@ public final class ForwardingActionRule {
         } else if (tunnel != null) {
             actionName = "Encap";
             actionParams = String.format("Src=%s, SPort=%d, TEID=%s, Dst=%s",
-                    tunnel.src().toString(), tunnel.srcPort(), tunnel.teid().toString(), tunnel.dst().toString());
+                                         tunnel.src().toString(), tunnel.srcPort(),
+                                         tunnel.teid().toString(), tunnel.dst().toString());
         } else {
             actionName = "Forward";
         }
