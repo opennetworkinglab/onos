@@ -86,6 +86,7 @@ import static org.onosproject.store.meter.impl.DistributedMeterStore.ReuseStrate
 import static org.onosproject.net.meter.MeterFailReason.TIMEOUT;
 import static org.onosproject.net.meter.MeterCellId.MeterCellType.INDEX;
 import static org.onosproject.net.meter.MeterCellId.MeterCellType.PIPELINE_INDEPENDENT;
+import static org.onosproject.net.meter.MeterStoreResult.Type.FAIL;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -204,10 +205,30 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
     }
 
     @Override
+    public CompletableFuture<MeterStoreResult> addOrUpdateMeter(Meter meter) {
+        // Init steps
+        CompletableFuture<MeterStoreResult> future = new CompletableFuture<>();
+        MeterKey key = MeterKey.key(meter.deviceId(), meter.meterCellId());
+        MeterData data = new MeterData(meter, null);
+        // Store the future related to the operation
+        futures.put(key, future);
+        // Check if the meter exists
+        try {
+            meters.compute(key, (k, v) -> data);
+        } catch (StorageException e) {
+            log.error("{} thrown a storage exception: {}", e.getStackTrace()[0].getMethodName(),
+                    e.getMessage(), e);
+            futures.remove(key);
+            future.completeExceptionally(e);
+        }
+        return future;
+    }
+
+    @Override
     public CompletableFuture<MeterStoreResult> storeMeter(Meter meter) {
         // Init steps
         CompletableFuture<MeterStoreResult> future = new CompletableFuture<>();
-        MeterKey key = MeterKey.key(meter.deviceId(), meter.id());
+        MeterKey key = MeterKey.key(meter.deviceId(), meter.meterCellId());
         // Store the future related to the operation
         futures.put(key, future);
         // Store the meter data
@@ -228,7 +249,7 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
     public CompletableFuture<MeterStoreResult> deleteMeter(Meter meter) {
         // Init steps
         CompletableFuture<MeterStoreResult> future = new CompletableFuture<>();
-        MeterKey key = MeterKey.key(meter.deviceId(), meter.id());
+        MeterKey key = MeterKey.key(meter.deviceId(), meter.meterCellId());
         // Store the future related to the operation
         futures.put(key, future);
         // Create the meter data
@@ -267,6 +288,20 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
     }
 
     @Override
+    public MeterStoreResult storeMeterFeatures(Collection<MeterFeatures> meterfeatures) {
+        // These store operations is treated as one single operation
+        // If one of them is failed, Fail is returned
+        // But the failed operation will not block the rest.
+        MeterStoreResult result = MeterStoreResult.success();
+        for (MeterFeatures mf : meterfeatures) {
+            if (storeMeterFeatures(mf).type() == FAIL) {
+                result = MeterStoreResult.fail(TIMEOUT);
+            }
+        }
+        return result;
+    }
+
+    @Override
     public MeterStoreResult deleteMeterFeatures(DeviceId deviceId) {
         MeterStoreResult result = MeterStoreResult.success();
         try {
@@ -286,10 +321,30 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
     }
 
     @Override
+    public MeterStoreResult deleteMeterFeatures(Collection<MeterFeatures> meterfeatures) {
+        // These store operations is treated as one single operation
+        // If one of them is failed, Fail is returned
+        // But the failed operation will not block the rest.
+        MeterStoreResult result = MeterStoreResult.success();
+        for (MeterFeatures mf : meterfeatures) {
+            try {
+                MeterTableKey key = MeterTableKey.key(mf.deviceId(), mf.scope());
+                metersFeatures.remove(key);
+            } catch (StorageException e) {
+                log.error("{} thrown a storage exception: {}", e.getStackTrace()[0].getMethodName(),
+                        e.getMessage(), e);
+                result = MeterStoreResult.fail(TIMEOUT);
+            }
+        }
+
+        return result;
+    }
+
+    @Override
     // TODO Should we remove it ? We are not using it
     public CompletableFuture<MeterStoreResult> updateMeter(Meter meter) {
         CompletableFuture<MeterStoreResult> future = new CompletableFuture<>();
-        MeterKey key = MeterKey.key(meter.deviceId(), meter.id());
+        MeterKey key = MeterKey.key(meter.deviceId(), meter.meterCellId());
         futures.put(key, future);
 
         MeterData data = new MeterData(meter, null);
@@ -309,7 +364,7 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
     @Override
     public Meter updateMeterState(Meter meter) {
         // Update meter if present (stats workflow)
-        MeterKey key = MeterKey.key(meter.deviceId(), meter.id());
+        MeterKey key = MeterKey.key(meter.deviceId(), meter.meterCellId());
         Versioned<MeterData> value = meters.computeIfPresent(key, (k, v) -> {
             DefaultMeter m = (DefaultMeter) v.meter();
             MeterState meterState = m.state();
