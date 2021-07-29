@@ -444,6 +444,7 @@ public final class KryoNamespaces {
                     URL.class,
                     Instructions.MeterInstruction.class,
                     Instructions.StatTriggerInstruction.class,
+                    Instructions.TruncateInstruction.class,
                     StatTriggerFlag.class,
                     StatTriggerField.class,
                     MeterCellId.class,

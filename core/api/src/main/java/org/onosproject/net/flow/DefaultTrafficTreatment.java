@@ -273,6 +273,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
                 case L4MODIFICATION:
                 case PROTOCOL_INDEPENDENT:
                 case EXTENSION:
+                case TRUNCATE:
                     current.add(instruction);
                     break;
                 case TABLE:
@@ -556,6 +557,11 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
             clear = treatment.clearedDeferred();
             current = previous;
             return this;
+        }
+
+        @Override
+        public TrafficTreatment.Builder truncate(int maxLen) {
+            return add(Instructions.truncate(maxLen));
         }
 
         @Override
