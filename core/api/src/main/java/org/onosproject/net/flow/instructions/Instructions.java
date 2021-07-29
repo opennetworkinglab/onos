@@ -49,6 +49,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -545,6 +546,17 @@ public final class Instructions {
     }
 
     /**
+     * Creates a truncate instruction.
+     *
+     * @param maxLen the maximum frame length in bytes, must be a positive integer
+     * @return truncate instruction
+     */
+    public static TruncateInstruction truncate(int maxLen) {
+        checkArgument(maxLen > 0, "Truncate max length must be a positive integer.");
+        return new TruncateInstruction(maxLen);
+    }
+
+    /**
      *  No Action instruction.
      */
     public static final class NoActionInstruction implements Instruction {
@@ -974,6 +986,44 @@ public final class Instructions {
         }
     }
 
+    public static final class TruncateInstruction implements Instruction {
+        private int maxLen;
+
+        public TruncateInstruction(int maxLen) {
+            this.maxLen = maxLen;
+        }
+
+        public int maxLen() {
+            return maxLen;
+        }
+
+        @Override
+        public Type type() {
+            return Type.TRUNCATE;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            TruncateInstruction that = (TruncateInstruction) o;
+            return maxLen == that.maxLen;
+        }
+
+        @Override
+        public int hashCode() {
+            return com.google.common.base.Objects.hashCode(maxLen);
+        }
+
+        @Override
+        public String toString() {
+            return type() + SEPARATOR + maxLen;
+        }
+    }
 }
 
 

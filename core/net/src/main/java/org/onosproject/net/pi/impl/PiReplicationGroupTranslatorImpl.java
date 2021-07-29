@@ -16,13 +16,16 @@
 
 package org.onosproject.net.pi.impl;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.onosproject.net.Device;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
+import org.onosproject.net.flow.instructions.Instructions.TruncateInstruction;
 import org.onosproject.net.group.Group;
+import org.onosproject.net.group.GroupBucket;
 import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
@@ -69,22 +72,41 @@ final class PiReplicationGroupTranslatorImpl {
 
         checkNotNull(group);
 
-        final List<Instruction> instructions = group.buckets().buckets().stream()
-                .flatMap(b -> b.treatment().allInstructions().stream())
-                .collect(Collectors.toList());
-
-        final boolean hasNonOutputInstr = instructions.stream()
-                .anyMatch(i -> !i.type().equals(Instruction.Type.OUTPUT));
-
-        if (instructions.size() != group.buckets().buckets().size()
-                || hasNonOutputInstr) {
-            throw new PiTranslationException(
-                    "support only groups with just one OUTPUT instruction per bucket");
+        final List<OutputInstruction> outInstructions = Lists.newArrayList();
+        int truncateMaxLen = PiCloneSessionEntry.DO_NOT_TRUNCATE;
+        for (GroupBucket bucket : group.buckets().buckets()) {
+            int numInstructionsInBucket = bucket.treatment().allInstructions().size();
+            List<OutputInstruction> outputs =
+                    getInstructions(bucket, Instruction.Type.OUTPUT, OutputInstruction.class);
+            List<TruncateInstruction> truncates =
+                    getInstructions(bucket, Instruction.Type.TRUNCATE, TruncateInstruction.class);
+            if (outputs.size() != 1) {
+                throw new PiTranslationException(
+                        "support only groups with just one OUTPUT instruction per bucket");
+            }
+            outInstructions.add(outputs.get(0));
+            if (truncates.size() != 0) {
+                if (group.type() != GroupDescription.Type.CLONE) {
+                    throw new PiTranslationException("only CLONE group support truncate instruction");
+                }
+                if (truncates.size() != 1) {
+                    throw new PiTranslationException(
+                            "support only groups with just one TRUNCATE instruction per bucket");
+                }
+                int truncateInstMaxLen = truncates.get(0).maxLen();
+                if (truncateMaxLen != PiCloneSessionEntry.DO_NOT_TRUNCATE &&
+                        truncateMaxLen != truncateInstMaxLen) {
+                    throw new PiTranslationException("all TRUNCATE instruction must be the same in a CLONE group");
+                }
+                truncateMaxLen = truncateInstMaxLen;
+            } else if (truncateMaxLen != PiCloneSessionEntry.DO_NOT_TRUNCATE) {
+                // No truncate instruction found in this bucket, but previous bucket contains one.
+                throw new PiTranslationException("all TRUNCATE instruction must be the same in a CLONE group");
+            }
+            if (numInstructionsInBucket != outputs.size() + truncates.size()) {
+                throw new PiTranslationException("bucket contains unsupported instruction(s)");
+            }
         }
-
-        final List<OutputInstruction> outInstructions = instructions.stream()
-                .map(i -> (OutputInstruction) i)
-                .collect(Collectors.toList());
 
         switch (group.type()) {
             case ALL:
@@ -96,6 +118,7 @@ final class PiReplicationGroupTranslatorImpl {
                 return PiCloneSessionEntry.builder()
                         .withSessionId(group.id().id())
                         .addReplicas(getReplicas(outInstructions, device))
+                        .withMaxPacketLengthBytes(truncateMaxLen)
                         .build();
             default:
                 throw new PiTranslationException(format(
@@ -139,5 +162,14 @@ final class PiReplicationGroupTranslatorImpl {
                     "interpreter cannot map logical port " + logicalPort.toString());
         }
         return PortNumber.portNumber(mappedPort.get());
+    }
+
+    private static <I extends Instruction> List<I> getInstructions(GroupBucket bucket,
+                                                                   Instruction.Type type,
+                                                                   Class<I> instructionClass) {
+        return bucket.treatment().allInstructions().stream()
+                .filter(i -> i.type() == type)
+                .map(instructionClass::cast)
+                .collect(Collectors.toList());
     }
 }
