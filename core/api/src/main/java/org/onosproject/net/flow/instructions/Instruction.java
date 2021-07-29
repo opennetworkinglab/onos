@@ -101,7 +101,12 @@ public interface Instruction {
         /**
          * Signifies that statistics will be triggered.
          */
-        STAT_TRIGGER
+        STAT_TRIGGER,
+
+        /**
+         * Signifies that the packet should be truncated.
+         */
+        TRUNCATE
     }
 
     /**

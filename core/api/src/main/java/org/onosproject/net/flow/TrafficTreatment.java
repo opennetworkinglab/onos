@@ -480,6 +480,14 @@ public interface TrafficTreatment {
                             StatTriggerFlag statTriggerFlag);
 
         /**
+         * Adds a truncate instruction.
+         *
+         * @param maxLen the maximum frame length in bytes, must be a positive integer
+         * @return a treatment builder
+         */
+        Builder truncate(int maxLen);
+
+        /**
          * Add all instructions from another treatment.
          *
          * @param treatment another treatment
