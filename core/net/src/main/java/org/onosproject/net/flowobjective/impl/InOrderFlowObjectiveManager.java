@@ -159,6 +159,10 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
         nextCacheEventExecutor.shutdown();
 
         super.deactivate();
+        // Due to the check in the AbstractStore we have to pass the right instance
+        // to perform a correct clean up. The unset delegate in the super class
+        // will not have any effect
+        flowObjectiveStore.unsetDelegate(delegate);
     }
 
     /**
