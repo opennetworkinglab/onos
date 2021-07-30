@@ -22,13 +22,15 @@ import java.util.Objects;
 import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
- * Represents a next action specified by traffic treatment.
+ * Represents a next action specified by traffic treatment and weight.
  */
 public final class DefaultNextTreatment implements NextTreatment {
     private final TrafficTreatment treatment;
+    private final int weight;
 
-    private DefaultNextTreatment(TrafficTreatment treatment) {
+    private DefaultNextTreatment(TrafficTreatment treatment, int weight) {
         this.treatment = treatment;
+        this.weight = weight;
     }
 
     /**
@@ -47,7 +49,23 @@ public final class DefaultNextTreatment implements NextTreatment {
      * @return an instance of DefaultNextTreatment
      */
     public static DefaultNextTreatment of(TrafficTreatment treatment) {
-        return new DefaultNextTreatment(treatment);
+        return new DefaultNextTreatment(treatment, DEFAULT_WEIGHT);
+    }
+
+    /**
+     * Returns an instance of DefaultNextTreatment with given traffic treatment and weight.
+     *
+     * @param treatment traffic treatment
+     * @param weight the weight of next treatment
+     * @return an instance of DefaultNextTreatment
+     */
+    public static DefaultNextTreatment of(TrafficTreatment treatment, int weight) {
+        return new DefaultNextTreatment(treatment, weight);
+    }
+
+    @Override
+    public int weight() {
+        return weight;
     }
 
     @Override
@@ -57,7 +75,7 @@ public final class DefaultNextTreatment implements NextTreatment {
 
     @Override
     public int hashCode() {
-        return Objects.hash(treatment);
+        return Objects.hash(treatment, weight);
     }
 
     @Override
@@ -67,7 +85,7 @@ public final class DefaultNextTreatment implements NextTreatment {
         }
         if (obj instanceof DefaultNextTreatment) {
             final DefaultNextTreatment other = (DefaultNextTreatment) obj;
-            return Objects.equals(this.treatment, other.treatment);
+            return Objects.equals(this.treatment, other.treatment) && Objects.equals(this.weight, other.weight);
         }
         return false;
     }
@@ -76,6 +94,7 @@ public final class DefaultNextTreatment implements NextTreatment {
     public String toString() {
         return toStringHelper(this)
                 .add("treatment", treatment)
+                .add("weight", weight)
                 .toString();
     }
 }

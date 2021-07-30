@@ -24,14 +24,17 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  */
 public final class IdNextTreatment implements NextTreatment {
     private final int nextId;
+    private final int weight;
 
     /**
      * Constructs IdNextTreatment.
      *
      * @param nextId next id
+     * @param weight weight
      */
-    private IdNextTreatment(int nextId) {
+    private IdNextTreatment(int nextId, int weight) {
         this.nextId = nextId;
+        this.weight = weight;
     }
 
     /**
@@ -50,7 +53,22 @@ public final class IdNextTreatment implements NextTreatment {
      * @return an instance of IdNextTreatment
      */
     public static IdNextTreatment of(int nextId) {
-        return new IdNextTreatment(nextId);
+        return new IdNextTreatment(nextId, DEFAULT_WEIGHT);
+    }
+    /**
+     * Returns an instance of IdNextTreatment with given next id and weight.
+     *
+     * @param nextId next id
+     * @param weight weight
+     * @return an instance of IdNextTreatment
+     */
+    public static IdNextTreatment of(int nextId, int weight) {
+        return new IdNextTreatment(nextId, weight);
+    }
+
+    @Override
+    public int weight() {
+        return weight;
     }
 
     @Override
@@ -59,7 +77,7 @@ public final class IdNextTreatment implements NextTreatment {
     }
     @Override
     public int hashCode() {
-        return Objects.hash(nextId);
+        return Objects.hash(nextId, weight);
     }
 
     @Override
@@ -69,7 +87,7 @@ public final class IdNextTreatment implements NextTreatment {
         }
         if (obj instanceof IdNextTreatment) {
             final IdNextTreatment other = (IdNextTreatment) obj;
-            return this.nextId == other.nextId;
+            return this.nextId == other.nextId && this.weight == other.weight;
         }
         return false;
     }
@@ -78,6 +96,7 @@ public final class IdNextTreatment implements NextTreatment {
     public String toString() {
         return toStringHelper(this)
                 .add("nextId", nextId)
+                .add("weight", weight)
                 .toString();
     }
 }
