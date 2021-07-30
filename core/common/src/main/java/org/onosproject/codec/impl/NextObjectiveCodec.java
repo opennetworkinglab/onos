@@ -25,6 +25,8 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flowobjective.DefaultNextObjective;
 import org.onosproject.net.flowobjective.NextObjective;
+import org.onosproject.net.flowobjective.NextTreatment;
+import org.onosproject.net.flowobjective.DefaultNextTreatment;
 import org.slf4j.Logger;
 
 import java.util.stream.IntStream;
@@ -47,6 +49,7 @@ public final class NextObjectiveCodec extends JsonCodec<NextObjective> {
     private static final String OPERATION = "operation";
     private static final String TREATMENTS = "treatments";
     private static final String META = "meta";
+    private static final String WEIGHT = "weight";
 
     // messages to be printed out
     private static final String MISSING_MEMBER_MESSAGE =
@@ -79,9 +82,13 @@ public final class NextObjectiveCodec extends JsonCodec<NextObjective> {
 
         // encode treatments
         ArrayNode treatments = context.mapper().createArrayNode();
-        nextObjective.next().forEach(t -> {
-            ObjectNode treatmentJson = trafficTreatmentCodec.encode(t, context);
-            treatments.add(treatmentJson);
+        nextObjective.nextTreatments().forEach(nt -> {
+            if (nt.type().equals(NextTreatment.Type.TREATMENT)) {
+                TrafficTreatment tt = ((DefaultNextTreatment) nt).treatment();
+                ObjectNode treatmentJson = trafficTreatmentCodec.encode(tt, context);
+                treatmentJson.put(WEIGHT, nt.weight());
+                treatments.add(treatmentJson);
+            }
         });
         result.set(TREATMENTS, treatments);
 
@@ -148,7 +155,10 @@ public final class NextObjectiveCodec extends JsonCodec<NextObjective> {
         if (treatmentsJson != null) {
             IntStream.range(0, treatmentsJson.size()).forEach(i -> {
                 ObjectNode treatmentJson = get(treatmentsJson, i);
-                builder.addTreatment(trafficTreatmentCodec.decode(treatmentJson, context));
+                JsonNode weightJson = treatmentJson.get(WEIGHT);
+                int weight = (weightJson != null) ? weightJson.asInt() : NextTreatment.DEFAULT_WEIGHT;
+                builder.addTreatment(DefaultNextTreatment.of(
+                        trafficTreatmentCodec.decode(treatmentJson, context), weight));
             });
         }
 

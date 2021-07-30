@@ -16,9 +16,13 @@
 package org.onosproject.codec.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.onosproject.net.flowobjective.NextObjective;
+import org.onosproject.net.flowobjective.NextTreatment;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Hamcrest matcher for nextObjective.
@@ -55,6 +59,22 @@ public final class NextObjectiveJsonMatcher extends TypeSafeDiagnosingMatcher<Js
         JsonNode jsonTreatments = jsonNextObj.get("treatments");
         if (jsonTreatments.size() != nextObjective.next().size()) {
             description.appendText("treatments size was " + jsonTreatments.size());
+            return false;
+        }
+
+        // check the weight
+        boolean result = true;
+        List<NextTreatment> nt = new ArrayList(nextObjective.nextTreatments());
+        for (int i = 0; i < jsonTreatments.size(); i++) {
+            ObjectNode jsonTreatment = jsonTreatments.path(i).isObject() &&
+                    !jsonTreatments.path(i).isNull() ? (ObjectNode) jsonTreatments.path(i) : null;
+            int jsonWeight = jsonTreatment.get("weight").asInt();
+            if (jsonWeight != nt.get(i).weight()) {
+                description.appendText("weight of NextTreatment with index " + i + " was " + jsonWeight);
+                result = false;
+            }
+        }
+        if (!result) {
             return false;
         }
 
