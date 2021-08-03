@@ -161,7 +161,10 @@ final class PiGroupTranslatorImpl {
                     .withAction((PiAction) tableAction)
                     .build();
 
-            piActionGroupBuilder.addMember(member, bucket.weight());
+            // NOTE Indirect groups have weight set to -1 which is not supported
+            // by P4RT - setting to 1 to avoid problems with the p4rt server.
+            final int weight = group.type() == GroupDescription.Type.INDIRECT ? 1 : bucket.weight();
+            piActionGroupBuilder.addMember(member, weight);
         }
 
         return piActionGroupBuilder.build();

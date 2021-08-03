@@ -53,6 +53,7 @@ import org.onosproject.pipelines.fabric.FabricConstants;
 import org.onosproject.pipelines.fabric.impl.behaviour.FabricUtils;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -268,8 +269,18 @@ class NextObjectiveTranslator
             return;
         }
 
-        // Updated result builder with hashed group.
-        final int groupId = selectGroup(obj, resultBuilder);
+        // Updated result builder with hashed group or indirect group
+        // use indirect group allow us to optimize the resource in those
+        // devices that preallocate memory based on the maxGroupSize
+        final int groupId;
+        if (obj.type() == NextObjective.Type.HASHED) {
+            groupId = selectGroup(obj, resultBuilder);
+        } else if (obj.type() == NextObjective.Type.SIMPLE) {
+            groupId = indirectGroup(obj, resultBuilder);
+        } else {
+            throw new FabricPipelinerException("Cannot translate BROADCAST next objective" +
+                    "into hashedNext actions");
+        }
 
         if (isGroupModifyOp(obj) || obj.op() == Objective.Operation.VERIFY) {
             // No changes to flow rules.
@@ -501,6 +512,44 @@ class NextObjectiveTranslator
                         groupKey,
                         groupId,
                         obj.appId()));
+
+        return groupId;
+    }
+
+    private int indirectGroup(NextObjective obj,
+                              ObjectiveTranslation.Builder resultBuilder)
+            throws FabricPipelinerException {
+
+        if (isGroupModifyOp(obj)) {
+            throw new FabricPipelinerException("Simple next objective does not support" +
+                    "*_TO_EXISTING operations");
+        }
+
+        final PiTableId hashedTableId = FabricConstants.FABRIC_INGRESS_NEXT_HASHED;
+        final List<DefaultNextTreatment> defaultNextTreatments =
+                defaultNextTreatments(obj.nextTreatments(), true);
+
+        if (defaultNextTreatments.size() != 1) {
+            throw new FabricPipelinerException("Simple next objective must have a single" +
+                    " treatment");
+        }
+
+        final TrafficTreatment piTreatment;
+        final DefaultNextTreatment defaultNextTreatment = defaultNextTreatments.get(0);
+        piTreatment = mapTreatmentToPiIfNeeded(defaultNextTreatment.treatment(), hashedTableId);
+        handleEgress(obj, defaultNextTreatment.treatment(), resultBuilder, false);
+        final GroupBucket groupBucket = DefaultGroupBucket.createIndirectGroupBucket(piTreatment);
+
+        final int groupId = obj.id();
+        final PiGroupKey groupKey = (PiGroupKey) getGroupKey(obj);
+
+        resultBuilder.addGroup(new DefaultGroupDescription(
+                deviceId,
+                GroupDescription.Type.INDIRECT,
+                new GroupBuckets(Collections.singletonList(groupBucket)),
+                groupKey,
+                groupId,
+                obj.appId()));
 
         return groupId;
     }
