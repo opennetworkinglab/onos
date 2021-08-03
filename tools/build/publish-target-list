@@ -32,6 +32,7 @@
     //protocols/p4runtime/proto:onos-protocols-p4runtime-proto
     //protocols/grpc/utils:onos-protocols-grpc-utils
     //protocols/gnmi/api:onos-protocols-gnmi-api
+    //protocols/gnmi/stub:onos-protocols-gnmi-stub
     //protocols/gnoi/api:onos-protocols-gnoi-api
     //protocols/lisp/api:onos-protocols-lisp-api
     //protocols/lisp/msg:onos-protocols-lisp-msg
