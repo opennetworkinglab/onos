@@ -35,8 +35,24 @@ public interface MeterFeatures {
      * Returns the maximum number of meters accepted by the device.
      *
      * @return the maximum meter value.
+     * @deprecated in onos-2.5 replaced by {@link #startIndex()} and {@link #endIndex()}
      */
+    @Deprecated
     long maxMeter();
+
+    /**
+     * Returns the start index (inclusive) of the meters.
+     *
+     * @return the start index
+     */
+    long startIndex();
+
+    /**
+     * Returns the end index (inclusive) of the meters.
+     *
+     * @return the end index
+     */
+    long endIndex();
 
     /**
      * Returns band types supported.
@@ -89,6 +105,13 @@ public interface MeterFeatures {
     Set<MeterFeaturesFlag> features();
 
     /**
+     * Returns Meter Scope.
+     *
+     * @return meter scope
+     */
+    MeterScope scope();
+
+    /**
      * A meter features builder.
      */
     interface Builder {
@@ -105,8 +128,26 @@ public interface MeterFeatures {
          *
          * @param maxMeter the maximum meters available
          * @return this builder
+         * @deprecated in onos-2.5 replaced by {@link #withStartIndex(long)} and {@link #withEndIndex(long)}
          */
+        @Deprecated
         Builder withMaxMeters(long maxMeter);
+
+        /**
+         * Assigns the start index (inclusive) for this meter features.
+         *
+         * @param startIndex the start index
+         * @return this builder
+         */
+        Builder withStartIndex(long startIndex);
+
+        /**
+         * Assigns the end index (inclusive) for this meter features.
+         *
+         * @param endIndex the end index
+         * @return this builder
+         */
+        Builder withEndIndex(long endIndex);
 
         /**
          * Assigns the max bands value for this meter features.
@@ -163,6 +204,14 @@ public interface MeterFeatures {
          * @return this builder
          */
         Builder withFeatures(Set<MeterFeaturesFlag> featureFlags);
+
+        /**
+         * Assigns the meter scope.
+         *
+         * @param scope the scope
+         * @return this builder
+         */
+        Builder withScope(MeterScope scope);
 
         /**
          * Builds the Meter Features based on the specified parameters.

@@ -74,7 +74,9 @@ public interface MeterService
      * @param deviceId the device id
      * @return the allocated meter id, null if there is an internal error
      * or there are no meter ids available
+     * @deprecated in onos-2.5
      */
+    @Deprecated
     MeterId allocateMeterId(DeviceId deviceId);
 
     /**
@@ -82,7 +84,9 @@ public interface MeterService
      *
      * @param deviceId the device id
      * @param meterId the id to be freed
+     * @deprecated in onos-2.5
      */
+    @Deprecated
     void freeMeterId(DeviceId deviceId, MeterId meterId);
 
     /**

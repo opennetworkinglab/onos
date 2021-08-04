@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Foundation
+ * Copyright 2021-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,21 +20,19 @@ import org.onosproject.net.DeviceId;
 import java.util.Objects;
 
 /**
- * A meter features key represents a meter features uniquely.
- * Right now only deviceId is used but this class might be useful in
- * virtualization in which a unique deviceId could have multiple features (guess).
- * @deprecated in onos-2.5 replaced by {@link MeterTableKey}
+ * MeterTableKey is used to represent a single meter table in each device uniquely.
  */
-@Deprecated
-public final class MeterFeaturesKey {
+public final class MeterTableKey {
     private final DeviceId deviceId;
+    private final MeterScope scope;
 
-    private MeterFeaturesKey(DeviceId deviceId) {
+    private MeterTableKey(DeviceId deviceId, MeterScope scope) {
         this.deviceId = deviceId;
+        this.scope = scope;
     }
 
-    public static MeterFeaturesKey key(DeviceId did) {
-        return new MeterFeaturesKey(did);
+    public static MeterTableKey key(DeviceId did, MeterScope scope) {
+        return new MeterTableKey(did, scope);
     }
 
     @Override
@@ -45,21 +43,25 @@ public final class MeterFeaturesKey {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        MeterFeaturesKey mfk = (MeterFeaturesKey) obj;
-        return Objects.equals(deviceId, mfk.deviceId());
+        MeterTableKey mtk = (MeterTableKey) obj;
+        return Objects.equals(deviceId, mtk.deviceId()) && Objects.equals(scope, mtk.scope());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(deviceId);
+        return Objects.hash(deviceId, scope);
     }
 
     @Override
     public String toString() {
-        return "mfk@" + deviceId.toString();
+        return "mtk@" + deviceId.toString() + " scope:" + scope.toString();
     }
 
     public DeviceId deviceId() {
         return deviceId;
+    }
+
+    public MeterScope scope() {
+        return scope;
     }
 }

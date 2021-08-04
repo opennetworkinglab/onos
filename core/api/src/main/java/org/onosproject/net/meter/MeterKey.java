@@ -26,9 +26,9 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 public final class MeterKey {
 
     private final DeviceId deviceId;
-    private final MeterId id;
+    private final MeterCellId id;
 
-    private MeterKey(DeviceId deviceId, MeterId id) {
+    private MeterKey(DeviceId deviceId, MeterCellId id) {
         this.deviceId = deviceId;
         this.id = id;
     }
@@ -37,7 +37,22 @@ public final class MeterKey {
         return deviceId;
     }
 
+    /**
+     * @return a MeterId iff the id is a MeterId
+     * otherwise, return null
+     * @deprecated in onos-2.5 replaced by {@link #key(DeviceId,MeterCellId)}
+     * extends MeterKey to support both MeterId and PiMeterCellId
+     */
+    @Deprecated
     public MeterId meterId() {
+        if (id instanceof MeterId) {
+            return (MeterId) id;
+        } else {
+            return null;
+        }
+    }
+
+    public MeterCellId meterCellId() {
         return id;
     }
 
@@ -63,10 +78,22 @@ public final class MeterKey {
     public String toString() {
         return toStringHelper(this)
                 .add("deviceId", deviceId)
-                .add("meterId", id).toString();
+                .add("meterCellId", id).toString();
     }
 
+    /**
+     * @param deviceId a DeviceId
+     * @param id a MeterId
+     * @return a MeterKey contains DeviceId and MeterId
+     * @deprecated in onos-2.5 replaced by {@link #key(DeviceId,MeterCellId)}
+     * extends MeterKey to support both MeterId and PiMeterCellId
+     */
+    @Deprecated
     public static MeterKey key(DeviceId deviceId, MeterId id) {
+        return new MeterKey(deviceId, id);
+    }
+
+    public static MeterKey key(DeviceId deviceId, MeterCellId id) {
         return new MeterKey(deviceId, id);
     }
 }
