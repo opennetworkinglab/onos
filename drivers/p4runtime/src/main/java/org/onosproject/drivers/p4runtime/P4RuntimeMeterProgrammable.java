@@ -37,6 +37,7 @@ import org.onosproject.net.pi.model.PiMeterModel;
 import org.onosproject.net.pi.model.PiPipelineModel;
 import org.onosproject.net.pi.runtime.PiMeterCellConfig;
 import org.onosproject.net.pi.runtime.PiMeterCellHandle;
+import org.onosproject.net.pi.runtime.PiMeterCellId;
 import org.onosproject.net.pi.service.PiMeterTranslator;
 import org.onosproject.net.pi.service.PiTranslationException;
 
@@ -51,6 +52,9 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.meter.MeterOperation.Type.ADD;
+import static org.onosproject.net.meter.MeterOperation.Type.MODIFY;
+import static org.onosproject.net.meter.MeterOperation.Type.REMOVE;
 
 /**
  * Implementation of MeterProgrammable behaviour for P4Runtime.
@@ -95,19 +99,27 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
     }
 
     private boolean processMeterOp(MeterOperation meterOp) {
-
-        if (meterOp.type() != MeterOperation.Type.MODIFY) {
-            log.warn("P4Runtime meter operations must be MODIFY!");
-            return false;
-        }
-
         PiMeterCellConfig piMeterCellConfig;
-        try {
-            piMeterCellConfig = translator.translate(meterOp.meter(), pipeconf);
-        } catch (PiTranslationException e) {
-            log.warn("Unable translate meter, aborting meter operation {}: {}", meterOp.type(), e.getMessage());
-            log.debug("exception", e);
-            return false;
+        switch (meterOp.type()) {
+            case ADD:
+            case MODIFY:
+                // Create a config for modify operation
+                try {
+                    piMeterCellConfig = translator.translate(meterOp.meter(), pipeconf);
+                } catch (PiTranslationException e) {
+                    log.warn("Unable translate meter, aborting meter operation {}: {}", meterOp.type(), e.getMessage());
+                    log.debug("exception", e);
+                    return false;
+                }
+                break;
+            case REMOVE:
+                // Create a empty config for reset operation
+                PiMeterCellId piMeterCellId = (PiMeterCellId) meterOp.meter().meterCellId();
+                piMeterCellConfig = PiMeterCellConfig.reset(piMeterCellId);
+                break;
+            default:
+                log.warn("Meter Operation type {} not supported", meterOp.type());
+                return false;
         }
 
         final PiMeterCellHandle handle = PiMeterCellHandle.of(deviceId, piMeterCellConfig);

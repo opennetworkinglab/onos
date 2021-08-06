@@ -34,8 +34,13 @@ public final class MeterEntryCodec
 
     static P4RuntimeOuterClass.MeterConfig getP4Config(PiMeterCellConfig piConfig)
             throws CodecException {
-        if (piConfig.meterBands().size() != 2) {
-            throw new CodecException("Number of meter bands should be 2");
+        // A reset config has no band
+        if (piConfig.isReset()) {
+            return null;
+        }
+        // A modify config has exactly 2 bands
+        if (!piConfig.isModify()) {
+            throw new CodecException("Number of meter bands should be 2 (Modify) or 0 (Reset)");
         }
         final PiMeterBand[] bands = piConfig.meterBands().toArray(new PiMeterBand[0]);
         long cir, cburst, pir, pburst;
@@ -68,12 +73,17 @@ public final class MeterEntryCodec
             throws P4InfoBrowser.NotFoundException, CodecException {
         final int meterId = browser.meters().getByName(
                 piEntity.cellId().meterId().id()).getPreamble().getId();
-        return P4RuntimeOuterClass.MeterEntry.newBuilder()
+        P4RuntimeOuterClass.MeterEntry.Builder builder =
+            P4RuntimeOuterClass.MeterEntry.newBuilder()
                 .setMeterId(meterId)
                 .setIndex(P4RuntimeOuterClass.Index.newBuilder()
-                                  .setIndex(piEntity.cellId().index()).build())
-                .setConfig(getP4Config(piEntity))
-                .build();
+                                .setIndex(piEntity.cellId().index()).build());
+        // We keep the config field unset if it is reset scenario
+        P4RuntimeOuterClass.MeterConfig meterConfig = getP4Config(piEntity);
+        if (meterConfig != null) {
+            builder = builder.setConfig(meterConfig);
+        }
+        return builder.build();
     }
 
     @Override

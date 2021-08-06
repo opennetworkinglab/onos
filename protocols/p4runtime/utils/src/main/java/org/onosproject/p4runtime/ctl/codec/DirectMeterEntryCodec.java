@@ -38,11 +38,16 @@ public final class DirectMeterEntryCodec
             PiMeterCellConfig piEntity, Object ignored, PiPipeconf pipeconf,
             P4InfoBrowser browser)
             throws CodecException {
-        return P4RuntimeOuterClass.DirectMeterEntry.newBuilder()
+        P4RuntimeOuterClass.DirectMeterEntry.Builder builder =
+            P4RuntimeOuterClass.DirectMeterEntry.newBuilder()
                 .setTableEntry(CODECS.tableEntry().encode(
-                        piEntity.cellId().tableEntry(), null, pipeconf))
-                .setConfig(MeterEntryCodec.getP4Config(piEntity))
-                .build();
+                        piEntity.cellId().tableEntry(), null, pipeconf));
+        // We keep the config field unset if it is reset scenario
+        P4RuntimeOuterClass.MeterConfig meterConfig = MeterEntryCodec.getP4Config(piEntity);
+        if (meterConfig != null) {
+            builder = builder.setConfig(meterConfig);
+        }
+        return builder.build();
     }
 
     @Override

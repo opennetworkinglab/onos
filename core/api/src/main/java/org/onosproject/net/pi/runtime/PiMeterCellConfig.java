@@ -24,6 +24,7 @@ import org.onosproject.net.DeviceId;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -64,6 +65,35 @@ public final class PiMeterCellConfig implements PiEntity {
      */
     public Collection<PiMeterBand> meterBands() {
         return piMeterBands;
+    }
+
+    /**
+     * Check if the config represents a modify operation.
+     *
+     * @return true if there are exactly 2 bands
+     */
+    public boolean isModify() {
+        return piMeterBands.size() == 2;
+    }
+
+    /**
+     * Check if the config represents a reset operation.
+     *
+     * @return true if there is no band.
+     */
+    public boolean isReset() {
+        return piMeterBands.isEmpty();
+    }
+
+    /**
+     * Returns a PiMeterCellConfig with no bands.
+     * Used to reset a PI meter cell.
+     *
+     * @param piMeterCellId the PiMeterCellId need to be reset
+     * @return a PiMeterCellConfig with no bands
+     */
+    public static PiMeterCellConfig reset(PiMeterCellId piMeterCellId) {
+        return new PiMeterCellConfig(piMeterCellId, Collections.emptyList());
     }
 
     @Override
