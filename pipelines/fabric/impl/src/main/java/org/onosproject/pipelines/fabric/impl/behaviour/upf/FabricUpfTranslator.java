@@ -368,11 +368,10 @@ public class FabricUpfTranslator {
             tableId = FABRIC_INGRESS_SPGW_DOWNLINK_PDRS;
             matchBuilder.matchExact(HDR_UE_ADDR, pdr.ueAddress().toInt());
             if (pdr.hasQfi()) {
-                actionBuilder.withParameter(new PiActionParam(QFI, pdr.qfi()));
+                actionBuilder.withParameter(new PiActionParam(QFI, pdr.qfi()))
+                        .withParameter(new PiActionParam(NEEDS_QFI_PUSH, pdr.pushQfi() ? TRUE : FALSE));
                 actionId = FABRIC_INGRESS_SPGW_LOAD_PDR_QOS;
             }
-            actionBuilder.withParameter(
-                    new PiActionParam(NEEDS_QFI_PUSH, pdr.pushQfi() ? TRUE : FALSE));
         } else {
             throw new UpfProgrammableException("Flexible PDRs not yet supported! Cannot translate " + pdr);
         }
