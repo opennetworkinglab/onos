@@ -114,6 +114,13 @@ public interface KubevirtNetwork {
     Set<KubevirtHostRoute> hostRoutes();
 
     /**
+     * Returns default route flag.
+     *
+     * @return default route
+     */
+    boolean defaultRoute();
+
+    /**
      * Returns the IP pool.
      *
      * @return IP pool
@@ -218,6 +225,14 @@ public interface KubevirtNetwork {
          * @return network builder
          */
         Builder gatewayIp(IpAddress ipAddress);
+
+        /**
+         * Returns network builder with supplied default route flag.
+         *
+         * @param flag default route
+         * @return network builder
+         */
+        Builder defaultRoute(boolean flag);
 
         /**
          * Returns network builder with supplied network CIDR.

@@ -649,7 +649,6 @@ public class KubevirtNetworkHandler {
             return;
         }
 
-
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPProtocol(IPv4.PROTOCOL_ICMP)

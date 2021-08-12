@@ -88,6 +88,7 @@ public class KubevirtNetworkWebResourceTest extends ResourceTest {
                 .cidr("10.10.10.0/24")
                 .mtu(1500)
                 .gatewayIp(IpAddress.valueOf("10.10.10.1"))
+                .defaultRoute(true)
                 .ipPool(new KubevirtIpPool(IpAddress.valueOf("10.10.10.100"),
                         IpAddress.valueOf("10.10.10.200")))
                 .build();

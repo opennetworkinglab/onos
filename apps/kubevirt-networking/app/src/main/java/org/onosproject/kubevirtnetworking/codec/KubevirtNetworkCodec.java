@@ -48,6 +48,7 @@ public final class KubevirtNetworkCodec extends JsonCodec<KubevirtNetwork> {
     private static final String MTU = "mtu";
     private static final String SEGMENT_ID = "segmentId";
     private static final String GATEWAY_IP = "gatewayIp";
+    private static final String DEFAULT_ROUTE = "defaultRoute";
     private static final String CIDR = "cidr";
     private static final String HOST_ROUTES = "hostRoutes";
     private static final String IP_POOL = "ipPool";
@@ -65,6 +66,7 @@ public final class KubevirtNetworkCodec extends JsonCodec<KubevirtNetwork> {
                 .put(NAME, network.name())
                 .put(MTU, network.mtu())
                 .put(GATEWAY_IP, network.gatewayIp().toString())
+                .put(DEFAULT_ROUTE, network.defaultRoute())
                 .put(CIDR, network.cidr());
 
         if (network.segmentId() != null) {
@@ -113,6 +115,8 @@ public final class KubevirtNetworkCodec extends JsonCodec<KubevirtNetwork> {
                 MTU + MISSING_MESSAGE);
         String gatewayIp = nullIsIllegal(json.get(GATEWAY_IP).asText(),
                 GATEWAY_IP + MISSING_MESSAGE);
+        boolean defaultRoute = nullIsIllegal(json.get(DEFAULT_ROUTE).asBoolean(),
+                DEFAULT_ROUTE + MISSING_MESSAGE);
         String cidr = nullIsIllegal(json.get(CIDR).asText(),
                 CIDR + MISSING_MESSAGE);
 
@@ -122,6 +126,7 @@ public final class KubevirtNetworkCodec extends JsonCodec<KubevirtNetwork> {
                 .name(name)
                 .mtu(mtu)
                 .gatewayIp(IpAddress.valueOf(gatewayIp))
+                .defaultRoute(defaultRoute)
                 .cidr(cidr);
 
         if (!type.equals(KubevirtNetwork.Type.FLAT.name())) {
