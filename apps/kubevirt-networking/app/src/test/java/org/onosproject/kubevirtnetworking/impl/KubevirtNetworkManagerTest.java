@@ -61,6 +61,7 @@ public class KubevirtNetworkManagerTest {
     private static final Integer MTU = 1500;
     private static final String SEGMENT_ID = "1";
     private static final IpAddress GATEWAY_IP = IpAddress.valueOf("10.10.10.1");
+    private static final boolean DEFAULT_ROUTE = true;
     private static final String CIDR = "10.10.10.0/24";
     private static final IpAddress IP_POOL_START = IpAddress.valueOf("10.10.10.100");
     private static final IpAddress IP_POOL_END = IpAddress.valueOf("10.10.10.200");
@@ -72,6 +73,7 @@ public class KubevirtNetworkManagerTest {
             .mtu(MTU)
             .segmentId(SEGMENT_ID)
             .gatewayIp(GATEWAY_IP)
+            .defaultRoute(DEFAULT_ROUTE)
             .cidr(CIDR)
             .ipPool(new KubevirtIpPool(IP_POOL_START, IP_POOL_END))
             .hostRoutes(ImmutableSet.of())
@@ -84,6 +86,7 @@ public class KubevirtNetworkManagerTest {
             .mtu(MTU)
             .segmentId(SEGMENT_ID)
             .gatewayIp(GATEWAY_IP)
+            .defaultRoute(DEFAULT_ROUTE)
             .cidr(CIDR)
             .ipPool(new KubevirtIpPool(IP_POOL_START, IP_POOL_END))
             .hostRoutes(ImmutableSet.of())

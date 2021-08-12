@@ -35,6 +35,7 @@ public final class KubevirtNetworkJsonMatcher extends TypeSafeDiagnosingMatcher<
     private static final String MTU = "mtu";
     private static final String SEGMENT_ID = "segmentId";
     private static final String GATEWAY_IP = "gatewayIp";
+    private static final String DEFAULT_ROUTE = "defaultRoute";
     private static final String CIDR = "cidr";
     private static final String HOST_ROUTES = "hostRoutes";
     private static final String IP_POOL = "ipPool";
@@ -83,6 +84,14 @@ public final class KubevirtNetworkJsonMatcher extends TypeSafeDiagnosingMatcher<
         String gatewayIp = network.gatewayIp().toString();
         if (!jsonGatewayIp.equals(gatewayIp)) {
             description.appendText("gateway IP was " + jsonGatewayIp);
+            return false;
+        }
+
+        // check default route
+        boolean jsonDefaultRoute = jsonNode.get(DEFAULT_ROUTE).asBoolean();
+        boolean defaultRoute = network.defaultRoute();
+        if (jsonDefaultRoute != defaultRoute) {
+            description.appendText("Default route was " + jsonDefaultRoute);
             return false;
         }
 

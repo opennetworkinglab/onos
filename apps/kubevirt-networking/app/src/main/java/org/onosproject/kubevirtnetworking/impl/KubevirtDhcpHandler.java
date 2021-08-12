@@ -411,8 +411,8 @@ public class KubevirtDhcpHandler {
             }
 
             // Sets the default router address up.
-            // Performs only if the gateway is set in subnet.
-            if (network.gatewayIp() != null) {
+            // Performs only if the gateway is set and default route is configure to true.
+            if (network.gatewayIp() != null && network.defaultRoute()) {
                 options.add(doRouterAddr(network));
             }
 

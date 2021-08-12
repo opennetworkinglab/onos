@@ -67,7 +67,7 @@ public class KubevirtListNetworkCommand extends AbstractShellCommand {
                                 0, CLI_NAME_LENGTH - CLI_MARGIN_LENGTH),
                         net.type().toString(),
                         net.segmentId() == null ? "N/A" : net.segmentId(),
-                        net.gatewayIp() == null ? "" : net.gatewayIp().toString());
+                        net.gatewayIp() == null ? "N/A" : net.gatewayIp().toString());
             }
         }
     }

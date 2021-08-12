@@ -43,6 +43,8 @@ public class DefaultKubevirtNetworkTest {
     private static final String SEGMENT_ID_2 = "2";
     private static final IpAddress GATEWAY_IP_1 = IpAddress.valueOf("10.10.10.1");
     private static final IpAddress GATEWAY_IP_2 = IpAddress.valueOf("20.20.20.1");
+    private static final boolean DEFAULT_ROUTE_1 = true;
+    private static final boolean DEFAULT_ROUTE_2 = false;
     private static final String CIDR_1 = "10.10.10.0/24";
     private static final String CIDR_2 = "20.20.20.0/24";
     private static final IpAddress IP_POOL_START_1 = IpAddress.valueOf("10.10.10.100");
@@ -76,6 +78,7 @@ public class DefaultKubevirtNetworkTest {
                 .mtu(MTU_1)
                 .segmentId(SEGMENT_ID_1)
                 .gatewayIp(GATEWAY_IP_1)
+                .defaultRoute(DEFAULT_ROUTE_1)
                 .cidr(CIDR_1)
                 .ipPool(new KubevirtIpPool(IP_POOL_START_1, IP_POOL_END_1))
                 .hostRoutes(ImmutableSet.of())
@@ -89,6 +92,7 @@ public class DefaultKubevirtNetworkTest {
                 .mtu(MTU_1)
                 .segmentId(SEGMENT_ID_1)
                 .gatewayIp(GATEWAY_IP_1)
+                .defaultRoute(DEFAULT_ROUTE_1)
                 .cidr(CIDR_1)
                 .ipPool(new KubevirtIpPool(IP_POOL_START_1, IP_POOL_END_1))
                 .hostRoutes(ImmutableSet.of())
@@ -102,6 +106,7 @@ public class DefaultKubevirtNetworkTest {
                 .mtu(MTU_2)
                 .segmentId(SEGMENT_ID_2)
                 .gatewayIp(GATEWAY_IP_2)
+                .defaultRoute(DEFAULT_ROUTE_2)
                 .cidr(CIDR_2)
                 .ipPool(new KubevirtIpPool(IP_POOL_START_2, IP_POOL_END_2))
                 .hostRoutes(ImmutableSet.of())
@@ -131,6 +136,7 @@ public class DefaultKubevirtNetworkTest {
         assertEquals(NAME_1, network.name());
         assertEquals(MTU_1, network.mtu());
         assertEquals(GATEWAY_IP_1, network.gatewayIp());
+        assertEquals(DEFAULT_ROUTE_1, network.defaultRoute());
         assertEquals(CIDR_1, network.cidr());
         assertEquals(new KubevirtIpPool(IP_POOL_START_1, IP_POOL_END_1), network.ipPool());
         assertEquals(ImmutableSet.of(DNS_1), network.dnses());

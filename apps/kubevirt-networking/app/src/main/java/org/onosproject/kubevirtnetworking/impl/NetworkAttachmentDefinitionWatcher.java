@@ -74,6 +74,7 @@ public class NetworkAttachmentDefinitionWatcher {
     private static final String MTU = "mtu";
     private static final String SEGMENT_ID = "segmentId";
     private static final String GATEWAY_IP = "gatewayIp";
+    private static final String DEFAULT_ROUTE = "defaultRoute";
     private static final String CIDR = "cidr";
     private static final String HOST_ROUTES = "hostRoutes";
     private static final String DESTINATION = "destination";
@@ -284,6 +285,7 @@ public class NetworkAttachmentDefinitionWatcher {
                     String type = configJson.getString(TYPE);
                     Integer mtu = configJson.getInt(MTU);
                     String gatewayIp = configJson.getString(GATEWAY_IP);
+                    boolean defaultRoute = configJson.getBoolean(DEFAULT_ROUTE);
 
                     if (!type.equalsIgnoreCase(FLAT.name())) {
                         builder.segmentId(configJson.getString(SEGMENT_ID));
@@ -334,7 +336,8 @@ public class NetworkAttachmentDefinitionWatcher {
                     }
 
                     builder.networkId(name).name(name).type(Type.valueOf(type))
-                            .mtu(mtu).gatewayIp(IpAddress.valueOf(gatewayIp)).cidr(cidr);
+                            .mtu(mtu).gatewayIp(IpAddress.valueOf(gatewayIp))
+                            .defaultRoute(defaultRoute).cidr(cidr);
 
                     return builder.build();
                 }
