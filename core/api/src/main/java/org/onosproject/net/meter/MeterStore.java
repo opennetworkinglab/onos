@@ -86,16 +86,6 @@ public interface MeterStore extends Store<MeterEvent, MeterStoreDelegate> {
     MeterStoreResult deleteMeterFeatures(Collection<MeterFeatures> meterfeatures);
 
     /**
-     * Updates a meter whose meter id is the same as the passed meter.
-     *
-     * @param meter a new meter
-     * @return a future indicating the result of the store operation
-     * @deprecated in onos-2.5 replaced by {@link #addOrUpdateMeter(Meter)}
-     */
-    @Deprecated
-    CompletableFuture<MeterStoreResult> updateMeter(Meter meter);
-
-    /**
      * Updates a given meter's state with the provided state.
      *
      * @param meter a meter
@@ -200,8 +190,18 @@ public interface MeterStore extends Store<MeterEvent, MeterStoreDelegate> {
      * This API is typically used when the device is offline.
      *
      * @param deviceId the device id
+     * @deprecated in onos-2.5, replaced by {@link #purgeMeters(DeviceId)}
      */
+    @Deprecated
     void purgeMeter(DeviceId deviceId);
+
+    /**
+     * Removes all meters of given device from store.
+     * This API is typically used when the device is offline.
+     *
+     * @param deviceId the device id
+     */
+    void purgeMeters(DeviceId deviceId);
 
     /**
      * Removes all meters of given device and for the given application from store.
@@ -211,5 +211,15 @@ public interface MeterStore extends Store<MeterEvent, MeterStoreDelegate> {
      * @param appId the application id
      */
     void purgeMeters(DeviceId deviceId, ApplicationId appId);
+
+    /**
+     * Enables/disables user defined index mode for the store. In this mode users
+     * can provide an index for the meter. Store may reject switching mode requests
+     * at run time if meters were already allocated.
+     *
+     * @param enable to enable/disable the user defined index mode.
+     * @return true if user defined index mode is enabled. False otherwise.
+     */
+    boolean userDefinedIndexMode(boolean enable);
 
 }

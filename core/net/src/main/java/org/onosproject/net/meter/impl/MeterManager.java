@@ -71,6 +71,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.PredictableExecutor.newPredictableExecutor;
@@ -82,6 +83,8 @@ import static org.onosproject.net.OsgiPropertyConstants.MM_NUM_THREADS;
 import static org.onosproject.net.OsgiPropertyConstants.MM_NUM_THREADS_DEFAULT;
 import static org.onosproject.net.OsgiPropertyConstants.MM_PURGE_ON_DISCONNECTION;
 import static org.onosproject.net.OsgiPropertyConstants.MM_PURGE_ON_DISCONNECTION_DEFAULT;
+import static org.onosproject.net.OsgiPropertyConstants.MM_USER_DEFINED_INDEX;
+import static org.onosproject.net.OsgiPropertyConstants.MM_USER_DEFINED_INDEX_DEFAULT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -97,6 +100,7 @@ import static org.slf4j.LoggerFactory.getLogger;
                 MM_NUM_THREADS + ":Integer=" + MM_NUM_THREADS_DEFAULT,
                 MM_FALLBACK_METER_POLL_FREQUENCY + ":Integer=" + MM_FALLBACK_METER_POLL_FREQUENCY_DEFAULT,
                 MM_PURGE_ON_DISCONNECTION + ":Boolean=" + MM_PURGE_ON_DISCONNECTION_DEFAULT,
+                MM_USER_DEFINED_INDEX + ":Boolean=" + MM_USER_DEFINED_INDEX_DEFAULT,
         }
 )
 public class MeterManager
@@ -141,6 +145,9 @@ public class MeterManager
 
     /** Purge entries associated with a device when the device goes offline. */
     private boolean purgeOnDisconnection = MM_PURGE_ON_DISCONNECTION_DEFAULT;
+
+    /** Enable user defined index mode. Users can provide their own meter index. */
+    protected boolean userDefinedIndex = MM_USER_DEFINED_INDEX_DEFAULT;
 
     // Action triggered when the futures related to submit and withdrawal complete
     private TriConsumer<MeterRequest, MeterStoreResult, Throwable> onComplete;
@@ -221,6 +228,11 @@ public class MeterManager
                      purgeOnDisconnection ? "enabled" : "disabled");
         }
 
+        flag = Tools.isPropertyEnabled(properties, MM_USER_DEFINED_INDEX);
+        boolean enable = flag == null ? userDefinedIndex : flag;
+        userDefinedIndex = store.userDefinedIndexMode(enable);
+        log.info("UserDefinedIndex is {}", userDefinedIndex ? "enabled" : "disabled");
+
         String s = get(properties, MM_FALLBACK_METER_POLL_FREQUENCY);
         try {
             fallbackMeterPollFrequency = isNullOrEmpty(s) ?
@@ -257,6 +269,7 @@ public class MeterManager
         checkNotNull(request, "request cannot be null.");
         MeterCellId cellId;
         if (request.index().isPresent()) {
+            checkArgument(userDefinedIndex, "Index cannot be provided when userDefinedIndex mode is disabled");
             // User provides index
             if (request.scope().isGlobal()) {
                 cellId = MeterId.meterId(request.index().get());
@@ -265,6 +278,7 @@ public class MeterManager
                     PiMeterId.of(request.scope().id()), request.index().get());
             }
         } else {
+            checkArgument(!userDefinedIndex, "Index cannot be allocated when userDefinedIndex mode is enabled");
             // Allocate an id
             cellId = allocateMeterId(request.deviceId(), request.scope());
         }
