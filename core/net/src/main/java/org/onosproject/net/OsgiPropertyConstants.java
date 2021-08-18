@@ -125,6 +125,9 @@ public final class OsgiPropertyConstants {
     public static final String MM_PURGE_ON_DISCONNECTION = "purgeOnDisconnection";
     public static final boolean MM_PURGE_ON_DISCONNECTION_DEFAULT = false;
 
+    public static final String MM_USER_DEFINED_INDEX = "userDefinedIndex";
+    public static final boolean MM_USER_DEFINED_INDEX_DEFAULT = false;
+
     public static final String NRM_ARP_ENABLED = "arpEnabled";
     public static final boolean NRM_ARP_ENABLED_DEFAULT = true;
 

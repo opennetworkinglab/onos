@@ -57,6 +57,7 @@ import org.onosproject.net.meter.DefaultMeter;
 import org.onosproject.net.meter.DefaultMeterFeatures;
 import org.onosproject.net.meter.DefaultMeterRequest;
 import org.onosproject.net.meter.Meter;
+import org.onosproject.net.meter.MeterCellId;
 import org.onosproject.net.meter.MeterFeatures;
 import org.onosproject.net.meter.MeterId;
 import org.onosproject.net.meter.MeterOperation;
@@ -66,9 +67,12 @@ import org.onosproject.net.meter.MeterProvider;
 import org.onosproject.net.meter.MeterProviderRegistry;
 import org.onosproject.net.meter.MeterProviderService;
 import org.onosproject.net.meter.MeterRequest;
+import org.onosproject.net.meter.MeterScope;
 import org.onosproject.net.meter.MeterService;
 import org.onosproject.net.meter.MeterState;
 import org.onosproject.net.pi.PiPipeconfServiceAdapter;
+import org.onosproject.net.pi.model.PiMeterId;
+import org.onosproject.net.pi.runtime.PiMeterCellId;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.meter.impl.DistributedMeterStore;
@@ -88,6 +92,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -97,6 +102,7 @@ import static org.junit.Assert.assertTrue;
 import static org.onosproject.net.NetTestTools.APP_ID;
 import static org.onosproject.net.NetTestTools.did;
 import static org.onosproject.net.NetTestTools.injectEventDispatcher;
+import static org.onosproject.net.OsgiPropertyConstants.MM_USER_DEFINED_INDEX;
 
 /**
  * Meter manager tests.
@@ -150,6 +156,7 @@ public class MeterManagerTest {
 
     // Meter ids used during the tests
     private MeterId mid1 = MeterId.meterId(1);
+    private MeterCellId cid0 = PiMeterCellId.ofIndirect(PiMeterId.of("foo"), 0L);
 
     // Bands used during the tests
     private static Band b1 = DefaultBand.builder()
@@ -180,6 +187,21 @@ public class MeterManagerTest {
             .withUnit(Meter.Unit.KB_PER_SEC)
             .withBands(Collections.singletonList(b1))
             .build();
+    private static Meter mProgrammable2 = DefaultMeter.builder()
+            .forDevice(PROGRAMMABLE_DID)
+            .fromApp(APP_ID)
+            .withId(MeterId.meterId(2))
+            .withUnit(Meter.Unit.KB_PER_SEC)
+            .withBands(Collections.singletonList(b1))
+            .build();
+
+    private static Meter mUserDefined = DefaultMeter.builder()
+            .forDevice(PROGRAMMABLE_DID)
+            .fromApp(APP_ID)
+            .withCellId(PiMeterCellId.ofIndirect(PiMeterId.of("foo"), 0L))
+            .withUnit(Meter.Unit.KB_PER_SEC)
+            .withBands(Collections.singletonList(b1))
+            .build();
 
     // Meter requests used during the tests
     private MeterRequest.Builder m1Request = DefaultMeterRequest.builder()
@@ -198,6 +220,19 @@ public class MeterManagerTest {
             .fromApp(APP_ID)
             .withUnit(Meter.Unit.KB_PER_SEC)
             .withBands(Collections.singletonList(b1));
+    private MeterRequest.Builder mProgrammableRequest2 = DefaultMeterRequest.builder()
+            .forDevice(PROGRAMMABLE_DID)
+            .fromApp(APP_ID)
+            .withUnit(Meter.Unit.KB_PER_SEC)
+            .withBands(Collections.singletonList(b1));
+
+    private MeterRequest.Builder userDefinedRequest = DefaultMeterRequest.builder()
+            .forDevice(PROGRAMMABLE_DID)
+            .fromApp(APP_ID)
+            .withUnit(Meter.Unit.KB_PER_SEC)
+            .withBands(Collections.singletonList(b1))
+            .withScope(MeterScope.of("foo"))
+            .withIndex(0L);
 
     // Meter features used during the tests
     private MeterFeatures mef1 = DefaultMeterFeatures.builder().forDevice(did1)
@@ -218,7 +253,29 @@ public class MeterManagerTest {
             .withMaxBands((byte) 0)
             .withMaxColors((byte) 0)
             .build();
+    private MeterFeatures programmableMef1 = DefaultMeterFeatures.builder().forDevice(PROGRAMMABLE_DID)
+            .withStartIndex(1)
+            .withEndIndex(10L)
+            .withBandTypes(new HashSet<>())
+            .withUnits(new HashSet<>())
+            .hasStats(false)
+            .hasBurst(false)
+            .withMaxBands((byte) 0)
+            .withMaxColors((byte) 0)
+            .build();
+    private MeterFeatures programmableMef2 = DefaultMeterFeatures.builder().forDevice(PROGRAMMABLE_DID)
+            .withStartIndex(0)
+            .withEndIndex(10L)
+            .withScope(MeterScope.of("foo"))
+            .withBandTypes(new HashSet<>())
+            .withUnits(new HashSet<>())
+            .hasStats(false)
+            .hasBurst(false)
+            .withMaxBands((byte) 0)
+            .withMaxColors((byte) 0)
+            .build();
 
+    private ComponentContext componentContext = EasyMock.createMock(ComponentContext.class);
 
     @Before
     public void setup() {
@@ -263,7 +320,6 @@ public class MeterManagerTest {
 
         // Activate the manager
         Dictionary<String, Object> cfgDict = new Hashtable<>();
-        ComponentContext componentContext = EasyMock.createMock(ComponentContext.class);
         expect(componentContext.getProperties()).andReturn(cfgDict);
         replay(componentContext);
         manager.activate(componentContext);
@@ -292,24 +348,58 @@ public class MeterManagerTest {
         meterStore.deactivate();
     }
 
+    // Store meter features for all the devices
     private void initMeterStore() {
-        // Let's store feature for device 1
         meterStore.storeMeterFeatures(mef1);
-        // Let's store feature for device 2
         meterStore.storeMeterFeatures(mef2);
+        meterStore.storeMeterFeatures(programmableMef1);
+        meterStore.storeMeterFeatures(programmableMef2);
     }
 
     // Emulate metrics coming from the dataplane
     private void pushMetrics(MeterOperation.Type type, Meter meter) {
-        // If it is an add operation
         if (type == MeterOperation.Type.ADD) {
-            // Update state to added
             ((DefaultMeter) meter).setState(MeterState.ADDED);
-            // Push the update in the store
             providerService.pushMeterMetrics(meter.deviceId(), Collections.singletonList(meter));
         } else {
             providerService.pushMeterMetrics(meter.deviceId(), Collections.emptyList());
         }
+    }
+
+    /**
+     * Verify enabling user defined index mode in meter service.
+     */
+    @Test
+    public void testEnableUserDefinedIndex() {
+        reset(componentContext);
+        Dictionary<String, Object> cfgDict = new Hashtable<>();
+        cfgDict.put(MM_USER_DEFINED_INDEX, true);
+        expect(componentContext.getProperties()).andReturn(cfgDict);
+        replay(componentContext);
+
+        Object returnValue = TestUtils.callMethod(manager, "readComponentConfiguration",
+                ComponentContext.class, componentContext);
+        assertNull(returnValue);
+        assertTrue(manager.userDefinedIndex);
+    }
+
+    /**
+     * Verify disabling user defined index mode in meter service.
+     */
+    @Test
+    public void testDisableUserDefinedIndex() {
+        testEnableUserDefinedIndex();
+
+        reset(componentContext);
+        Dictionary<String, Object> cfgDict = new Hashtable<>();
+        cfgDict.put(MM_USER_DEFINED_INDEX, false);
+        expect(componentContext.getProperties()).andReturn(cfgDict);
+        replay(componentContext);
+
+        Object returnValue = TestUtils.callMethod(manager, "readComponentConfiguration",
+                ComponentContext.class, componentContext);
+        assertNull(returnValue);
+        assertFalse(manager.userDefinedIndex);
     }
 
     /**
@@ -341,6 +431,49 @@ public class MeterManagerTest {
     }
 
     /**
+     * Test add meter with user defined index.
+     */
+    @Test
+    public void testAddWithUserDefinedIndex() {
+        initMeterStore();
+        testEnableUserDefinedIndex();
+
+        manager.submit(userDefinedRequest.add());
+        assertEquals("The meter was not added", 1, manager.getAllMeters().size());
+        assertEquals("The meter was not added", 1, manager.getMeters(PROGRAMMABLE_DID).size());
+        Meter installingMeter = manager.getMeter(PROGRAMMABLE_DID, cid0);
+        assertThat(installingMeter, is(mUserDefined));
+        assertThat(installingMeter.state(), is(MeterState.PENDING_ADD));
+
+        pushMetrics(MeterOperation.Type.ADD, installingMeter);
+        Meter installedMeter = manager.getMeter(PROGRAMMABLE_DID, cid0);
+        assertThat(installedMeter.state(), is(MeterState.ADDED));
+        assertEquals("The meter was not installed", 1, manager.getAllMeters().size());
+        assertEquals("The meter was not installed", 1, manager.getMeters(PROGRAMMABLE_DID).size());
+    }
+
+    /**
+     * Test wrong add meter.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testWrongAdd() {
+        initMeterStore();
+
+        manager.submit(userDefinedRequest.add());
+    }
+
+    /**
+     * Test wrong add meter in user defined index mode.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testWrongAddInUserDefinedIndexMode() {
+        initMeterStore();
+        testEnableUserDefinedIndex();
+
+        manager.submit(m1Request.add());
+    }
+
+    /**
      * Test remove meter.
      */
     @Test
@@ -366,7 +499,29 @@ public class MeterManagerTest {
     }
 
     /**
-     * Test add multiple device.
+     * Test remove meter in user defined index mode.
+     */
+    @Test
+    public void testRemoveInUserDefinedIndexMode() {
+        initMeterStore();
+        testEnableUserDefinedIndex();
+
+        manager.submit(userDefinedRequest.add());
+
+        manager.withdraw(userDefinedRequest.remove(), cid0);
+        Meter withdrawingMeter = manager.getMeter(PROGRAMMABLE_DID, cid0);
+        assertThat(withdrawingMeter.state(), is(MeterState.PENDING_REMOVE));
+        assertEquals("The meter was not withdrawn", 1, manager.getAllMeters().size());
+        assertEquals("The meter was not withdrawn", 1, manager.getMeters(PROGRAMMABLE_DID).size());
+
+        pushMetrics(MeterOperation.Type.REMOVE, withdrawingMeter);
+        assertNull(manager.getMeter(PROGRAMMABLE_DID, cid0));
+        assertEquals("The meter was not removed", 0, manager.getAllMeters().size());
+        assertEquals("The meter was not removed", 0, manager.getMeters(PROGRAMMABLE_DID).size());
+    }
+
+    /**
+     * Test add multiple devices.
      */
     @Test
     public void testAddMultipleDevice() {
@@ -404,7 +559,7 @@ public class MeterManagerTest {
     }
 
     /**
-     * Test remove meter.
+     * Test remove multiple devices.
      */
     @Test
     public void testRemoveMultipleDevice() {
@@ -460,6 +615,9 @@ public class MeterManagerTest {
         assertEquals("The meter was not purged", 0, manager.getMeters(did1).size());
     }
 
+    /**
+     * Test submit for programmable devices.
+     */
     @Test
     public void testAddFromMeterProgrammable()  {
         // Init store
@@ -471,6 +629,9 @@ public class MeterManagerTest {
         });
     }
 
+    /**
+     * Test batch submission for meter programmable.
+     */
     @Test
     public void testAddBatchFromMeterProgrammable()  {
         // Init store
@@ -484,6 +645,9 @@ public class MeterManagerTest {
 
     }
 
+    /**
+     * Verify get from meter programmable.
+     */
     @Test
     public void testGetFromMeterProgrammable()  {
         // Init store
@@ -495,6 +659,89 @@ public class MeterManagerTest {
             assertEquals("The meter was not added", 1, manager.getAllMeters().size());
             Meter m = manager.getMeters(PROGRAMMABLE_DID).iterator().next();
             assertEquals("incorrect state", MeterState.ADDED, m.state());
+        });
+    }
+
+    /**
+     * Verify installation of missing meters when using meter programmable devices.
+     */
+    @Test
+    public void testMissingFromMeterProgrammable() {
+        // Workaround when running the tests all together
+        meterOperations.clear();
+        testGetFromMeterProgrammable();
+
+        assertThat(meterOperations.size(), is(1));
+        manager.submit(mProgrammableRequest2.add());
+        TestTools.assertAfter(500, () -> {
+            assertEquals("The meter was not added", 2, manager.getAllMeters().size());
+            assertThat(manager.getMeter(PROGRAMMABLE_DID, MeterId.meterId(2)), is(mProgrammable2));
+            assertThat(meterOperations.size(), is(2));
+            assertThat(meterOperations.get(meterOperations.size() - 1), is(new MeterOperation(mProgrammable2,
+                    MeterOperation.Type.ADD)));
+        });
+
+        TestTools.assertAfter(2000, () -> {
+            assertEquals("The meter was not added", 2, manager.getAllMeters().size());
+            Meter pendingMeter = manager.getMeter(PROGRAMMABLE_DID, MeterId.meterId(2));
+            assertThat(pendingMeter, is(mProgrammable2));
+            assertEquals("incorrect state", MeterState.PENDING_ADD, pendingMeter.state());
+            assertThat(meterOperations.size(), is(3));
+            assertThat(meterOperations.get(meterOperations.size() - 1), is(new MeterOperation(mProgrammable2,
+                    MeterOperation.Type.ADD)));
+        });
+    }
+
+    /**
+     * Verify removal of unknown meters when using meter programmable devices.
+     */
+    @Test
+    public void testUnknownFromMeterProgrammable() {
+        meterOperations.clear();
+        testGetFromMeterProgrammable();
+        TestMeterProgrammable.unknownMeter = true;
+
+        assertThat(meterOperations.size(), is(1));
+        TestTools.assertAfter(2000, () -> {
+            assertEquals("The meter was not added", 1, manager.getAllMeters().size());
+            Meter pendingMeter = manager.getMeter(PROGRAMMABLE_DID, MeterId.meterId(2));
+            assertNull(pendingMeter);
+            assertThat(meterOperations.size(), is(2));
+            assertThat(meterOperations.get(meterOperations.size() - 1), is(new MeterOperation(mProgrammable2,
+                    MeterOperation.Type.REMOVE)));
+        });
+    }
+
+    /**
+     * Verify removal of meters when using meter programmable devices.
+     */
+    @Test
+    public void testRemoveFromMeterProgrammable()  {
+        testEnableUserDefinedIndex();
+        initMeterStore();
+        MeterDriverProvider fallback = (MeterDriverProvider) manager.defaultProvider();
+        fallback.init(manager.deviceService, fallback.meterProviderService, manager.mastershipService, 1);
+
+        manager.submit(mProgrammableRequest2.withIndex(2L).add());
+        TestTools.assertAfter(500, () -> {
+            assertEquals("The meter was not added", 1, manager.getAllMeters().size());
+            Meter pendingMeter = manager.getMeter(PROGRAMMABLE_DID, MeterId.meterId(2));
+            assertThat(pendingMeter, is(mProgrammable2));
+            assertEquals("incorrect state", MeterState.PENDING_ADD, pendingMeter.state());
+        });
+
+        manager.withdraw(mProgrammableRequest2.remove(), MeterId.meterId(2));
+        TestTools.assertAfter(500, () -> {
+            assertEquals("The meter was not withdrawn", 1, manager.getAllMeters().size());
+            Meter pendingMeter = manager.getMeter(PROGRAMMABLE_DID, MeterId.meterId(2));
+            assertThat(pendingMeter, is(mProgrammable2));
+            assertEquals("incorrect state", MeterState.PENDING_REMOVE, pendingMeter.state());
+        });
+
+        TestTools.assertAfter(2000, () -> {
+            assertEquals("The meter was not removed", 0, manager.getAllMeters().size());
+            Meter pendingMeter = manager.getMeter(PROGRAMMABLE_DID, MeterId.meterId(2));
+            assertNull(pendingMeter);
         });
     }
 
@@ -563,6 +810,8 @@ public class MeterManagerTest {
     public static class TestMeterProgrammable extends AbstractHandlerBehaviour
             implements MeterProgrammable {
 
+        private static boolean unknownMeter;
+
         @Override
         public CompletableFuture<Boolean> performMeterOperation(MeterOperation meterOp) {
             return CompletableFuture.completedFuture(meterOperations.add(meterOp));
@@ -571,9 +820,16 @@ public class MeterManagerTest {
         @Override
         public CompletableFuture<Collection<Meter>> getMeters() {
             //ADD METER
+            Collection<Meter> meters = Lists.newArrayList();
             DefaultMeter mProgrammableAdded = (DefaultMeter) mProgrammable;
             mProgrammableAdded.setState(MeterState.ADDED);
-            return CompletableFuture.completedFuture(ImmutableList.of(mProgrammableAdded));
+            meters.add(mProgrammableAdded);
+            if (unknownMeter) {
+                DefaultMeter mProgrammable2Added = (DefaultMeter) mProgrammable2;
+                mProgrammable2Added.setState(MeterState.ADDED);
+                meters.add(mProgrammable2Added);
+            }
+            return CompletableFuture.completedFuture(meters);
         }
 
         @Override
