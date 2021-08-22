@@ -69,19 +69,21 @@ public final class PiMeterCellConfig implements PiEntity {
 
     /**
      * Check if the config represents a modify operation.
+     * Or it is a non-default config read from south bound.
      *
      * @return true if there are exactly 2 bands
      */
-    public boolean isModify() {
+    public boolean isModifyConfig() {
         return piMeterBands.size() == 2;
     }
 
     /**
      * Check if the config represents a reset operation.
+     * Or it is a default config read from south bound.
      *
-     * @return true if there is no band.
+     * @return true if there is no band
      */
-    public boolean isReset() {
+    public boolean isDefaultConfig() {
         return piMeterBands.isEmpty();
     }
 

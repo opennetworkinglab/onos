@@ -34,12 +34,12 @@ public final class MeterEntryCodec
 
     static P4RuntimeOuterClass.MeterConfig getP4Config(PiMeterCellConfig piConfig)
             throws CodecException {
-        // A reset config has no band
-        if (piConfig.isReset()) {
+        // The config has no band, we don't have to create a P4RT meter config
+        if (piConfig.isDefaultConfig()) {
             return null;
         }
-        // A modify config has exactly 2 bands
-        if (!piConfig.isModify()) {
+        // If it is not a reset operation, the config must be a modify config and has exactly 2 bands
+        if (!piConfig.isModifyConfig()) {
             throw new CodecException("Number of meter bands should be 2 (Modify) or 0 (Reset)");
         }
         final PiMeterBand[] bands = piConfig.meterBands().toArray(new PiMeterBand[0]);
