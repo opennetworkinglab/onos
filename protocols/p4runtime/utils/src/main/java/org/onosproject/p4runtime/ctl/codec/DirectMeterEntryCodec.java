@@ -17,7 +17,6 @@
 package org.onosproject.p4runtime.ctl.codec;
 
 import org.onosproject.net.pi.model.PiPipeconf;
-import org.onosproject.net.pi.runtime.PiMeterBand;
 import org.onosproject.net.pi.runtime.PiMeterCellConfig;
 import org.onosproject.net.pi.runtime.PiMeterCellHandle;
 import org.onosproject.net.pi.runtime.PiMeterCellId;
@@ -79,14 +78,17 @@ public final class DirectMeterEntryCodec
             P4RuntimeOuterClass.DirectMeterEntry message, Object ignored,
             PiPipeconf pipeconf, P4InfoBrowser browser)
             throws CodecException {
-        return PiMeterCellConfig.builder()
-                .withMeterCellId(PiMeterCellId.ofDirect(
-                        CODECS.tableEntry().decode(
-                                message.getTableEntry(), null, pipeconf)))
-                .withMeterBand(new PiMeterBand(message.getConfig().getCir(),
-                                               message.getConfig().getCburst()))
-                .withMeterBand(new PiMeterBand(message.getConfig().getPir(),
-                                               message.getConfig().getPburst()))
-                .build();
+        PiMeterCellId cellId =
+            PiMeterCellId.ofDirect(
+                CODECS.tableEntry().decode(
+                    message.getTableEntry(), null, pipeconf));
+        // When a field is unset, gRPC (P4RT) will return a default value
+        // So, if the meter config is unset, the value of rate and burst will be 0,
+        // while 0 is a meaningful value and not equals to UNSET in P4RT.
+        // We cannot extract the values directly.
+        P4RuntimeOuterClass.MeterConfig p4Config =
+            message.hasConfig() ? message.getConfig() : null;
+
+        return MeterEntryCodec.getPiMeterCellConfig(cellId, p4Config);
     }
 }
