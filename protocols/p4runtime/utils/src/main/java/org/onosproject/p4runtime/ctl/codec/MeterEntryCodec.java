@@ -122,13 +122,27 @@ public final class MeterEntryCodec
                 .getById(message.getMeterId())
                 .getPreamble()
                 .getName();
-        return PiMeterCellConfig.builder()
-                .withMeterCellId(PiMeterCellId.ofIndirect(
-                        PiMeterId.of(meterName), message.getIndex().getIndex()))
-                .withMeterBand(new PiMeterBand(message.getConfig().getCir(),
-                                               message.getConfig().getCburst()))
-                .withMeterBand(new PiMeterBand(message.getConfig().getPir(),
-                                               message.getConfig().getPburst()))
-                .build();
+        PiMeterCellId cellId =
+            PiMeterCellId.ofIndirect(PiMeterId.of(meterName), message.getIndex().getIndex());
+        // When a field is unset, gRPC (P4RT) will return a default value
+        // So, if the meter config is unset, the value of rate and burst will be 0,
+        // while 0 is a meaningful value and not equals to UNSET in P4RT.
+        // We cannot extract the values directly.
+        P4RuntimeOuterClass.MeterConfig p4Config =
+            message.hasConfig() ? message.getConfig() : null;
+
+        return getPiMeterCellConfig(cellId, p4Config);
+    }
+
+    public static PiMeterCellConfig getPiMeterCellConfig(
+            PiMeterCellId cellId, P4RuntimeOuterClass.MeterConfig p4Config) {
+        PiMeterCellConfig.Builder builder =
+            PiMeterCellConfig.builder().withMeterCellId(cellId);
+        if (p4Config != null) {
+            builder = builder
+                .withMeterBand(new PiMeterBand(p4Config.getCir(), p4Config.getCburst()))
+                .withMeterBand(new PiMeterBand(p4Config.getPir(), p4Config.getPburst()));
+        }
+        return builder.build();
     }
 }
