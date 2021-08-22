@@ -28,6 +28,11 @@ enum MeterUnitProto {
     * Kilo bits per second.
     */
     KB_PER_SEC = 1;
+
+    /**
+    * Bytes per second.
+    */
+    BYTES_PER_SEC = 2;
 }
 
 enum MeterStateProto {
@@ -45,11 +50,6 @@ enum MeterStateProto {
     * The meter is in the process of being removed.
     */
     PENDING_REMOVE = 2;
-
-    /**
-    * The meter has been removed.
-    */
-    REMOVED = 3;
 }
 
 enum MeterRequestTypeProto {

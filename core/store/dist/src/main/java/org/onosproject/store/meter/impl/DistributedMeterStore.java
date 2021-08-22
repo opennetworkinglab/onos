@@ -614,7 +614,7 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
         // Get a new value
         // If the value is smaller than the start index, get another one
         do {
-            id = meterIdGenerators.incrementAndGet(meterTableKey);
+            id = meterIdGenerators.getAndIncrement(meterTableKey);
         } while (id < startIndex);
         // Check with the end index, and if the value is bigger, cannot proceed
         if (id > endIndex) {
@@ -649,7 +649,7 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
             return;
         }
         // Avoid to free meter not allocated
-        if (meterIdGenerators.get(meterTableKey) < index) {
+        if (meterIdGenerators.get(meterTableKey) <= index) {
             return;
         }
         // Update the availability
