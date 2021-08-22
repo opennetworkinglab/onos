@@ -30,6 +30,7 @@ import org.onosproject.incubator.net.virtual.provider.VirtualProviderRegistrySer
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.meter.DefaultMeter;
 import org.onosproject.net.meter.Meter;
+import org.onosproject.net.meter.MeterCellId;
 import org.onosproject.net.meter.MeterEvent;
 import org.onosproject.net.meter.MeterFailReason;
 import org.onosproject.net.meter.MeterFeatures;
@@ -139,11 +140,16 @@ public class VirtualNetworkMeterManager
 
     @Override
     public void withdraw(MeterRequest request, MeterId meterId) {
+        withdraw(request, (MeterCellId) meterId);
+    }
+
+    @Override
+    public void withdraw(MeterRequest request, MeterCellId meterCellId) {
         Meter.Builder mBuilder = DefaultMeter.builder()
                 .forDevice(request.deviceId())
                 .fromApp(request.appId())
                 .withBands(request.bands())
-                .withId(meterId)
+                .withCellId(meterCellId)
                 .withUnit(request.unit());
 
         if (request.isBurst()) {
@@ -158,6 +164,11 @@ public class VirtualNetworkMeterManager
 
     @Override
     public Meter getMeter(DeviceId deviceId, MeterId id) {
+        return getMeter(deviceId, (MeterCellId) id);
+    }
+
+    @Override
+    public Meter getMeter(DeviceId deviceId, MeterCellId id) {
         MeterKey key = MeterKey.key(deviceId, id);
         return store.getMeter(networkId(), key);
     }
