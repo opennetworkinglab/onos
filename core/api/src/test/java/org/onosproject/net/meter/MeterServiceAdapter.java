@@ -36,7 +36,17 @@ public class MeterServiceAdapter implements MeterService {
     }
 
     @Override
+    public void withdraw(MeterRequest meter, MeterCellId meterCellId) {
+
+    }
+
+    @Override
     public Meter getMeter(DeviceId deviceId, MeterId id) {
+        return null;
+    }
+
+    @Override
+    public Meter getMeter(DeviceId deviceId, MeterCellId meterCellId) {
         return null;
     }
 
