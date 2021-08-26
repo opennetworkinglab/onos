@@ -22,6 +22,7 @@ import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.k8snode.api.K8sApiConfigService;
 import org.onosproject.k8snode.api.K8sNode;
 import org.onosproject.k8snode.api.K8sNodeAdminService;
 import org.onosproject.k8snode.api.K8sNodeEvent;
@@ -122,6 +123,9 @@ public class DefaultK8sNodeHandler implements K8sNodeHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OvsdbController ovsdbController;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected K8sApiConfigService k8sApiConfigService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected K8sNodeService k8sNodeService;
@@ -301,8 +305,8 @@ public class DefaultK8sNodeHandler implements K8sNodeHandler {
     private void createBridge(K8sNode k8sNode, String bridgeName, DeviceId devId) {
         Device device = deviceService.getDevice(k8sNode.ovsdb());
 
-        List<ControllerInfo> controllers = clusterService.getNodes().stream()
-                .map(n -> new ControllerInfo(n.ip(), DEFAULT_OFPORT, DEFAULT_OF_PROTO))
+        List<ControllerInfo> controllers = k8sApiConfigService.apiConfigs().stream()
+                .map(c -> new ControllerInfo(c.ipAddress(), DEFAULT_OFPORT, DEFAULT_OF_PROTO))
                 .collect(Collectors.toList());
 
         String dpid = devId.toString().substring(DPID_BEGIN);
