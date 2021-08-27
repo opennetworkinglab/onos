@@ -18,13 +18,19 @@ package org.onosproject.rest.resources;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.meter.DefaultMeterRequest;
 import org.onosproject.net.meter.Meter;
+import org.onosproject.net.meter.MeterCellId;
 import org.onosproject.net.meter.MeterId;
 import org.onosproject.net.meter.MeterRequest;
+import org.onosproject.net.meter.MeterScope;
 import org.onosproject.net.meter.MeterService;
+import org.onosproject.net.pi.model.PiMeterId;
+import org.onosproject.net.pi.runtime.PiMeterCellId;
 import org.onosproject.rest.AbstractWebResource;
 import org.slf4j.Logger;
 
@@ -62,6 +68,9 @@ public class MetersWebResource extends AbstractWebResource {
 
     private final ObjectNode root = mapper().createObjectNode();
     private final ArrayNode metersNode = root.putArray("meters");
+
+    private static final String REST_APP_ID = "org.onosproject.rest";
+    private ApplicationId applicationId;
 
     /**
      * Returns all meters of all devices.
@@ -114,12 +123,68 @@ public class MetersWebResource extends AbstractWebResource {
     public Response getMeterByDeviceIdAndMeterId(@PathParam("deviceId") String deviceId,
                                                  @PathParam("meterId") String meterId) {
         DeviceId did = DeviceId.deviceId(deviceId);
-        MeterId mid = MeterId.meterId(Long.valueOf(meterId));
+        MeterCellId mid = MeterId.meterId(Long.valueOf(meterId));
         MeterService meterService = get(MeterService.class);
         final Meter meter = nullIsNotFound(meterService.getMeter(did, mid),
-                METER_NOT_FOUND + mid.id());
+                METER_NOT_FOUND + mid);
 
         metersNode.add(codec(Meter.class).encode(meter, this));
+        return ok(root).build();
+    }
+
+    /**
+     * Returns a meter by the meter cell id.
+     *
+     * @param deviceId device identifier
+     * @param scope scope identifier
+     * @param index index
+     * @return 200 OK with a meter, return 404 if no entry has been found
+     * @onos.rsModel Meter
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{deviceId}/{scope}/{index}")
+    public Response getMeterByDeviceIdAndMeterCellId(@PathParam("deviceId") String deviceId,
+                                                     @PathParam("scope") String scope,
+                                                     @PathParam("index") String index) {
+        DeviceId did = DeviceId.deviceId(deviceId);
+        MeterScope meterScope = MeterScope.of(scope);
+        long meterIndex = Long.parseLong(index);
+        MeterCellId meterCellId;
+        if (meterScope.equals(MeterScope.globalScope())) {
+            meterCellId = MeterId.meterId(meterIndex);
+        } else {
+            meterCellId = PiMeterCellId.ofIndirect(PiMeterId.of(meterScope.id()), meterIndex);
+        }
+
+        MeterService meterService = get(MeterService.class);
+        final Meter meter = nullIsNotFound(meterService.getMeter(did, meterCellId),
+                METER_NOT_FOUND + meterCellId);
+
+        metersNode.add(codec(Meter.class).encode(meter, this));
+        return ok(root).build();
+    }
+
+    /**
+     * Returns a collection of meters by the device id and meter scope.
+     *
+     * @param deviceId device identifier
+     * @param scope scope identifier
+     * @return 200 OK with array of meters which belongs to specified device
+     * @onos.rsModel Meters
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("scope/{deviceId}/{scope}")
+    public Response getMetersByDeviceIdAndScope(@PathParam("deviceId") String deviceId,
+                                                @PathParam("scope") String scope) {
+        DeviceId did = DeviceId.deviceId(deviceId);
+        MeterScope meterScope = MeterScope.of(scope);
+        MeterService meterService = get(MeterService.class);
+        final Iterable<Meter> meters = meterService.getMeters(did, meterScope);
+        if (meters != null) {
+            meters.forEach(meter -> metersNode.add(codec(Meter.class).encode(meter, this)));
+        }
         return ok(root).build();
     }
 
@@ -170,7 +235,7 @@ public class MetersWebResource extends AbstractWebResource {
     }
 
     /**
-     * Removes the specified meter.
+     * Removes the meter by device id and meter id.
      *
      * @param deviceId device identifier
      * @param meterId  meter identifier
@@ -179,65 +244,56 @@ public class MetersWebResource extends AbstractWebResource {
     @DELETE
     @Path("{deviceId}/{meterId}")
     public Response deleteMeterByDeviceIdAndMeterId(@PathParam("deviceId") String deviceId,
-                                                @PathParam("meterId") String meterId) {
+                                                    @PathParam("meterId") String meterId) {
         DeviceId did = DeviceId.deviceId(deviceId);
-        MeterId mid = MeterId.meterId(Long.valueOf(meterId));
+        MeterCellId mid = MeterId.meterId(Long.valueOf(meterId));
+        MeterRequest meterRequest = deleteRequest(did);
 
         MeterService meterService = get(MeterService.class);
-        final Meter tmpMeter = meterService.getMeter(did, mid);
-        if (tmpMeter != null) {
-            final MeterRequest meterRequest = meterToMeterRequest(tmpMeter, "REMOVE");
-            if (meterRequest != null) {
-                meterService.withdraw(meterRequest, tmpMeter.id());
-            }
-        } else {
-            log.warn("Meter {}, is not present", tmpMeter);
-        }
+        meterService.withdraw(meterRequest, mid);
+
         return Response.noContent().build();
     }
 
     /**
-     * Converts a meter instance to meterRequest instance with a certain operation.
+     * Removes the meter by the device id and meter cell id.
      *
-     * @param meter     meter instance
-     * @param operation operation
-     * @return converted meterRequest instance
+     * @param deviceId device identifier
+     * @param scope scope identifier
+     * @param index index
+     * @return 204 NO CONTENT
      */
-    private MeterRequest meterToMeterRequest(Meter meter, String operation) {
-        MeterRequest.Builder builder;
-        MeterRequest meterRequest;
-
-        if (meter == null) {
-            return null;
-        }
-
-        if (meter.isBurst()) {
-            builder = DefaultMeterRequest.builder()
-                    .fromApp(meter.appId())
-                    .forDevice(meter.deviceId())
-                    .withUnit(meter.unit())
-                    .withBands(meter.bands())
-                    .burst();
+    @DELETE
+    @Path("{deviceId}/{scope}/{index}")
+    public Response deleteMeterByDeviceIdAndMeterCellId(@PathParam("deviceId") String deviceId,
+                                                        @PathParam("scope") String scope,
+                                                        @PathParam("index") String index) {
+        DeviceId did = DeviceId.deviceId(deviceId);
+        MeterScope meterScope = MeterScope.of(scope);
+        long meterIndex = Long.parseLong(index);
+        MeterCellId meterCellId;
+        if (meterScope.equals(MeterScope.globalScope())) {
+            meterCellId = MeterId.meterId(meterIndex);
         } else {
-            builder = DefaultMeterRequest.builder()
-                    .fromApp(meter.appId())
-                    .forDevice(meter.deviceId())
-                    .withUnit(meter.unit())
-                    .withBands(meter.bands());
+            meterCellId = PiMeterCellId.ofIndirect(PiMeterId.of(meterScope.id()), meterIndex);
+        }
+        MeterRequest meterRequest = deleteRequest(did);
+
+        MeterService meterService = get(MeterService.class);
+        meterService.withdraw(meterRequest, meterCellId);
+
+        return Response.noContent().build();
+    }
+
+    private MeterRequest deleteRequest(DeviceId did) {
+        CoreService coreService = getService(CoreService.class);
+        if (applicationId == null) {
+            applicationId = coreService.registerApplication(REST_APP_ID);
         }
 
-        switch (operation) {
-            case "ADD":
-                meterRequest = builder.add();
-                break;
-            case "REMOVE":
-                meterRequest = builder.remove();
-                break;
-            default:
-                log.warn("Invalid operation {}.", operation);
-                return null;
-        }
-
-        return meterRequest;
+        return DefaultMeterRequest.builder()
+                .forDevice(did)
+                .fromApp(applicationId)
+                .remove();
     }
 }

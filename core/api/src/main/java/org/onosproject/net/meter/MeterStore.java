@@ -118,6 +118,17 @@ public interface MeterStore extends Store<MeterEvent, MeterStoreDelegate> {
     Collection<Meter> getAllMeters(DeviceId deviceId);
 
     /**
+     * Returns all meters stored in the store for a
+     * precise device and scope.
+     *
+     * @param deviceId a device id
+     * @param scope meters scope
+     * @return an immutable copy of the meters stored for a given device
+     *         withing a given scope
+     */
+    Collection<Meter> getAllMeters(DeviceId deviceId, MeterScope scope);
+
+    /**
      * Update the store by deleting the failed meter.
      * Notifies the delegate that the meter failed to allow it
      * to nofity the app.

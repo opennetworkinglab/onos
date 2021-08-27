@@ -33,8 +33,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class DefaultMeterRequest extends AbstractAnnotated implements MeterRequest {
 
-
-
     private final ApplicationId appId;
     private final Meter.Unit unit;
     private final boolean burst;
@@ -122,6 +120,8 @@ public final class DefaultMeterRequest extends AbstractAnnotated implements Mete
     }
 
     public static final class Builder implements MeterRequest.Builder {
+        // Relevant only for delete
+        private static final Band DUMMY_BAND = new DefaultBand(Band.Type.DROP, 0L, 0L, (short) 0);
 
         private ApplicationId appId;
         private Meter.Unit unit = Meter.Unit.KB_PER_SEC;
@@ -196,6 +196,11 @@ public final class DefaultMeterRequest extends AbstractAnnotated implements Mete
 
         @Override
         public MeterRequest remove() {
+            // Allow to create the removal request without specifying bands
+            if (bands == null || bands.isEmpty()) {
+                bands = ImmutableSet.of(DUMMY_BAND);
+            }
+
             validate();
             return new DefaultMeterRequest(deviceId, appId, unit, burst, bands, context,
                                            Type.REMOVE, scope, desiredIndex, annotations);
