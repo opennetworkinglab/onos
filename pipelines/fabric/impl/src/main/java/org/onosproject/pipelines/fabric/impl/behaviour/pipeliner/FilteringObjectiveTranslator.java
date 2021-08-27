@@ -32,7 +32,6 @@ import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.PiCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
-import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
 import org.onosproject.net.flowobjective.FilteringObjective;
@@ -54,20 +53,20 @@ import static org.onosproject.net.flow.criteria.Criterion.Type.VLAN_VID;
 import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.VLAN_ID;
 import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.VLAN_POP;
 import static org.onosproject.net.pi.model.PiPipelineInterpreter.PiInterpreterException;
-import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.DEFAULT_VLAN;
-import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.DEFAULT_PW_TRANSPORT_VLAN;
+import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.CLEANUP_DOUBLE_TAGGED_HOST_ENTRIES;
 import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.ETH_TYPE_EXACT_MASK;
 import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.FWD_MPLS;
 import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.FWD_IPV4_ROUTING;
 import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.FWD_IPV6_ROUTING;
+import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.INTERFACE_CONFIG_UPDATE;
 import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.ONE;
-import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.PORT_TYPE_EDGE;
-import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.PORT_TYPE_INFRA;
 import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.ZERO;
+import static org.onosproject.pipelines.fabric.impl.behaviour.FabricUtils.isSrMetadataSet;
+import static org.onosproject.pipelines.fabric.impl.behaviour.FabricUtils.isValidSrMetadata;
+import static org.onosproject.pipelines.fabric.impl.behaviour.FabricUtils.portType;
 import static org.onosproject.pipelines.fabric.impl.behaviour.FabricUtils.l2InstructionOrFail;
 import static org.onosproject.pipelines.fabric.impl.behaviour.FabricUtils.criterion;
 import static org.onosproject.pipelines.fabric.impl.behaviour.FabricUtils.l2Instruction;
-
 
 /**
  * ObjectiveTranslator implementation for FilteringObjective.
@@ -78,8 +77,6 @@ class FilteringObjectiveTranslator
     private static final PiAction DENY = PiAction.builder()
             .withId(FabricConstants.FABRIC_INGRESS_FILTERING_DENY)
             .build();
-
-    private static final int INTERFACE_CONFIG_UPDATE = 2;
 
     FilteringObjectiveTranslator(DeviceId deviceId, FabricCapabilities capabilities) {
         super(deviceId, capabilities);
@@ -95,6 +92,12 @@ class FilteringObjectiveTranslator
         if (obj.key() == null || obj.key().type() != Criterion.Type.IN_PORT) {
             throw new FabricPipelinerException(
                     format("Unsupported or missing filtering key: key=%s", obj.key()),
+                    ObjectiveError.BADPARAMS);
+        }
+
+        if (!isValidSrMetadata(obj)) {
+            throw new FabricPipelinerException(
+                    format("Unsupported metadata configuration: metadata=%s", obj.meta()),
                     ObjectiveError.BADPARAMS);
         }
 
@@ -134,44 +137,9 @@ class FilteringObjectiveTranslator
         //     AND it is a port REMOVE event OR
         // - it refers to double tagged traffic
         //     and SR is triggering the removal of forwarding classifier rules.
-        return (obj.op() == Objective.Operation.ADD && !isInterfaceConfigUpdate(obj)) ||
-                (!isDoubleTagged(obj) && !isInterfaceConfigUpdate(obj)) ||
-                (isDoubleTagged(obj) && isLastDoubleTaggedForPort(obj));
-    }
-
-    /**
-     * Check if the given filtering objective is triggered by a interface config change.
-     *
-     * @param obj Filtering objective to check.
-     * @return True if SR is signaling to not remove the forwarding classifier rule,
-     * false otherwise.
-     */
-    private boolean isInterfaceConfigUpdate(FilteringObjective obj) {
-        if (obj.meta() == null) {
-            return false;
-        }
-        Instructions.MetadataInstruction meta = obj.meta().writeMetadata();
-        // SR is setting this metadata when an interface config update has
-        // been performed and thus fwd classifier rules should not be removed
-        return (meta != null && (meta.metadata() & meta.metadataMask()) == INTERFACE_CONFIG_UPDATE);
-    }
-
-    /**
-     * Check if the given filtering objective is the last filtering objective
-     * for a double-tagged host for a specific port.
-     * <p>
-     * {@see org.onosproject.segmentrouting.RoutingRulePopulator#buildDoubleTaggedFilteringObj()}
-     * {@see org.onosproject.segmentrouting.RoutingRulePopulator#processDoubleTaggedFilter()}
-     *
-     * @param obj Filtering objective to check.
-     * @return True if SR is signaling to remove the forwarding classifier rule,
-     * false otherwise.
-     */
-    private boolean isLastDoubleTaggedForPort(FilteringObjective obj) {
-        Instructions.MetadataInstruction meta = obj.meta().writeMetadata();
-        // SR is setting this metadata when a double tagged filtering objective
-        // is removed and no other hosts is sharing the same input port.
-        return (meta != null && (meta.metadata() & meta.metadataMask()) == 1);
+        return (obj.op() == Objective.Operation.ADD && !isSrMetadataSet(obj, INTERFACE_CONFIG_UPDATE)) ||
+                (!isDoubleTagged(obj) && !isSrMetadataSet(obj, INTERFACE_CONFIG_UPDATE)) ||
+                (isDoubleTagged(obj) && isSrMetadataSet(obj, CLEANUP_DOUBLE_TAGGED_HOST_ENTRIES));
     }
 
     private boolean isDoubleTagged(FilteringObjective obj) {
@@ -218,15 +186,12 @@ class FilteringObjectiveTranslator
         if (obj.type().equals(FilteringObjective.Type.DENY)) {
             treatmentBuilder.piTableAction(DENY);
         } else {
-            byte portType = PORT_TYPE_EDGE;
-            if (!innerVlanValid && outerVlanValid &&
-                    outerVlanCriterion.vlanId().toShort() == DEFAULT_PW_TRANSPORT_VLAN) {
-                portType = PORT_TYPE_INFRA;
-            } else if (obj.meta() != null) {
-                ModVlanIdInstruction modVlanIdInstruction = (ModVlanIdInstruction) l2Instruction(obj.meta(), VLAN_ID);
-                if (modVlanIdInstruction != null && modVlanIdInstruction.vlanId().toShort() == DEFAULT_VLAN) {
-                    portType = PORT_TYPE_INFRA;
-                }
+            // FIXME SDFAB-52 to complete the work on metadata
+            Byte portType = portType(obj);
+            if (portType == null) {
+                throw new FabricPipelinerException(
+                        format("Unsupported port_type configuration: metadata=%s", obj.meta()),
+                        ObjectiveError.BADPARAMS);
             }
             try {
                 treatmentBuilder.piTableAction(mapFilteringTreatment(obj.meta(),
