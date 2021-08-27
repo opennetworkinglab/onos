@@ -53,6 +53,8 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.EDGE_PORT;
+import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.INFRA_PORT;
 import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.PORT_TYPE_EDGE;
 import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.PORT_TYPE_INFRA;
 import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.PORT_TYPE_MASK;
@@ -246,7 +248,7 @@ public class ForwardingObjectiveTranslatorTest extends BaseObjectiveTranslatorTe
                 .matchIPDst(IPV4_UNICAST_ADDR)
                 .build();
         TrafficSelector metaSelector = DefaultTrafficSelector.builder()
-                .matchMetadata(PORT_TYPE_EDGE)
+                .matchMetadata(EDGE_PORT)
                 .build();
         ForwardingObjective fwd = DefaultForwardingObjective.builder()
                 .withSelector(selector)
@@ -291,7 +293,7 @@ public class ForwardingObjectiveTranslatorTest extends BaseObjectiveTranslatorTe
         assertTrue(expectedFlowRule.exactMatch(actualFlowRule));
 
         metaSelector = DefaultTrafficSelector.builder()
-                .matchMetadata(PORT_TYPE_INFRA)
+                .matchMetadata(INFRA_PORT)
                 .build();
         fwd = DefaultForwardingObjective.builder()
                 .withSelector(selector)

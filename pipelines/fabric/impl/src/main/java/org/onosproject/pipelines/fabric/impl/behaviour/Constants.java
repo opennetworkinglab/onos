@@ -16,6 +16,10 @@
 
 package org.onosproject.pipelines.fabric.impl.behaviour;
 
+import com.google.common.collect.ImmutableMap;
+
+import java.util.Map;
+
 /**
  * Constant values.
  */
@@ -48,6 +52,63 @@ public final class Constants {
     public static final int DEFAULT_TC = 0;
     public static final byte DEFAULT_QFI = (byte) 0x00;
 
+    //////////////////////////////////////////////////////////////////////////////
+    // 64 .... 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0 //
+    //  X      X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  X X X X X 1 1 1 1 1 //
+    //////////////////////////////////////////////////////////////////////////////
+    // Metadata instruction is used as 8 byte sequence to carry up to 64 metadata
+
+    // FIXME We are assuming SR as the only app programming this meta.
+    // SDFAB-530 to get rid of this limitation
+
+    /**
+     * SR is setting this metadata when a double tagged filtering objective is removed
+     * and no other hosts is sharing the same input port. Thus, termination mac entries
+     * can be removed together with the vlan table entries.
+     *
+     * See org.onosproject.segmentrouting.RoutingRulePopulator#buildDoubleTaggedFilteringObj()
+     * See org.onosproject.segmentrouting.RoutingRulePopulator#processDoubleTaggedFilter()
+     */
+    public static final long CLEANUP_DOUBLE_TAGGED_HOST_ENTRIES = 1;
+
+    /**
+     * SR is setting this metadata when an interface config update has been performed
+     * and thus termination mac entries should not be removed.
+     *
+     * See org.onosproject.segmentrouting.RoutingRulePopulator#processSinglePortFiltersInternal
+     */
+    public static final long INTERFACE_CONFIG_UPDATE = 1L << 1;
+
+    /**
+     * SR is setting this metadata to signal the driver when the config is for the pair port,
+     * i.e. ports connecting two leaves.
+     *
+     *  See org.onosproject.segmentrouting.RoutingRulePopulator#portType
+     */
+    public static final long PAIR_PORT = 1L << 2;
+
+    /**
+     * SR is setting this metadata to signal the driver when the config is for an edge port,
+     * i.e. ports facing an host.
+     *
+     * See org.onosproject.segmentrouting.policy.impl.PolicyManager#trafficMatchFwdObjective
+     * See org.onosproject.segmentrouting.RoutingRulePopulator#portType
+     */
+    public static final long EDGE_PORT = 1L << 3;
+
+    /**
+     * SR is setting this metadata to signal the driver when the config is for an infra port,
+     * i.e. ports connecting a leaf with a spine.
+     */
+    public static final long INFRA_PORT = 1L << 4;
+
+    public static final long METADATA_MASK = 0x1FL;
+
+    public static final Map<Long, Byte> METADATA_TO_PORT_TYPE = ImmutableMap.<Long, Byte>builder()
+            .put(PAIR_PORT, PORT_TYPE_INFRA)
+            .put(EDGE_PORT, PORT_TYPE_EDGE)
+            .put(INFRA_PORT, PORT_TYPE_INFRA)
+            .build();
 
     // hide default constructor
     private Constants() {
