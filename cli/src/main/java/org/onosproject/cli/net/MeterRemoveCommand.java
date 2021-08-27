@@ -18,19 +18,21 @@ package org.onosproject.cli.net;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Completion;
+import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.meter.Band;
-import org.onosproject.net.meter.DefaultBand;
 import org.onosproject.net.meter.DefaultMeterRequest;
-import org.onosproject.net.meter.Meter;
+import org.onosproject.net.meter.MeterCellId;
 import org.onosproject.net.meter.MeterId;
 import org.onosproject.net.meter.MeterRequest;
+import org.onosproject.net.meter.MeterScope;
 import org.onosproject.net.meter.MeterService;
+import org.onosproject.net.pi.model.PiMeterId;
+import org.onosproject.net.pi.runtime.PiMeterCellId;
 
-import java.util.Collections;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Remove existing meter from device.
@@ -45,9 +47,13 @@ public class MeterRemoveCommand extends AbstractShellCommand {
     @Completion(DeviceIdCompleter.class)
     private String uri = null;
 
-    @Argument(index = 1, name = "meterId", description = "Meter ID hexadecimal value",
+    @Argument(index = 1, name = "index", description = "Index",
             required = true, multiValued = false)
-    private String meterIdstr = null;
+    private String indexString = null;
+
+    @Option(name = "-sc", aliases = "--scope", description = "Scope",
+            required = false, multiValued = false)
+    private String scopeString = null;
 
     private final String appId = "org.onosproject.cli.meterCmd";
 
@@ -57,19 +63,27 @@ public class MeterRemoveCommand extends AbstractShellCommand {
         CoreService coreService = get(CoreService.class);
 
         DeviceId deviceId = DeviceId.deviceId(uri);
-        MeterId meterId = MeterId.meterId(Long.parseLong(meterIdstr, 16));
 
-        Band b = new DefaultBand(Band.Type.DROP, 0L, 0L, (short) 0);
+        MeterScope scope = MeterScope.globalScope();
+        if (!isNullOrEmpty(scopeString)) {
+            scope = MeterScope.of(scopeString);
+        }
+
+        MeterCellId meterCellId;
+        long index = Long.parseLong(indexString);
+        if (scope.equals(MeterScope.globalScope())) {
+            meterCellId = MeterId.meterId(index);
+        } else {
+            meterCellId = PiMeterCellId.ofIndirect(PiMeterId.of(scope.id()), index);
+        }
 
         MeterRequest.Builder builder = DefaultMeterRequest.builder()
                 .forDevice(deviceId)
-                .withBands(Collections.singleton(b))
-                .withUnit(Meter.Unit.PKTS_PER_SEC)
                 .fromApp(coreService.registerApplication(appId));
         MeterRequest meterRequest = builder.remove();
-        service.withdraw(meterRequest, meterId);
-        log.info("Requested meter removal: {}", meterRequest.toString());
+        service.withdraw(builder.remove(), meterCellId);
 
-        print("Requested meter removal: %s", meterRequest.toString());
+        log.info("Requested meter {} removal: {}", meterCellId.toString(), meterRequest.toString());
+        print("Requested meter %s removal: %s", meterCellId.toString(), meterRequest.toString());
     }
 }

@@ -21,17 +21,14 @@ import org.onosproject.codec.JsonCodec;
 import org.onosproject.net.meter.Band;
 import org.onosproject.net.meter.Band.Builder;
 import org.onosproject.net.meter.DefaultBand;
-import org.slf4j.Logger;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.nullIsIllegal;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Meter band JSON codec.
  */
 public final class MeterBandCodec extends JsonCodec<Band> {
-    private final Logger log = getLogger(getClass());
 
     // JSON field names
     private static final String TYPE = "type";
@@ -92,6 +89,18 @@ public final class MeterBandCodec extends JsonCodec<Band> {
                 precedence = (short) nullIsIllegal(json.get(PREC), PREC + MISSING_MEMBER_MESSAGE).asInt();
                 builder.ofType(type);
                 builder.dropPrecedence(precedence);
+                break;
+            case "NONE":
+                type = Band.Type.NONE;
+                builder.ofType(type);
+                break;
+            case "MARK_YELLOW":
+                type = Band.Type.MARK_YELLOW;
+                builder.ofType(type);
+                break;
+            case "MARK_RED":
+                type = Band.Type.MARK_RED;
+                builder.ofType(type);
                 break;
             default:
                 nullIsIllegal(type, "The requested type " + typeStr + " is not defined for band.");

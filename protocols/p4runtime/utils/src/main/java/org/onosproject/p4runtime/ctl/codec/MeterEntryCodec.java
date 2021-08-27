@@ -32,37 +32,19 @@ public final class MeterEntryCodec
         extends AbstractEntityCodec<PiMeterCellConfig, PiMeterCellHandle,
         P4RuntimeOuterClass.MeterEntry, Object> {
 
-    static P4RuntimeOuterClass.MeterConfig getP4Config(PiMeterCellConfig piConfig)
-            throws CodecException {
+    static P4RuntimeOuterClass.MeterConfig getP4Config(PiMeterCellConfig piConfig) {
         // The config has no band, we don't have to create a P4RT meter config
         if (piConfig.isDefaultConfig()) {
             return null;
         }
-        // If it is not a reset operation, the config must be a modify config and has exactly 2 bands
-        if (!piConfig.isModifyConfig()) {
-            throw new CodecException("Number of meter bands should be 2 (Modify) or 0 (Reset)");
-        }
-        final PiMeterBand[] bands = piConfig.meterBands().toArray(new PiMeterBand[0]);
-        long cir, cburst, pir, pburst;
-        // The band with bigger burst is peak if rate of them is equal.
-        if (bands[0].rate() > bands[1].rate() ||
-                (bands[0].rate() == bands[1].rate() &&
-                        bands[0].burst() >= bands[1].burst())) {
-            cir = bands[1].rate();
-            cburst = bands[1].burst();
-            pir = bands[0].rate();
-            pburst = bands[0].burst();
-        } else {
-            cir = bands[0].rate();
-            cburst = bands[0].burst();
-            pir = bands[1].rate();
-            pburst = bands[1].burst();
-        }
+
+        final PiMeterBand committedBand = piConfig.committedBand();
+        final PiMeterBand peakBand = piConfig.peakBand();
         return P4RuntimeOuterClass.MeterConfig.newBuilder()
-                .setCir(cir)
-                .setCburst(cburst)
-                .setPir(pir)
-                .setPburst(pburst)
+                .setCir(committedBand.rate())
+                .setCburst(committedBand.burst())
+                .setPir(peakBand.rate())
+                .setPburst(peakBand.burst())
                 .build();
     }
 
@@ -70,7 +52,7 @@ public final class MeterEntryCodec
     protected P4RuntimeOuterClass.MeterEntry encode(
             PiMeterCellConfig piEntity, Object ignored, PiPipeconf pipeconf,
             P4InfoBrowser browser)
-            throws P4InfoBrowser.NotFoundException, CodecException {
+            throws P4InfoBrowser.NotFoundException {
         final int meterId = browser.meters().getByName(
                 piEntity.cellId().meterId().id()).getPreamble().getId();
         P4RuntimeOuterClass.MeterEntry.Builder builder =
@@ -139,9 +121,8 @@ public final class MeterEntryCodec
         PiMeterCellConfig.Builder builder =
             PiMeterCellConfig.builder().withMeterCellId(cellId);
         if (p4Config != null) {
-            builder = builder
-                .withMeterBand(new PiMeterBand(p4Config.getCir(), p4Config.getCburst()))
-                .withMeterBand(new PiMeterBand(p4Config.getPir(), p4Config.getPburst()));
+            builder.withCommittedBand(p4Config.getCir(), p4Config.getCburst())
+                    .withPeakBand(p4Config.getPir(), p4Config.getPburst());
         }
         return builder.build();
     }

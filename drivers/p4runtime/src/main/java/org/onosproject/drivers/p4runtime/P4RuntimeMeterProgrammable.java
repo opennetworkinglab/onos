@@ -23,7 +23,6 @@ import org.onosproject.drivers.p4runtime.mirror.P4RuntimeMeterMirror;
 import org.onosproject.drivers.p4runtime.mirror.TimedEntry;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.meter.Band;
-import org.onosproject.net.meter.DefaultBand;
 import org.onosproject.net.meter.DefaultMeter;
 import org.onosproject.net.meter.DefaultMeterFeatures;
 import org.onosproject.net.meter.Meter;
@@ -42,7 +41,6 @@ import org.onosproject.net.pi.service.PiMeterTranslator;
 import org.onosproject.net.pi.service.PiTranslatedEntity;
 import org.onosproject.net.pi.service.PiTranslationException;
 import org.onosproject.p4runtime.api.P4RuntimeWriteClient.WriteRequest;
-import org.onosproject.p4runtime.api.P4RuntimeWriteClient.WriteResponse;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -52,12 +50,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.Lock;
-import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.net.meter.MeterOperation.Type.ADD;
-import static org.onosproject.net.meter.MeterOperation.Type.MODIFY;
-import static org.onosproject.net.meter.MeterOperation.Type.REMOVE;
 import static org.onosproject.p4runtime.api.P4RuntimeWriteClient.UpdateType;
 
 /**
@@ -178,15 +172,23 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
             }
         }
 
-        // Reset all inconsistent meter cells to default state
+        // Reset all inconsistent meter cells to the default config
         if (!inconsistentOrDefaultCells.isEmpty()) {
             WriteRequest request = client.write(p4DeviceId, pipeconf);
             for (PiMeterCellId cellId : inconsistentOrDefaultCells) {
                 PiMeterCellHandle handle = PiMeterCellHandle.of(deviceId, cellId);
                 appendEntryToWriteRequestOrSkip(request, handle, PiMeterCellConfig.reset(cellId));
             }
-            WriteResponse response = request.submitSync();
-            meterMirror.applyWriteResponse(response);
+
+            request.submit().whenComplete((response, ex) -> {
+                if (ex != null) {
+                    log.error("Exception resetting inconsistent meter entries", ex);
+                } else {
+                    log.debug("Successfully removed {} out of {} inconsistent meter entries",
+                            response.success().size(), response.all().size());
+                }
+                response.success().forEach(entity -> meterMirror.remove((PiMeterCellHandle) entity.handle()));
+            });
         }
 
         return CompletableFuture.completedFuture(meters);
@@ -219,10 +221,11 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
                          "one in in translation store: device={}, store=Default", deviceId, config);
             } else {
                 log.debug("Configs obtained from device: {} and present in the store are default, " +
-                          "skipping the forge section");
+                          "skipping the forge section", deviceId);
             }
             return null;
         }
+
         // The config is not consistent
         if (!translatedEntity.get().translated().equals(config)) {
             log.warn("Meter Cell Config obtained from device {} is different from " +
@@ -230,20 +233,20 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
                      deviceId, config, translatedEntity.get().translated());
             return null;
         }
+
+        // Big problems in the mirror ? This could happen in case of issues with
+        // the eventual consistent maps used in the AbstractDistributedP4RuntimeMirror
         if (timedEntry == null) {
             log.warn("Meter entry handle not found in device mirror: {}", handle);
             return null;
         }
 
-        // Forge a meter with MeterCellId, Bands and DeviceId
+        Meter original = translatedEntity.get().original();
+        // Forge a meter with MeterCellId, Bands and DeviceId using the original value.
         // Other values are not required because we cannot retrieve them from the south
         DefaultMeter meter = (DefaultMeter) DefaultMeter.builder()
-                            .withBands(config.meterBands().stream().map(b -> DefaultBand.builder()
-                                    .withRate(b.rate())
-                                    .burstSize(b.burst())
-                                    .ofType(Band.Type.NONE)
-                                    .build()).collect(Collectors.toList()))
-                            .withCellId(config.cellId())
+                            .withBands(original.bands())
+                            .withCellId(original.meterCellId())
                             .forDevice(deviceId)
                             .build();
         meter.setState(MeterState.ADDED);
@@ -270,7 +273,7 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
     /**
      * P4 meter features builder.
      */
-    public class P4RuntimeMeterFeaturesBuilder {
+    public static class P4RuntimeMeterFeaturesBuilder {
         private final PiMeterModel piMeterModel;
         private DeviceId deviceId;
 
@@ -290,9 +293,7 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
          * @return the meter features object
          */
         public MeterFeatures build() {
-            /*
-             * We set the basic values before to extract the other information.
-             */
+            // We set the basic values before to extract the other information.
             MeterFeatures.Builder builder = DefaultMeterFeatures.builder()
                     .forDevice(deviceId)
                     // The scope value will be PiMeterId
@@ -301,36 +302,31 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
                     .withMaxColors(PI_METER_MAX_COLOR)
                     .withStartIndex(PI_METER_START_INDEX)
                     .withEndIndex(piMeterModel.size() - 1);
-            /*
-             * Pi meter only support NONE type
-             */
+
+            // p4rt meters support MARK_YELLOW (committed config) and
+            // MARK_RED (peak config) band types.
             Set<Band.Type> bands = Sets.newHashSet();
-            bands.add(Band.Type.NONE);
+            bands.add(Band.Type.MARK_YELLOW);
+            bands.add(Band.Type.MARK_RED);
             builder.withBandTypes(bands);
-            /*
-             * We extract the supported units;
-             */
+
+            // We extract the supported units;
             Set<Meter.Unit> units = Sets.newHashSet();
             if (piMeterModel.unit() == PiMeterModel.Unit.BYTES) {
-                units.add(Meter.Unit.KB_PER_SEC);
+                units.add(Meter.Unit.BYTES_PER_SEC);
             } else if (piMeterModel.unit() == PiMeterModel.Unit.PACKETS) {
                 units.add(Meter.Unit.PKTS_PER_SEC);
             }
-            builder.withUnits(units);
-            /*
-             * Burst is supported ?
-             */
-            builder.hasBurst(true);
-            /*
-             * Stats are supported ?
-             */
-            builder.hasStats(false);
 
-            return builder.build();
+            return builder.withUnits(units)
+                    .hasBurst(true)
+                    .hasStats(false)
+                    .build();
         }
 
         /**
          * To build an empty meter features.
+         *
          * @param deviceId the device id
          * @return the meter features
          */

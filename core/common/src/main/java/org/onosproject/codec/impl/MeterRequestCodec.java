@@ -26,28 +26,31 @@ import org.onosproject.net.meter.Band;
 import org.onosproject.net.meter.DefaultMeterRequest;
 import org.onosproject.net.meter.Meter;
 import org.onosproject.net.meter.MeterRequest;
-import org.slf4j.Logger;
+import org.onosproject.net.meter.MeterScope;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.nullIsIllegal;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * MeterRequest JSON codec.
  */
 public final class MeterRequestCodec extends JsonCodec<MeterRequest> {
-    private final Logger log = getLogger(getClass());
 
     // JSON field names
     private static final String DEVICE_ID = "deviceId";
     private static final String UNIT = "unit";
     private static final String BANDS = "bands";
-    public static final String REST_APP_ID = "org.onosproject.rest";
+    private static final String SCOPE = "scope";
+    private static final String INDEX = "index";
+    private static final String REST_APP_ID = "org.onosproject.rest";
     private static final String MISSING_MEMBER_MESSAGE = " member is required in MeterRequest";
+
+    private ApplicationId applicationId;
 
     @Override
     public MeterRequest decode(ObjectNode json, CodecContext context) {
@@ -56,14 +59,17 @@ public final class MeterRequestCodec extends JsonCodec<MeterRequest> {
         }
 
         final JsonCodec<Band> meterBandCodec = context.codec(Band.class);
-        CoreService coreService = context.getService(CoreService.class);
+
 
         // parse device id
         DeviceId deviceId = DeviceId.deviceId(nullIsIllegal(json.get(DEVICE_ID),
                 DEVICE_ID + MISSING_MEMBER_MESSAGE).asText());
 
         // application id
-        ApplicationId appId = coreService.registerApplication(REST_APP_ID);
+        if (applicationId == null) {
+            CoreService coreService = context.getService(CoreService.class);
+            applicationId = coreService.registerApplication(REST_APP_ID);
+        }
 
         // parse burst
         boolean burst = false;
@@ -83,6 +89,9 @@ public final class MeterRequestCodec extends JsonCodec<MeterRequest> {
             case "PKTS_PER_SEC":
                 meterUnit = Meter.Unit.PKTS_PER_SEC;
                 break;
+            case "BYTES_PER_SEC":
+                meterUnit = Meter.Unit.BYTES_PER_SEC;
+                break;
             default:
                 nullIsIllegal(meterUnit, "The requested unit " + unit + " is not defined for meter.");
         }
@@ -98,22 +107,39 @@ public final class MeterRequestCodec extends JsonCodec<MeterRequest> {
             });
         }
 
-        MeterRequest meterRequest;
-        if (burst) {
-            meterRequest = DefaultMeterRequest.builder()
-                    .fromApp(appId)
-                    .forDevice(deviceId)
-                    .withUnit(meterUnit)
-                    .withBands(bandList)
-                    .burst().add();
-        } else {
-            meterRequest = DefaultMeterRequest.builder()
-                    .fromApp(appId)
-                    .forDevice(deviceId)
-                    .withUnit(meterUnit)
-                    .withBands(bandList).add();
+        // parse scope and index
+        JsonNode scopeJson = json.get(SCOPE);
+        MeterScope scope = null;
+        if (scopeJson != null && !isNullOrEmpty(scopeJson.asText())) {
+            scope = MeterScope.of(scopeJson.asText());
         }
 
-        return meterRequest;
+        JsonNode indexJson = json.get(INDEX);
+        Long index = null;
+        if (indexJson != null && !isNullOrEmpty(indexJson.asText()) && scope != null) {
+            index = indexJson.asLong();
+        }
+
+        // build the final request
+        MeterRequest.Builder meterRequest = DefaultMeterRequest.builder();
+        if (scope != null) {
+            meterRequest.withScope(scope);
+        }
+
+        if (index != null) {
+            meterRequest.withIndex(index);
+        }
+
+        meterRequest.fromApp(applicationId)
+                .forDevice(deviceId)
+                .withUnit(meterUnit)
+                .withBands(bandList);
+
+        if (burst) {
+            meterRequest.burst();
+        }
+
+        return meterRequest.add();
     }
+
 }

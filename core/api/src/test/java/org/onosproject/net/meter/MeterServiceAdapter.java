@@ -61,6 +61,11 @@ public class MeterServiceAdapter implements MeterService {
     }
 
     @Override
+    public Collection<Meter> getMeters(DeviceId deviceId, MeterScope scope) {
+        return null;
+    }
+
+    @Override
     public MeterId allocateMeterId(DeviceId deviceId) {
         return null;
     }

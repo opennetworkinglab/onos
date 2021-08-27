@@ -91,6 +91,15 @@ public interface MeterService
     Collection<Meter> getMeters(DeviceId deviceId);
 
     /**
+     * Fetches the meters by the device id and scope.
+     *
+     * @param deviceId a device id
+     * @param scope meters scope
+     * @return a collection of meters
+     */
+    Collection<Meter> getMeters(DeviceId deviceId, MeterScope scope);
+
+    /**
      * Allocates a new meter id in the system.
      *
      * @param deviceId the device id

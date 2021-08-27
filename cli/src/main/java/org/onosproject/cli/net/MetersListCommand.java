@@ -15,16 +15,20 @@
  */
 package org.onosproject.cli.net;
 
-import com.google.common.collect.Collections2;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Completion;
+import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.meter.Meter;
+import org.onosproject.net.meter.MeterCellId;
 import org.onosproject.net.meter.MeterId;
+import org.onosproject.net.meter.MeterScope;
 import org.onosproject.net.meter.MeterService;
+import org.onosproject.net.pi.model.PiMeterId;
+import org.onosproject.net.pi.runtime.PiMeterCellId;
 
 import java.util.Collection;
 
@@ -43,35 +47,60 @@ public class MetersListCommand extends AbstractShellCommand {
     @Completion(DeviceIdCompleter.class)
     String uri = null;
 
-    @Argument(index = 1, name = "meter", description = "Meter ID",
+    @Argument(index = 1, name = "index", description = "Index",
             required = false, multiValued = false)
-    String meterstr = null;
+    private String indexString = null;
 
-    MeterId meterId = null;
+    @Option(name = "-sc", aliases = "--scope", description = "Scope",
+            required = false, multiValued = false)
+    private String scopeString = null;
+
+    MeterScope meterScope;
+    Long index;
+    MeterCellId meterCellId;
 
     @Override
     protected void doExecute() {
 
-        if (!isNullOrEmpty(meterstr)) {
-            meterId = MeterId.meterId(Long.parseLong(meterstr));
+        if (!isNullOrEmpty(scopeString)) {
+            meterScope = MeterScope.of(scopeString);
+        }
+
+        if (!isNullOrEmpty(indexString)) {
+            index = Long.parseLong(indexString);
+            if (meterScope == null) {
+                meterScope = MeterScope.globalScope();
+            }
+        }
+
+        if (index != null) {
+            if (meterScope != null && meterScope.equals(MeterScope.globalScope())) {
+                meterCellId = MeterId.meterId(index);
+            } else if (meterScope != null) {
+                meterCellId = PiMeterCellId.ofIndirect(PiMeterId.of(meterScope.id()), index);
+            }
         }
 
         MeterService service = get(MeterService.class);
 
-        if (meterId != null && uri != null) {
-            Meter m = service.getMeter(DeviceId.deviceId(uri), meterId);
-            if (m != null) {
-                print("%s", m);
-            } else {
-                error("Meter %s not found for device %s", meterId, uri);
-            }
+        Collection<Meter> meters;
+        if (isNullOrEmpty(uri)) {
+            meters = service.getAllMeters();
+            printMeters(meters);
         } else {
-            Collection<Meter> meters = service.getAllMeters();
-            if (uri == null) {
+            if (meterCellId != null) {
+                Meter m = service.getMeter(DeviceId.deviceId(uri), meterCellId);
+                if (m != null) {
+                    print("%s", m);
+                } else {
+                    error("Meter %s not found for device %s", meterCellId, uri);
+                }
+            } else if (meterScope != null) {
+                meters = service.getMeters(DeviceId.deviceId(uri), meterScope);
                 printMeters(meters);
             } else {
-                printMeters(Collections2.filter(meters,
-                        m -> m.deviceId().equals(DeviceId.deviceId(uri))));
+                meters = service.getMeters(DeviceId.deviceId(uri));
+                printMeters(meters);
             }
         }
     }

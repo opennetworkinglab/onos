@@ -19,13 +19,12 @@ package org.onosproject.net.pi.runtime;
 import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import org.onosproject.net.DeviceId;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -36,7 +35,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public final class PiMeterCellConfig implements PiEntity {
 
     private final PiMeterCellId cellId;
-    private final ImmutableList<PiMeterBand> piMeterBands;
+    private final ImmutableMap<PiMeterBandType, PiMeterBand> piMeterBands;
 
     /**
      * Creates a new meter cell configuration for the given cell identifier and meter bands.
@@ -44,9 +43,9 @@ public final class PiMeterCellConfig implements PiEntity {
      * @param cellId  meter cell identifier
      * @param piMeterBands meter bands
      */
-    private PiMeterCellConfig(PiMeterCellId cellId, Collection<PiMeterBand> piMeterBands) {
+    private PiMeterCellConfig(PiMeterCellId cellId, Map<PiMeterBandType, PiMeterBand> piMeterBands) {
         this.cellId = cellId;
-        this.piMeterBands = ImmutableList.copyOf(piMeterBands);
+        this.piMeterBands = ImmutableMap.copyOf(piMeterBands);
     }
 
     /**
@@ -59,11 +58,11 @@ public final class PiMeterCellConfig implements PiEntity {
     }
 
     /**
-     * Returns the collection of bands of this cell.
+     * Returns the map of bands of this cell.
      *
      * @return meter bands
      */
-    public Collection<PiMeterBand> meterBands() {
+    public Map<PiMeterBandType, PiMeterBand> meterBands() {
         return piMeterBands;
     }
 
@@ -88,6 +87,24 @@ public final class PiMeterCellConfig implements PiEntity {
     }
 
     /**
+     * Returns the committed configuration if present.
+     *
+     * @return the committed band. Null otherwise
+     */
+    public PiMeterBand committedBand() {
+        return piMeterBands.get(PiMeterBandType.COMMITTED);
+    }
+
+    /**
+     * Returns the peak configuration if present.
+     *
+     * @return the peak band. Null otherwise
+     */
+    public PiMeterBand peakBand() {
+        return piMeterBands.get(PiMeterBandType.PEAK);
+    }
+
+    /**
      * Returns a PiMeterCellConfig with no bands.
      * Used to reset a PI meter cell.
      *
@@ -95,7 +112,7 @@ public final class PiMeterCellConfig implements PiEntity {
      * @return a PiMeterCellConfig with no bands
      */
     public static PiMeterCellConfig reset(PiMeterCellId piMeterCellId) {
-        return new PiMeterCellConfig(piMeterCellId, Collections.emptyList());
+        return new PiMeterCellConfig(piMeterCellId, Collections.emptyMap());
     }
 
     @Override
@@ -118,8 +135,7 @@ public final class PiMeterCellConfig implements PiEntity {
         }
         PiMeterCellConfig that = (PiMeterCellConfig) o;
 
-        return piMeterBands.containsAll((that.piMeterBands)) &&
-                piMeterBands.size() == that.piMeterBands.size() &&
+        return Objects.equal(piMeterBands, that.piMeterBands) &&
                 Objects.equal(cellId, that.cellId);
     }
 
@@ -146,8 +162,8 @@ public final class PiMeterCellConfig implements PiEntity {
     }
 
     public static final class Builder {
-        private  PiMeterCellId cellId;
-        private List<PiMeterBand> bands = new ArrayList<>();
+        private PiMeterCellId cellId;
+        private Map<PiMeterBandType, PiMeterBand> bands = Maps.newHashMap();
 
 
         private Builder() {
@@ -173,7 +189,31 @@ public final class PiMeterCellConfig implements PiEntity {
          * @return this
          */
         public PiMeterCellConfig.Builder withMeterBand(PiMeterBand band) {
-            this.bands.add(band);
+            this.bands.put(band.type(), band);
+            return this;
+        }
+
+        /**
+         * Sets the committed band of this meter.
+         *
+         * @param rate committed rate
+         * @param burst committed burst
+         * @return this
+         */
+        public PiMeterCellConfig.Builder withCommittedBand(long rate, long burst) {
+            this.bands.put(PiMeterBandType.COMMITTED, new PiMeterBand(PiMeterBandType.COMMITTED, rate, burst));
+            return this;
+        }
+
+        /**
+         * Sets the peak band of this meter.
+         *
+         * @param rate peak rate
+         * @param burst peak burst
+         * @return this
+         */
+        public PiMeterCellConfig.Builder withPeakBand(long rate, long burst) {
+            this.bands.put(PiMeterBandType.PEAK, new PiMeterBand(PiMeterBandType.PEAK, rate, burst));
             return this;
         }
 
