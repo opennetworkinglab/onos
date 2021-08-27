@@ -365,6 +365,21 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
     }
 
     @Override
+    public Collection<Meter> getAllMeters(DeviceId deviceId, MeterScope scope) {
+        if (scope.equals(MeterScope.globalScope())) {
+            return Collections2.transform(
+                    Collections2.filter(ImmutableSet.copyOf(metersMap.values()),
+                            (MeterData m) -> m.meter().meterCellId().type() == INDEX),
+                    MeterData::meter);
+        }
+        return Collections2.transform(
+                Collections2.filter(ImmutableSet.copyOf(metersMap.values()),
+                        (MeterData m) -> m.meter().meterCellId().type() == PIPELINE_INDEPENDENT &&
+                                ((PiMeterCellId) m.meter().meterCellId()).meterId().id().equals(scope.id())),
+                MeterData::meter);
+    }
+
+    @Override
     public void failedMeter(MeterOperation op, MeterFailReason reason) {
         // Meter ops failed (got notification from the sb)
         MeterKey key = MeterKey.key(op.meter().deviceId(), op.meter().meterCellId());
@@ -701,8 +716,9 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
                                         return null;
                                     });
                                     notifyDelegate(new MeterEvent(MeterEvent.Type.METER_ADDED, data.meter()));
-                                // Update stats case
-                                } else if (data.meter().referenceCount() == 0) {
+                                // Update stats case - we report reference count zero only for INDEX based meters
+                                } else if (data.meter().referenceCount() == 0 &&
+                                        data.meter().meterCellId().type() == INDEX) {
                                     notifyDelegate(new MeterEvent(MeterEvent.Type.METER_REFERENCE_COUNT_ZERO,
                                             data.meter()));
                                 }

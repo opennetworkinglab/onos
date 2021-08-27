@@ -20,7 +20,6 @@ import org.onosproject.net.Device;
 import org.onosproject.net.meter.Band;
 import org.onosproject.net.meter.Meter;
 import org.onosproject.net.pi.model.PiPipeconf;
-import org.onosproject.net.pi.runtime.PiMeterBand;
 import org.onosproject.net.pi.runtime.PiMeterCellConfig;
 import org.onosproject.net.pi.runtime.PiMeterCellId;
 import org.onosproject.net.pi.service.PiTranslationException;
@@ -36,7 +35,7 @@ final class PiMeterTranslatorImpl {
         // Hides constructor.
     }
 
-    private static final int TRTCM_RATES = 2;
+    private static final int TCM_BANDS = 2;
 
     /**
      * Returns a PI meter config equivalent to the given meter, for the given pipeconf and device.
@@ -53,23 +52,52 @@ final class PiMeterTranslatorImpl {
             throw new PiTranslationException("PI meter cell type must be PIPELINE_INDEPENDENT!");
         }
 
-        // FIXME: we might want to move this check to P4Runtime driver or protocol layer.
-        // In general, This check is more of P4Runtime limitation, we should do this check in the low level layer.
-        if (meter.bands().size() > TRTCM_RATES) {
-            throw new PiTranslationException("PI meter can not have more than 2 bands!");
+        // In general, this check is more of P4Runtime limitation, we should do this check in the low level layer.
+        // At the same time we could extend to support other configurations (for example srTCM).
+        // TODO implement SRTCM and TRTCM helper classes to improve readability of the code.
+        //  Or in future when we support other markers we can simply create two different methods.
+        if (meter.bands().size() != TCM_BANDS) {
+            throw new PiTranslationException("PI meter must have 2 bands in order to implement TCM metering!");
         }
 
-
-        PiMeterCellConfig.Builder builder = PiMeterCellConfig.builder();
-        for (Band band : meter.bands()) {
-            if (band.type() != Band.Type.NONE) {
-                throw new PiTranslationException("PI meter can not have band with other types except NONE!");
-            }
-
-            PiMeterBand piMeterBand = new PiMeterBand(band.rate(), band.burst());
-            builder.withMeterBand(piMeterBand);
+        final Band[] bands = meter.bands().toArray(new Band[0]);
+        // Validate proper config of the TCM settings.
+        if ((bands[0].type() != Band.Type.MARK_YELLOW && bands[0].type() != Band.Type.MARK_RED) ||
+                (bands[1].type() != Band.Type.MARK_YELLOW && bands[1].type() != Band.Type.MARK_RED) ||
+                (bands[0].type() == bands[1].type())) {
+            throw new PiTranslationException("PI TCM meter must have a MARK_YELLOW band and a MARK_RED band!");
         }
 
-        return builder.withMeterCellId((PiMeterCellId) meter.meterCellId()).build();
+        // Validate proper config of the trTCM settings
+        if (bands[0].burst() <= 0 || bands[1].burst() <= 0) {
+            throw new PiTranslationException("PI trTCM meter can not have band with burst <= 0!");
+        }
+        if (bands[0].rate() <= 0 || bands[1].rate() <= 0) {
+            throw new PiTranslationException("PI trTCM meter can not have band with rate <= 0!");
+        }
+
+        long cir, cburst, pir, pburst;
+        if (bands[0].type() == Band.Type.MARK_YELLOW) {
+            cir = bands[0].rate();
+            cburst = bands[0].burst();
+            pir = bands[1].rate();
+            pburst = bands[1].burst();
+        } else {
+            pir = bands[0].rate();
+            pburst = bands[0].burst();
+            cir = bands[1].rate();
+            cburst = bands[1].burst();
+        }
+
+        if (cir > pir) {
+            throw new PiTranslationException("PI trTCM meter must have a pir >= cir!");
+        }
+
+        return PiMeterCellConfig.builder()
+                .withCommittedBand(cir, cburst)
+                .withPeakBand(pir, pburst)
+                .withMeterCellId((PiMeterCellId) meter.meterCellId())
+                .build();
     }
+
 }

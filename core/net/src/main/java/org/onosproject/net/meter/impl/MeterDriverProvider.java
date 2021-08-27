@@ -152,12 +152,19 @@ public class MeterDriverProvider extends AbstractProvider implements MeterProvid
     private void getMeterFeatures(DeviceId deviceId) {
         Collection<MeterFeatures> meterFeatures = Collections.emptySet();
         try {
-            meterFeatures = getMeterProgrammable(deviceId).getMeterFeatures().get(pollFrequency, TimeUnit.SECONDS);
+            if (isMeterProgrammable(deviceId)) {
+                meterFeatures = getMeterProgrammable(deviceId).getMeterFeatures().get(pollFrequency, TimeUnit.SECONDS);
+            }
         } catch (Exception e) {
             log.warn("Unable to get the Meter Features from {}, error: {}", deviceId, e.getMessage());
             log.debug("Exception: ", e);
         }
         meterProviderService.pushMeterFeatures(deviceId, meterFeatures);
+    }
+
+    private boolean isMeterProgrammable(DeviceId deviceId) {
+        Device device = deviceService.getDevice(deviceId);
+        return device.is(MeterProgrammable.class);
     }
 
     private MeterProgrammable getMeterProgrammable(DeviceId deviceId) {

@@ -343,8 +343,12 @@ public class MeterManager
 
     @Override
     public Collection<Meter> getMeters(DeviceId deviceId) {
-        return store.getAllMeters().stream().filter(m ->
-                m.deviceId().equals(deviceId)).collect(Collectors.toList());
+        return store.getAllMeters(deviceId);
+    }
+
+    @Override
+    public Collection<Meter> getMeters(DeviceId deviceId, MeterScope scope) {
+        return store.getAllMeters(deviceId, scope);
     }
 
     @Override

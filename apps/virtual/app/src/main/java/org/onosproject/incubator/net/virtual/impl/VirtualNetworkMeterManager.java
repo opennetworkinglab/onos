@@ -40,6 +40,7 @@ import org.onosproject.net.meter.MeterKey;
 import org.onosproject.net.meter.MeterListener;
 import org.onosproject.net.meter.MeterOperation;
 import org.onosproject.net.meter.MeterRequest;
+import org.onosproject.net.meter.MeterScope;
 import org.onosproject.net.meter.MeterService;
 import org.onosproject.net.meter.MeterState;
 import org.onosproject.net.meter.MeterStoreDelegate;
@@ -50,6 +51,7 @@ import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -177,6 +179,11 @@ public class VirtualNetworkMeterManager
     public Collection<Meter> getMeters(DeviceId deviceId) {
         return store.getAllMeters(networkId()).stream()
                 .filter(m -> m.deviceId().equals(deviceId)).collect(Collectors.toList());
+    }
+
+    @Override
+    public Collection<Meter> getMeters(DeviceId deviceId, MeterScope scope) {
+        return Collections.emptyList();
     }
 
     @Override
