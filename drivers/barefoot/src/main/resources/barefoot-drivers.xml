@@ -27,6 +27,8 @@
             hwVersion="Tofino" swVersion="Stratum" extends="stratum">
         <behaviour api="org.onosproject.net.behaviour.PiPipelineProgrammable"
                    impl="org.onosproject.drivers.barefoot.TofinoPipelineProgrammable"/>
+        <behaviour api="org.onosproject.net.meter.MeterProgrammable"
+                   impl="org.onosproject.drivers.barefoot.TofinoMeterProgrammable"/>
         <property name="tableReadCountersWithTableEntries">true</property>
     </driver>
 

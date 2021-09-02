@@ -227,7 +227,7 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
         }
 
         // The config is not consistent
-        if (!translatedEntity.get().translated().equals(config)) {
+        if (!isSimilar(translatedEntity.get().translated(), config)) {
             log.warn("Meter Cell Config obtained from device {} is different from " +
                              "one in in translation store: device={}, store={}",
                      deviceId, config, translatedEntity.get().translated());
@@ -245,10 +245,10 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
         // Forge a meter with MeterCellId, Bands and DeviceId using the original value.
         // Other values are not required because we cannot retrieve them from the south
         DefaultMeter meter = (DefaultMeter) DefaultMeter.builder()
-                            .withBands(original.bands())
-                            .withCellId(original.meterCellId())
-                            .forDevice(deviceId)
-                            .build();
+                .withBands(original.bands())
+                .withCellId(original.meterCellId())
+                .forDevice(deviceId)
+                .build();
         meter.setState(MeterState.ADDED);
         return meter;
     }
@@ -268,6 +268,21 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
         writeRequest.entity(configToModify, UpdateType.MODIFY);
 
         return false;
+    }
+
+    /**
+     * Returns true if the given PiMeterCellConfigs are similar enough to be deemed equal
+     * for reconciliation purposes. This is required to handle read/write asymmetry in devices
+     * that allow variations in the meter rate/burst. E.g., devices that implement metering
+     * with a rate or burst size that is slightly higher/lower than the configured ones,
+     * so the values written by ONOS will be different than those read from the device.
+     *
+     * @param onosMeter the ONOS meter
+     * @param deviceMeter the meter in the device
+     * @return true if the meters are similar, false otherwise
+     */
+    protected boolean isSimilar(PiMeterCellConfig onosMeter, PiMeterCellConfig deviceMeter) {
+        return onosMeter.equals(deviceMeter);
     }
 
     /**
