@@ -15,25 +15,30 @@
  */
 package org.onosproject.cli.net;
 
-import static org.onosproject.cli.net.DevicesListCommand.getSortedDevices;
-import static org.onosproject.net.DeviceId.deviceId;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Completion;
-import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.PortStatistics;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import static org.onosproject.cli.net.DevicesListCommand.getSortedDevices;
+import static org.onosproject.net.DeviceId.deviceId;
 
 /**
  * Lists port statistic of all ports in the system.
@@ -49,7 +54,7 @@ public class DevicePortStatsCommand extends AbstractShellCommand {
 
     @Option(name = "-d", aliases = "--delta",
             description = "Show delta port statistics,"
-            + "only for the last polling interval",
+                    + "only for the last polling interval",
             required = false, multiValued = false)
     private boolean delta = false;
 
@@ -83,21 +88,36 @@ public class DevicePortStatsCommand extends AbstractShellCommand {
         }
 
         if (uri == null) {
-            for (Device d : getSortedDevices(deviceService)) {
+            if (outputJson()) {
                 if (delta) {
-                    if (table) {
-                        printPortStatsDeltaTable(d.id(), deviceService.getPortDeltaStatistics(d.id()));
-                    } else {
-                        printPortStatsDelta(d.id(), deviceService.getPortDeltaStatistics(d.id()));
-                    }
+                    print("%s", jsonPortStatsDelta(deviceService, getSortedDevices(deviceService)));
                 } else {
-                    printPortStats(d.id(), deviceService.getPortStatistics(d.id()));
+                    print("%s", jsonPortStats(deviceService, getSortedDevices(deviceService)));
+                }
+            } else {
+                for (Device d : getSortedDevices(deviceService)) {
+                    if (delta) {
+                        if (table) {
+                            printPortStatsDeltaTable(d.id(), deviceService.getPortDeltaStatistics(d.id()));
+                        } else {
+                            printPortStatsDelta(d.id(), deviceService.getPortDeltaStatistics(d.id()));
+                        }
+                    } else {
+                        printPortStats(d.id(), deviceService.getPortStatistics(d.id()));
+                    }
                 }
             }
         } else {
             Device d = deviceService.getDevice(deviceId(uri));
             if (d == null) {
                 error("No such device %s", uri);
+            } else if (outputJson()) {
+                if (delta) {
+                    print("%s", jsonPortStatsDelta(d.id(), new ObjectMapper(),
+                            deviceService.getPortDeltaStatistics(d.id())));
+                } else {
+                    print("%s", jsonPortStats(d.id(), new ObjectMapper(), deviceService.getPortStatistics(d.id())));
+                }
             } else if (delta) {
                 if (table) {
                     printPortStatsDeltaTable(d.id(), deviceService.getPortDeltaStatistics(d.id()));
@@ -109,6 +129,123 @@ public class DevicePortStatsCommand extends AbstractShellCommand {
             }
         }
     }
+
+    /**
+     * Produces JSON array containing portstats of the specified devices.
+     *
+     * @param deviceService device service
+     * @param devices       collection of devices
+     * @return JSON Array
+     */
+    protected JsonNode jsonPortStats(DeviceService deviceService, Iterable<Device> devices) {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode result = mapper.createArrayNode();
+
+        for (Device device : devices) {
+            result.add(jsonPortStats(device.id(), mapper, deviceService.getPortStatistics(device.id())));
+        }
+
+        return result;
+    }
+
+    /**
+     * Produces JSON array containing portstats of the specified device.
+     *
+     * @param deviceId  device id
+     * @param portStats collection of port statistics
+     * @return JSON array
+     */
+    private JsonNode jsonPortStats(DeviceId deviceId, ObjectMapper mapper, Iterable<PortStatistics> portStats) {
+        ObjectNode result = mapper.createObjectNode();
+        ArrayNode portStatsNode = mapper.createArrayNode();
+
+        for (PortStatistics stat : sortByPort(portStats)) {
+            if (isIrrelevant(stat)) {
+                continue;
+            }
+            if (nonzero && stat.isZero()) {
+                continue;
+            }
+
+            portStatsNode.add(mapper.createObjectNode()
+                    .put("port", stat.portNumber().toString())
+                    .put("pktRx", stat.packetsReceived())
+                    .put("pktTx", stat.packetsSent())
+                    .put("bytesRx", stat.bytesReceived())
+                    .put("bytesTx", stat.bytesSent())
+                    .put("pktRxDrp", stat.packetsRxDropped())
+                    .put("pktTxDrp", stat.packetsTxDropped())
+                    .put("Dur", stat.durationSec())
+                    .set("annotations", annotations(mapper, stat.annotations())));
+        }
+
+        result.put("deviceId", deviceId.toString());
+        result.set("portStats", portStatsNode);
+
+        return result;
+    }
+
+    /**
+     * Produces JSON array containing delta portstats of the specified devices.
+     *
+     * @param deviceService device service
+     * @param devices       collection of devices
+     * @return JSON Array
+     */
+    protected JsonNode jsonPortStatsDelta(DeviceService deviceService, Iterable<Device> devices) {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode result = mapper.createArrayNode();
+
+        for (Device device : devices) {
+            result.add(jsonPortStatsDelta(device.id(), mapper, deviceService.getPortDeltaStatistics(device.id())));
+        }
+
+        return result;
+    }
+
+    /**
+     * Produces JSON array containing delta portstats of the specified device id.
+     *
+     * @param deviceId  device id
+     * @param portStats collection of port statistics
+     * @return JSON array
+     */
+    private JsonNode jsonPortStatsDelta(DeviceId deviceId, ObjectMapper mapper, Iterable<PortStatistics> portStats) {
+        ObjectNode result = mapper.createObjectNode();
+        ArrayNode portStatsNode = mapper.createArrayNode();
+
+        for (PortStatistics stat : sortByPort(portStats)) {
+            if (isIrrelevant(stat)) {
+                continue;
+            }
+            if (nonzero && stat.isZero()) {
+                continue;
+            }
+
+            float duration = ((float) stat.durationSec()) +
+                    (((float) stat.durationNano()) / TimeUnit.SECONDS.toNanos(1));
+            float rateRx = stat.bytesReceived() * 8 / duration;
+            float rateTx = stat.bytesSent() * 8 / duration;
+
+            portStatsNode.add(mapper.createObjectNode()
+                    .put("port", stat.portNumber().toString())
+                    .put("pktRx", stat.packetsReceived())
+                    .put("pktTx", stat.packetsSent())
+                    .put("bytesRx", stat.bytesReceived())
+                    .put("bytesTx", stat.bytesSent())
+                    .put("rateRx", String.format("%.1f", rateRx))
+                    .put("rateTx", String.format("%.1f", rateTx))
+                    .put("pktRxDrp", stat.packetsRxDropped())
+                    .put("pktTxDrp", stat.packetsTxDropped())
+                    .put("interval", String.format("%.3f", duration)));
+        }
+
+        result.put("deviceId", deviceId.toString());
+        result.set("portStats", portStatsNode);
+
+        return result;
+    }
+
 
     /**
      * Prints Port Statistics.
@@ -197,15 +334,15 @@ public class DevicePortStatsCommand extends AbstractShellCommand {
             float rateRx = duration > 0 ? stat.bytesReceived() * 8 / duration : 0;
             float rateTx = duration > 0 ? stat.bytesSent() * 8 / duration : 0;
             print(formatDeltaTable, stat.portNumber(),
-                  humanReadable(stat.packetsReceived()),
-                  humanReadable(stat.bytesReceived()),
-                  humanReadableBps(rateRx),
-                  humanReadable(stat.packetsRxDropped()),
-                  humanReadable(stat.packetsSent()),
-                  humanReadable(stat.bytesSent()),
-                  humanReadableBps(rateTx),
-                  humanReadable(stat.packetsTxDropped()),
-                  String.format("%.3f", duration));
+                    humanReadable(stat.packetsReceived()),
+                    humanReadable(stat.bytesReceived()),
+                    humanReadableBps(rateRx),
+                    humanReadable(stat.packetsRxDropped()),
+                    humanReadable(stat.packetsSent()),
+                    humanReadable(stat.bytesSent()),
+                    humanReadableBps(rateTx),
+                    humanReadable(stat.packetsTxDropped()),
+                    String.format("%.3f", duration));
         }
         print("+---------------------------------------------------------------------------------------------------+");
     }
