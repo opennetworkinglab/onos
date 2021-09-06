@@ -43,6 +43,7 @@ public final class KubevirtApiConfigCodec extends JsonCodec<KubevirtApiConfig> {
     private static final String CLIENT_KEY_DATA = "clientKeyData";
     private static final String SERVICE_FQDN = "serviceFqdn";
     private static final String API_SERVER_FQDN = "apiServerFqdn";
+    private static final String CONTROLLER_IP = "controllerIp";
 
     private static final String MISSING_MESSAGE = " is required in KubevirtApiConfig";
 
@@ -89,6 +90,10 @@ public final class KubevirtApiConfigCodec extends JsonCodec<KubevirtApiConfig> {
             node.put(API_SERVER_FQDN, entity.apiServerFqdn());
         }
 
+        if (entity.controllerIp() != null) {
+            node.put(CONTROLLER_IP, entity.controllerIp().toString());
+        }
+
         return node;
     }
 
@@ -116,6 +121,7 @@ public final class KubevirtApiConfigCodec extends JsonCodec<KubevirtApiConfig> {
         JsonNode clientKeyDataJson = json.get(CLIENT_KEY_DATA);
         JsonNode serviceFqdn = json.get(SERVICE_FQDN);
         JsonNode apiServerFqdn = json.get(API_SERVER_FQDN);
+        JsonNode controllerIp = json.get(CONTROLLER_IP);
 
         String token = "";
         String caCertData = "";
@@ -174,6 +180,10 @@ public final class KubevirtApiConfigCodec extends JsonCodec<KubevirtApiConfig> {
 
         if (apiServerFqdn != null) {
             builder.apiServerFqdn(apiServerFqdn.asText());
+        }
+
+        if (controllerIp != null) {
+            builder.controllerIp(IpAddress.valueOf(controllerIp.asText()));
         }
 
         return builder.build();

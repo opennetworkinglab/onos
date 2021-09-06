@@ -37,6 +37,7 @@ public final class KubevirtApiConfigJsonMatcher extends TypeSafeDiagnosingMatche
     private static final String CLIENT_KEY_DATA = "clientKeyData";
     private static final String SERVICE_FQDN = "serviceFqdn";
     private static final String API_SERVER_FQDN = "apiServerFqdn";
+    private static final String CONTROLLER_IP = "controllerIp";
 
     private KubevirtApiConfigJsonMatcher(KubevirtApiConfig kubevirtApiConfig) {
         this.kubevirtApiConfig = kubevirtApiConfig;
@@ -138,6 +139,17 @@ public final class KubevirtApiConfigJsonMatcher extends TypeSafeDiagnosingMatche
         if (jsonApiServerFqdn != null) {
             if (!jsonApiServerFqdn.asText().equals(apiServerFqdn)) {
                 description.appendText("apiServerFqdn was " + jsonApiServerFqdn);
+                return false;
+            }
+        }
+
+        // Controller IP
+        JsonNode jsonControllerIp = jsonNode.get(CONTROLLER_IP);
+        String controllerIp = kubevirtApiConfig.controllerIp().toString();
+
+        if (jsonControllerIp != null) {
+            if (!jsonControllerIp.asText().equals(controllerIp)) {
+                description.appendText("controller IP was " + jsonControllerIp);
                 return false;
             }
         }

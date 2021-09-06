@@ -147,6 +147,13 @@ public interface KubevirtApiConfig {
     String apiServerFqdn();
 
     /**
+     * Returns the controller IP address.
+     *
+     * @return controller IP address
+     */
+    IpAddress controllerIp();
+
+    /**
      * Builder of new API config entity.
      */
     interface Builder {
@@ -237,5 +244,13 @@ public interface KubevirtApiConfig {
          * @return Kubevirt API config builder
          */
         Builder apiServerFqdn(String apiServerFqdn);
+
+        /**
+         * Returns kubevirt API server config builder with the supplied controller IP.
+         *
+         * @param controllerIp controller IP address
+         * @return Kubevirt API config builder
+         */
+        Builder controllerIp(IpAddress controllerIp);
     }
 }
