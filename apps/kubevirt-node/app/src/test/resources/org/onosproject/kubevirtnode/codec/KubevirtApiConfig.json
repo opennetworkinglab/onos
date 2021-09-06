@@ -7,5 +7,6 @@
   "clientCertData": "clientCertData",
   "clientKeyData": "clientKeyData",
   "serviceFqdn": "kubevirt.edgestack.svc.cluster.local",
-  "apiServerFqdn": "kubernetes.default.svc.cluster.local"
+  "apiServerFqdn": "kubernetes.default.svc.cluster.local",
+  "controllerIp": "127.0.0.1"
 }

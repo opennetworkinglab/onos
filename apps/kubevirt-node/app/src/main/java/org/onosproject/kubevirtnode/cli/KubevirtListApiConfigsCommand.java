@@ -33,7 +33,7 @@ import static org.onosproject.kubevirtnode.util.KubevirtNodeUtil.prettyJson;
         description = "Lists all KubeVirt API server configs registered to the service")
 public class KubevirtListApiConfigsCommand extends AbstractShellCommand {
 
-    private static final String FORMAT = "%-10s%-25s%-10s%-10s";
+    private static final String FORMAT = "%-10s%-20s%-10s%-25s%-10s";
 
     @Override
     protected void doExecute() throws Exception {
@@ -43,10 +43,14 @@ public class KubevirtListApiConfigsCommand extends AbstractShellCommand {
         if (outputJson()) {
             print("%s", json(config));
         } else {
-            print(FORMAT, "Scheme", "IpAddress", "Port", "State");
+            print(FORMAT, "Scheme", "Server IP", "Port", "Controller IP", "State");
+            String controllerIp = "N/A";
             if (config != null) {
+                if (config.controllerIp() != null) {
+                    controllerIp = config.controllerIp().toString();
+                }
                 print(FORMAT, config.scheme().name(), config.ipAddress().toString(),
-                        config.port(), config.state().name());
+                        config.port(), controllerIp, config.state().name());
             } else {
                 print("Kubevirt config not found!");
             }
