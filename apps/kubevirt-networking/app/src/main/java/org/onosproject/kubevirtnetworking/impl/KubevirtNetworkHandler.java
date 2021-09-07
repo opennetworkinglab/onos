@@ -234,22 +234,24 @@ public class KubevirtNetworkHandler {
 
         Device device = deviceService.getDevice(node.ovsdb());
 
-        IpAddress serverIp;
+        IpAddress controllerIp = apiConfigService.apiConfig().controllerIp();
         String serviceFqdn = apiConfigService.apiConfig().serviceFqdn();
         IpAddress serviceIp = null;
 
-        if (serviceFqdn != null) {
-            serviceIp = resolveHostname(serviceFqdn);
-        }
+        if (controllerIp == null) {
+            if (serviceFqdn != null) {
+                serviceIp = resolveHostname(serviceFqdn);
+            }
 
-        if (serviceIp != null) {
-            serverIp = serviceIp;
-        } else {
-            serverIp = apiConfigService.apiConfig().ipAddress();
+            if (serviceIp != null) {
+                controllerIp = serviceIp;
+            } else {
+                controllerIp = apiConfigService.apiConfig().ipAddress();
+            }
         }
 
         ControllerInfo controlInfo =
-                new ControllerInfo(serverIp, DEFAULT_OFPORT, DEFAULT_OF_PROTO);
+                new ControllerInfo(controllerIp, DEFAULT_OFPORT, DEFAULT_OF_PROTO);
         List<ControllerInfo> controllers = Lists.newArrayList(controlInfo);
 
         String dpid = network.tenantDeviceId(
