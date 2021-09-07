@@ -24,6 +24,8 @@ import org.slf4j.Logger;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.Objects;
 
 import static org.onlab.packet.PacketUtils.checkInput;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -160,9 +162,9 @@ public class BmpPeer extends BasePacket {
 
     protected int peerBgpId;
 
-    protected long seconds;
+    protected int seconds;
 
-    protected long microseconds;
+    protected int microseconds;
 
     private static Logger log = getLogger(BmpPeer.class);
 
@@ -226,7 +228,7 @@ public class BmpPeer extends BasePacket {
      *
      * @return the timestamp in sec
      */
-    public long getSeconds() {
+    public int getSeconds() {
         return seconds;
     }
 
@@ -235,7 +237,7 @@ public class BmpPeer extends BasePacket {
      *
      * @return the timestamp in micro second
      */
-    public long getMicroseconds() {
+    public int getMicroseconds() {
         return microseconds;
     }
 
@@ -251,8 +253,8 @@ public class BmpPeer extends BasePacket {
         bb.put(this.peerAddress.getAddress());
         bb.putInt(this.peerAs);
         bb.putInt(this.peerBgpId);
-        bb.putLong(this.seconds);
-        bb.putLong(this.microseconds);
+        bb.putInt(this.seconds);
+        bb.putInt(this.microseconds);
 
         return data;
     }
@@ -304,11 +306,58 @@ public class BmpPeer extends BasePacket {
         return MoreObjects.toStringHelper(getClass())
                 .add("flags", flags)
                 .add("type", type)
+                .add("peerDistinguisher", Arrays.toString(peerDistinguisher))
                 .add("peerAddress", peerAddress.getHostAddress())
                 .add("peerAs", peerAs)
+                .add("peerBgpId", peerBgpId)
                 .add("seconds", seconds)
                 .add("microseconds", microseconds)
                 .toString();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), flags, type, peerAddress,
+                Arrays.hashCode(peerDistinguisher), peerAs, peerBgpId, seconds, microseconds);
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!super.equals(obj)) {
+            return false;
+        }
+        if (!(obj instanceof BmpPeer)) {
+            return false;
+        }
+        final BmpPeer other = (BmpPeer) obj;
+        if (this.type != other.type) {
+            return false;
+        }
+        if (this.flags != other.flags) {
+            return false;
+        }
+        if (!Arrays.equals(this.peerDistinguisher, other.peerDistinguisher)) {
+            return false;
+        }
+        if (this.peerAddress != other.peerAddress) {
+            return false;
+        }
+        if (this.peerAs != other.peerAs) {
+            return false;
+        }
+        if (this.peerBgpId != other.peerBgpId) {
+            return false;
+        }
+        if (this.seconds != other.seconds) {
+            return false;
+        }
+        if (this.microseconds != other.microseconds) {
+            return false;
+        }
+        return true;
     }
 
 }

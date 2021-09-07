@@ -21,6 +21,7 @@ import org.onlab.packet.BasePacket;
 import org.onlab.packet.Deserializer;
 
 import java.nio.ByteBuffer;
+import java.util.Objects;
 
 import static org.onlab.packet.PacketUtils.checkInput;
 
@@ -135,8 +136,8 @@ public class Bmp extends BasePacket {
         final ByteBuffer bb = ByteBuffer.wrap(data);
 
         bb.put(this.version);
-        bb.put(this.type);
         bb.putInt(this.length);
+        bb.put(this.type);
 
         return data;
     }
@@ -169,6 +170,35 @@ public class Bmp extends BasePacket {
                 .add("type", type)
                 .add("length", length)
                 .toString();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), version, type, length);
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!super.equals(obj)) {
+            return false;
+        }
+        if (!(obj instanceof Bmp)) {
+            return false;
+        }
+        final Bmp other = (Bmp) obj;
+        if (this.version != other.version) {
+            return false;
+        }
+        if (this.type != other.type) {
+            return false;
+        }
+        if (this.length != other.length) {
+            return false;
+        }
+        return true;
     }
 }
 
