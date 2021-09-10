@@ -220,13 +220,14 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
                 log.warn("Meter Cell Config obtained from device {} is different from " +
                          "one in in translation store: device={}, store=Default", deviceId, config);
             } else {
-                log.debug("Configs obtained from device: {} and present in the store are default, " +
-                          "skipping the forge section", deviceId);
+                log.debug("Configs for {} obtained from device: {} and from the store are default, " +
+                          "skipping the forge section", config.cellId(), deviceId);
             }
             return null;
         }
 
-        // The config is not consistent
+        // The config is not consistent. MeterProgrammable should remember
+        // that config from devices can be default which means no band
         if (!isSimilar(translatedEntity.get().translated(), config)) {
             log.warn("Meter Cell Config obtained from device {} is different from " +
                              "one in in translation store: device={}, store={}",
@@ -243,7 +244,6 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
 
         Meter original = translatedEntity.get().original();
         // Forge a meter with MeterCellId, Bands and DeviceId using the original value.
-        // Other values are not required because we cannot retrieve them from the south
         DefaultMeter meter = (DefaultMeter) DefaultMeter.builder()
                 .withBands(original.bands())
                 .withCellId(original.meterCellId())

@@ -37,7 +37,6 @@ import org.onosproject.net.meter.MeterEvent;
 import org.onosproject.net.meter.MeterFailReason;
 import org.onosproject.net.meter.MeterFeatures;
 import org.onosproject.net.meter.MeterFeaturesFlag;
-import org.onosproject.net.meter.MeterFeaturesKey;
 import org.onosproject.net.meter.MeterId;
 import org.onosproject.net.meter.MeterKey;
 import org.onosproject.net.meter.MeterOperation;
@@ -115,13 +114,10 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
 
     // Meters id related objects
     private static final String AVAILABLEMETERIDSTORE = "onos-meters-available-store";
-    // Available meter identifiers
     protected ConcurrentMap<MeterTableKey, DistributedSet<MeterKey>> availableMeterIds;
-    // Atomic counter map for generation of new identifiers;
     private static final String METERIDSTORE = "onos-meters-id-store";
     private AtomicCounterMap<MeterTableKey> meterIdGenerators;
 
-    // Serializer related objects
     private static final KryoNamespace.Builder APP_KRYO_BUILDER = KryoNamespace.newBuilder()
             .register(KryoNamespaces.API)
             .register(MeterKey.class)
@@ -169,22 +165,20 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
 
     @Activate
     public void activate() {
-        // Init meters map and setup the map listener
         meters = storageService.<MeterKey, MeterData>consistentMapBuilder()
                     .withName(METERSTORE)
                     .withSerializer(serializer).build();
         meters.addListener(metersMapListener);
         metersMap = meters.asJavaMap();
-        // Init meter features map
+
         metersFeatures = storageService.<MeterTableKey, MeterFeatures>eventuallyConsistentMapBuilder()
                 .withName(METERFEATURESSTORE)
                 .withTimestampProvider((key, features) -> new WallClockTimestamp())
                 .withSerializer(APP_KRYO_BUILDER).build();
         metersFeatures.addListener(featuresMapListener);
-        // Init the map of the available ids set
-        // Set will be created when a new Meter Features is pushed to the store
+
         availableMeterIds = new ConcurrentHashMap<>();
-        // Init atomic map counters
+
         meterIdGenerators = storageService.<MeterTableKey>atomicCounterMapBuilder()
                 .withName(METERIDSTORE)
                 .withSerializer(Serializer.using(KryoNamespaces.API,
@@ -207,14 +201,11 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
 
     @Override
     public CompletableFuture<MeterStoreResult> addOrUpdateMeter(Meter meter) {
-        // Verify integrity of the index
         checkArgument(validIndex(meter), "Meter index is not valid");
         CompletableFuture<MeterStoreResult> future = new CompletableFuture<>();
         MeterKey key = MeterKey.key(meter.deviceId(), meter.meterCellId());
         MeterData data = new MeterData(meter, null);
-        // Store the future related to the operation
         futures.put(key, future);
-        // Check if the meter exists
         try {
             meters.compute(key, (k, v) -> data);
         } catch (StorageException e) {
@@ -227,25 +218,25 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
     }
 
     @Override
-    public CompletableFuture<MeterStoreResult> storeMeter(Meter meter) {
-        return addOrUpdateMeter(meter);
-    }
-
-    @Override
     public CompletableFuture<MeterStoreResult> deleteMeter(Meter meter) {
-        // Init steps
         CompletableFuture<MeterStoreResult> future = new CompletableFuture<>();
         MeterKey key = MeterKey.key(meter.deviceId(), meter.meterCellId());
-        // Store the future related to the operation
         futures.put(key, future);
-        // Create the meter data
-        MeterData data = new MeterData(meter, null);
         // Update the state of the meter. It will be pruned by observing
         // that it has been removed from the dataplane.
         try {
-            // If it does not exist in the system
-            if (meters.computeIfPresent(key, (k, v) -> data) == null) {
-                // Complete immediately
+            Versioned<MeterData> versionedData = meters.computeIfPresent(key, (k, v) -> {
+                DefaultMeter m = (DefaultMeter) v.meter();
+                MeterState meterState = m.state();
+                if (meterState == MeterState.PENDING_REMOVE) {
+                    return v;
+                }
+                m.setState(meter.state());
+                return new MeterData(m, v.reason().isPresent() ? v.reason().get() : null);
+            });
+            // If it does not exist in the system, completes immediately
+            if (versionedData == null) {
+                futures.remove(key);
                 future.complete(MeterStoreResult.success());
             }
         } catch (StorageException e) {
@@ -254,7 +245,6 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
             futures.remove(key);
             future.completeExceptionally(e);
         }
-        // Done, return the future
         return future;
     }
 
@@ -300,15 +290,12 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
                         e.getMessage(), e);
             result = MeterStoreResult.fail(TIMEOUT);
         }
-
         return result;
     }
 
     @Override
     public MeterStoreResult deleteMeterFeatures(Collection<MeterFeatures> meterfeatures) {
-        // These store operations is treated as one single operation
-        // If one of them is failed, Fail is returned
-        // But the failed operation will not block the rest.
+        // Same logic of storeMeterFeatures
         MeterStoreResult result = MeterStoreResult.success();
         for (MeterFeatures mf : meterfeatures) {
             try {
@@ -387,19 +374,12 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
     }
 
     @Override
-    public void deleteMeterNow(Meter m) {
-        // This method is renamed in onos-2.5
-        purgeMeter(m);
-    }
-
-    @Override
     public void purgeMeter(Meter m) {
-        // Once we receive the ack from the sb
-        // create the key and remove definitely the meter
+        // Once we receive the ack from the sb, create the key
+        // remove definitely the meter and free the id
         MeterKey key = MeterKey.key(m.deviceId(), m.meterCellId());
         try {
             if (Versioned.valueOrNull(meters.remove(key)) != null) {
-                // Free the id
                 MeterScope scope;
                 if (m.meterCellId().type() == PIPELINE_INDEPENDENT) {
                     PiMeterCellId piMeterCellId = (PiMeterCellId) m.meterCellId();
@@ -414,12 +394,6 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
             log.error("{} thrown a storage exception: {}", e.getStackTrace()[0].getMethodName(),
                     e.getMessage(), e);
         }
-    }
-
-    @Override
-    public void purgeMeter(DeviceId deviceId) {
-        // This method is renamed in onos-2.5
-        purgeMeters(deviceId);
     }
 
     @Override
@@ -454,20 +428,13 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
         return userDefinedIndexMode;
     }
 
-    @Override
-    public long getMaxMeters(MeterFeaturesKey key) {
-        // Leverage the meter features to know the max id
-        // Create a Meter Table key with FeaturesKey's device and global scope
-        MeterTableKey meterTableKey = MeterTableKey.key(key.deviceId(), MeterScope.globalScope());
-        return getMaxMeters(meterTableKey);
-    }
-
-    private long getMaxMeters(MeterTableKey key) {
-        // Leverage the meter features to know the max id
+    protected long getMaxMeters(MeterTableKey key) {
         MeterFeatures features = metersFeatures.get(key);
         return features == null ? 0L : features.maxMeter();
     }
 
+    // Validate index using the meter features, useful mainly
+    // when user defined index mode is enabled
     private boolean validIndex(Meter meter) {
         long index;
         MeterTableKey key;
@@ -481,6 +448,7 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
             index = meterId.id();
             key = MeterTableKey.key(meter.deviceId(), MeterScope.globalScope());
         } else {
+            log.warn("Unable to validate index unsupported cell type {}", meter.meterCellId().type());
             return false;
         }
 
@@ -491,52 +459,44 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
     }
 
     private long getStartIndex(MeterTableKey key) {
-        // Leverage the meter features to know the start id
-        // Since we are using index now
-        // if there is no features related to the key
-        // -1 is returned
         MeterFeatures features = metersFeatures.get(key);
         return features == null ? -1L : features.startIndex();
     }
 
     private long getEndIndex(MeterTableKey key) {
-        // Leverage the meter features to know the max id
-        // Since we are using index now
-        // if there is no features related to the key
-        // -1 is returned
         MeterFeatures features = metersFeatures.get(key);
         return features == null ? -1L : features.endIndex();
     }
 
-    // queryMaxMeters is implemented in FullMetersAvailable behaviour.
+    // queryMaxMeters is implemented in MeterQuery behaviour implementations.
     private long queryMaxMeters(DeviceId device) {
-        // Get driver handler for this device
         DriverHandler handler = driverService.createHandler(device);
-        // If creation failed or the device does not have this behavior
         if (handler == null || !handler.hasBehaviour(MeterQuery.class)) {
-            // We cannot know max meter
             return 0L;
         }
-        // Get the behavior
+
+        // FIXME architecturally this is not right, we should fallback to this
+        //  behavior in the providers. Once we do that we can remove this code.
         MeterQuery query = handler.behaviour(MeterQuery.class);
-        // Insert a new available key set to the map
+        // This results to be necessary because the available ids sets are created
+        // in the meter features map listener if the device does not provide the meter
+        // feature this is the only chance to create this set.
         String setName = AVAILABLEMETERIDSTORE + "-" + device + "global";
         MeterTableKey meterTableKey = MeterTableKey.key(device, MeterScope.globalScope());
         insertAvailableKeySet(meterTableKey, setName);
-        // Return as max meter the result of the query
+
         return query.getMaxMeters();
     }
 
     private boolean updateMeterIdAvailability(MeterTableKey meterTableKey, MeterCellId id,
                                               boolean available) {
-        // Retrieve the set first
         DistributedSet<MeterKey> keySet = availableMeterIds.get(meterTableKey);
         if (keySet == null) {
-            // A reusable set should be inserted when a features is pushed
             log.warn("Reusable Key set for device: {} scope: {} not found",
                 meterTableKey.deviceId(), meterTableKey.scope());
             return false;
         }
+
         // According to available, make available or unavailable a meter key
         DeviceId deviceId = meterTableKey.deviceId();
         return available ? keySet.add(MeterKey.key(deviceId, id)) :
@@ -544,59 +504,43 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
     }
 
     private MeterCellId getNextAvailableId(Set<MeterCellId> availableIds) {
-        // If there are no available ids
         if (availableIds.isEmpty()) {
-            // Just end the cycle
             return null;
         }
-        // If it is the first fit
+
         if (reuseStrategy == FIRST_FIT || availableIds.size() == 1) {
             return availableIds.iterator().next();
         }
-        // If it is random, get the size
+
+        // If it is random, get the size and return a random element
         int size = availableIds.size();
-        // Return a random element
         return Iterables.get(availableIds, RandomUtils.nextInt(size));
     }
 
-    // Implements reuse strategy
+    // Implements reuse strategy of the meter cell ids
     private MeterCellId firstReusableMeterId(MeterTableKey meterTableKey) {
-        // Create a Table key and use it to retrieve the reusable meterCellId set
         DistributedSet<MeterKey> keySet = availableMeterIds.get(meterTableKey);
         if (keySet == null) {
-            // A reusable set should be inserted when a features is pushed
             log.warn("Reusable Key set for device: {} scope: {} not found",
                 meterTableKey.deviceId(), meterTableKey.scope());
             return null;
         }
-        // Filter key related to device id, and reduce to meter ids
+
         Set<MeterCellId> localAvailableMeterIds = keySet.stream()
                 .filter(meterKey ->
                     meterKey.deviceId().equals(meterTableKey.deviceId()))
                 .map(MeterKey::meterCellId)
                 .collect(Collectors.toSet());
-        // Get next available id
         MeterCellId meterId = getNextAvailableId(localAvailableMeterIds);
-        // Iterate until there are items
         while (meterId != null) {
-            // If we are able to reserve the id
             if (updateMeterIdAvailability(meterTableKey, meterId, false)) {
-                // Just end
                 return meterId;
             }
-            // Update the set
             localAvailableMeterIds.remove(meterId);
-            // Try another time
             meterId = getNextAvailableId(localAvailableMeterIds);
         }
-        // No reusable ids
+        // there are no available ids that can be reused
         return null;
-    }
-
-    @Override
-    public MeterId allocateMeterId(DeviceId deviceId) {
-        // We use global scope for MeterId
-        return (MeterId) allocateMeterId(deviceId, MeterScope.globalScope());
     }
 
     @Override
@@ -611,19 +555,16 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
         // First, search for reusable key
         meterCellId = firstReusableMeterId(meterTableKey);
         if (meterCellId != null) {
-            // A reusable key is found
             return meterCellId;
         }
         // If there was no reusable meter id we have to generate a new value
         // using start and end index as lower and upper bound respectively.
         long startIndex = getStartIndex(meterTableKey);
         long endIndex = getEndIndex(meterTableKey);
-        // If the device does not give us MeterFeatures
+        // If the device does not give us MeterFeatures fallback to queryMeters
         if (startIndex == -1L || endIndex == -1L) {
-            // MeterFeatures couldn't be retrieved, fallback to queryMeters.
-            // Only meaningful to OpenFLow
+            // Only meaningful for OpenFlow today
             long maxMeters = queryMaxMeters(deviceId);
-            // If we don't know the max, cannot proceed
             if (maxMeters == 0L) {
                 return null;
             } else {
@@ -632,18 +573,16 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
                 endIndex = maxMeters;
             }
         }
-        // Get a new value
-        // If the value is smaller than the start index, get another one
+
         do {
             id = meterIdGenerators.getAndIncrement(meterTableKey);
         } while (id < startIndex);
-        // Check with the end index, and if the value is bigger, cannot proceed
         if (id > endIndex) {
             return null;
         }
-        // Done, return the value
-        // If we are using global scope, return a MeterId
-        // Else, return a PiMeterId
+
+        // For backward compatibility if we are using global scope,
+        // return a MeterId, otherwise we create a PiMeterCellId
         if (meterScope.isGlobal()) {
             return MeterId.meterId(id);
         } else {
@@ -658,9 +597,23 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
         freeMeterId(meterTableKey, meterId);
     }
 
-    private void freeMeterId(MeterTableKey meterTableKey, MeterCellId meterCellId) {
+    protected void freeMeterId(DeviceId deviceId, MeterCellId meterCellId) {
+        MeterTableKey meterTableKey;
+        if (meterCellId.type() == PIPELINE_INDEPENDENT) {
+            meterTableKey = MeterTableKey.key(deviceId,
+                    MeterScope.of(((PiMeterCellId) meterCellId).meterId().id()));
+        } else if (meterCellId.type() == INDEX) {
+            meterTableKey = MeterTableKey.key(deviceId, MeterScope.globalScope());
+        } else {
+            log.warn("Unable to free meter id unsupported cell type {}", meterCellId.type());
+            return;
+        }
+        freeMeterId(meterTableKey, meterCellId);
+    }
+
+    protected void freeMeterId(MeterTableKey meterTableKey, MeterCellId meterCellId) {
         if (userDefinedIndexMode) {
-            log.warn("Unable to free meter id when user defined index mode is enabled");
+            log.debug("Unable to free meter id when user defined index mode is enabled");
             return;
         }
         long index;
@@ -671,13 +624,13 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
             MeterId meterId = (MeterId) meterCellId;
             index = meterId.id();
         } else {
+            log.warn("Unable to free meter id unsupported cell type {}", meterCellId.type());
             return;
         }
         // Avoid to free meter not allocated
         if (meterIdGenerators.get(meterTableKey) <= index) {
             return;
         }
-        // Update the availability
         updateMeterIdAvailability(meterTableKey, meterCellId, true);
     }
 
@@ -728,12 +681,10 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
                         }
                     break;
                 case REMOVE:
-                    // Meter removal case
                     futures.computeIfPresent(key, (k, v) -> {
                         v.complete(MeterStoreResult.success());
                         return null;
                     });
-                    // Finally notify the delegate
                     notifyDelegate(new MeterEvent(MeterEvent.Type.METER_REMOVED, data.meter()));
                     break;
                 default:
@@ -750,13 +701,11 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
             MeterFeatures meterFeatures = event.value();
             switch (event.type()) {
                 case PUT:
-                    // Put a new available meter id set to the map
                     String setName = AVAILABLEMETERIDSTORE + "-" +
                         meterFeatures.deviceId() + meterFeatures.scope().id();
                     insertAvailableKeySet(meterTableKey, setName);
                     break;
                 case REMOVE:
-                    // Remove the set
                     DistributedSet<MeterKey> set = availableMeterIds.remove(meterTableKey);
                     if (set != null) {
                         set.destroy();

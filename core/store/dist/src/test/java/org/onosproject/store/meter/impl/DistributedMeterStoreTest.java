@@ -37,7 +37,6 @@ import org.onosproject.net.meter.DefaultMeterFeatures;
 import org.onosproject.net.meter.Meter;
 import org.onosproject.net.meter.MeterCellId;
 import org.onosproject.net.meter.MeterFeatures;
-import org.onosproject.net.meter.MeterFeaturesKey;
 import org.onosproject.net.meter.MeterId;
 import org.onosproject.net.meter.MeterKey;
 import org.onosproject.net.meter.MeterScope;
@@ -64,32 +63,30 @@ import static org.onosproject.net.NetTestTools.did;
  * Meter store tests.
  */
 public class DistributedMeterStoreTest {
-    // Store under testing
+
     private DistributedMeterStore meterStore;
 
-    // Device ids used during the tests
     private DeviceId did1 = did("1");
     private DeviceId did2 = did("2");
     private DeviceId did3 = did("3");
     private DeviceId did4 = did("4");
 
-    // Meter ids used during the tests
     private MeterId mid1 = MeterId.meterId(1);
     private MeterId mid2 = MeterId.meterId(2);
     private MeterId mid3 = MeterId.meterId(3);
+    private MeterId mid5 = MeterId.meterId(5);
+    private MeterId mid6 = MeterId.meterId(6);
     private MeterId mid10 = MeterId.meterId(10);
     private MeterCellId cid4 = PiMeterCellId.ofIndirect(
             PiMeterId.of("foo"), 4);
     private MeterCellId invalidCid = PiMeterCellId.ofIndirect(
             PiMeterId.of("foo"), 11);
 
-    // Bands used during the tests
     private Band b1 = DefaultBand.builder()
             .ofType(Band.Type.DROP)
             .withRate(500)
             .build();
 
-    // Meters used during the tests
     private Meter m1 = DefaultMeter.builder()
             .forDevice(did1)
             .fromApp(APP_ID)
@@ -97,7 +94,6 @@ public class DistributedMeterStoreTest {
             .withUnit(Meter.Unit.KB_PER_SEC)
             .withBands(Collections.singletonList(b1))
             .build();
-
     private Meter m2 = DefaultMeter.builder()
             .forDevice(did1)
             .fromApp(APP_ID_2)
@@ -105,7 +101,6 @@ public class DistributedMeterStoreTest {
             .withUnit(Meter.Unit.KB_PER_SEC)
             .withBands(Collections.singletonList(b1))
             .build();
-
     private Meter m3 = DefaultMeter.builder()
             .forDevice(did2)
             .fromApp(APP_ID_2)
@@ -113,7 +108,6 @@ public class DistributedMeterStoreTest {
             .withUnit(Meter.Unit.KB_PER_SEC)
             .withBands(Collections.singletonList(b1))
             .build();
-
     private Meter m4 = DefaultMeter.builder()
             .forDevice(did3)
             .fromApp(APP_ID)
@@ -122,7 +116,6 @@ public class DistributedMeterStoreTest {
             .withBands(Collections.singletonList(b1))
             .build();
 
-    // Meter features used during the tests
     private MeterFeatures mef1 = DefaultMeterFeatures.builder().forDevice(did1)
             .withMaxMeters(3L)
             .withBandTypes(new HashSet<>())
@@ -155,33 +148,26 @@ public class DistributedMeterStoreTest {
 
     @Before
     public void setup() {
-        // Init step
         meterStore = new DistributedMeterStore();
-        // Let's initialize some internal services
+
         TestUtils.setField(meterStore, "storageService", new TestStorageService());
         TestUtils.setField(meterStore, "driverService", new TestDriverService());
-
-        // Inject TestApplicationId into the DistributedMeterStore serializer
         KryoNamespace.Builder testKryoBuilder = TestUtils.getField(meterStore, "APP_KRYO_BUILDER");
         testKryoBuilder.register(TestApplicationId.class);
         Serializer testSerializer = Serializer.using(Lists.newArrayList(testKryoBuilder.build()));
         TestUtils.setField(meterStore, "serializer", testSerializer);
 
-        // Activate the store
         meterStore.activate();
     }
 
     @After
     public void tearDown() {
-        // Deactivate the store
         meterStore.deactivate();
     }
 
     private void initMeterStore(boolean enableUserDefinedIndex) {
         meterStore.userDefinedIndexMode(enableUserDefinedIndex);
-        // Let's store feature for device 1
         meterStore.storeMeterFeatures(mef1);
-        // Let's store feature for device 2
         meterStore.storeMeterFeatures(mef2);
         meterStore.storeMeterFeatures(mef3);
     }
@@ -191,14 +177,10 @@ public class DistributedMeterStoreTest {
      */
     @Test
     public void testStoreMeterFeatures() {
-        // Let's store feature for device 1
-        meterStore.storeMeterFeatures(mef1);
-        // Verify store meter features
-        assertThat(meterStore.getMaxMeters(MeterFeaturesKey.key(did1)), is(3L));
-        // Let's store feature for device 1
-        meterStore.storeMeterFeatures(mef2);
-        // Verify store meter features
-        assertThat(meterStore.getMaxMeters(MeterFeaturesKey.key(did2)), is(10L));
+        initMeterStore(false);
+
+        assertThat(meterStore.getMaxMeters(MeterTableKey.key(did1, MeterScope.globalScope())), is(3L));
+        assertThat(meterStore.getMaxMeters(MeterTableKey.key(did2, MeterScope.globalScope())), is(10L));
     }
 
     /**
@@ -206,14 +188,11 @@ public class DistributedMeterStoreTest {
      */
     @Test
     public void testDeleteMeterFeatures() {
-        // Let's store feature for device 1
-        meterStore.storeMeterFeatures(mef1);
-        // Verify store meter features
-        assertThat(meterStore.getMaxMeters(MeterFeaturesKey.key(did1)), is(3L));
-        // Let's delete the features
+        initMeterStore(false);
+        assertThat(meterStore.getMaxMeters(MeterTableKey.key(did1, MeterScope.globalScope())), is(3L));
+
         meterStore.deleteMeterFeatures(did1);
-        // Verify delete meter features
-        assertThat(meterStore.getMaxMeters(MeterFeaturesKey.key(did1)), is(0L));
+        assertThat(meterStore.getMaxMeters(MeterTableKey.key(did1, MeterScope.globalScope())), is(0L));
     }
 
     /**
@@ -221,12 +200,10 @@ public class DistributedMeterStoreTest {
      */
     @Test
     public void testAllocateId() {
-        // Init the store
         initMeterStore(false);
-        // Allocate a meter id and verify is equal to mid1
-        assertThat(mid1, is(meterStore.allocateMeterId(did1)));
-        // Allocate a meter id and verify is equal to mid2
-        assertThat(mid2, is(meterStore.allocateMeterId(did1)));
+
+        assertThat(mid1, is(meterStore.allocateMeterId(did1, MeterScope.globalScope())));
+        assertThat(mid2, is(meterStore.allocateMeterId(did1, MeterScope.globalScope())));
     }
 
     /**
@@ -234,18 +211,16 @@ public class DistributedMeterStoreTest {
      */
     @Test
     public void testFreeId() {
-        // Init the store
         initMeterStore(false);
-        // Allocate a meter id and verify is equal to mid1
-        assertThat(mid1, is(meterStore.allocateMeterId(did1)));
-        // Free the above id
+        assertThat(mid1, is(meterStore.allocateMeterId(did1, MeterScope.globalScope())));
+
+        // Verify reuse strategy
         meterStore.freeMeterId(did1, mid1);
-        // Allocate a meter id and verify is equal to mid1
-        assertThat(mid1, is(meterStore.allocateMeterId(did1)));
-        // Free an id not allocated
+        assertThat(mid1, is(meterStore.allocateMeterId(did1, MeterScope.globalScope())));
+
+        // Following free does not have effect
         meterStore.freeMeterId(did1, mid10);
-        // Allocate a meter id and verify is equal to mid2
-        assertThat(mid2, is(meterStore.allocateMeterId(did1)));
+        assertThat(mid2, is(meterStore.allocateMeterId(did1, MeterScope.globalScope())));
     }
 
     /**
@@ -253,56 +228,39 @@ public class DistributedMeterStoreTest {
      */
     @Test
     public void testReuseId() {
-        // Init the store
         initMeterStore(false);
-        // Reserve id 1
-        MeterId meterIdOne = meterStore.allocateMeterId(did2);
-        // Free the above id
+
+        MeterCellId meterIdOne = meterStore.allocateMeterId(did2, MeterScope.globalScope());
         meterStore.freeMeterId(did2, meterIdOne);
-        // Start an async reservation
-        CompletableFuture<MeterId> future = CompletableFuture.supplyAsync(
-                () -> meterStore.allocateMeterId(did2)
+        CompletableFuture<MeterCellId> future = CompletableFuture.supplyAsync(
+                () -> meterStore.allocateMeterId(did2, MeterScope.globalScope())
         );
-        // Start another reservation
-        MeterId meterIdTwo = meterStore.allocateMeterId(did2);
+        MeterCellId meterIdTwo = meterStore.allocateMeterId(did2, MeterScope.globalScope());
         try {
             meterIdOne = future.get();
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
-        // Ids should be different, otherwise we had clash in the store
         assertNotEquals("Ids should be different", meterIdOne, meterIdTwo);
 
-        // Free the above id
         meterStore.freeMeterId(did1, meterIdOne);
-        // Free the above id
         meterStore.freeMeterId(did1, meterIdTwo);
-        // Reserve id 1
-        meterIdOne = meterStore.allocateMeterId(did2);
-        // Reserve id 2
-        meterStore.allocateMeterId(did2);
-        // Reserve id 3
-        MeterId meterIdThree = meterStore.allocateMeterId(did2);
-        // Reserve id 4
-        MeterId meterIdFour = meterStore.allocateMeterId(did2);
-        // Free the above id
+        meterIdOne = meterStore.allocateMeterId(did2, MeterScope.globalScope());
+        meterStore.allocateMeterId(did2, MeterScope.globalScope());
+        MeterCellId meterIdThree = meterStore.allocateMeterId(did2, MeterScope.globalScope());
+        MeterCellId meterIdFour = meterStore.allocateMeterId(did2, MeterScope.globalScope());
         meterStore.freeMeterId(did1, meterIdOne);
-        // Free the above id
         meterStore.freeMeterId(did1, meterIdThree);
-        // Free the above id
         meterStore.freeMeterId(did1, meterIdFour);
-        // Start an async reservation
         future = CompletableFuture.supplyAsync(
-                () -> meterStore.allocateMeterId(did2)
+                () -> meterStore.allocateMeterId(did2, MeterScope.globalScope())
         );
-        // Start another reservation
-        MeterId meterAnotherId = meterStore.allocateMeterId(did2);
+        MeterCellId meterAnotherId = meterStore.allocateMeterId(did2, MeterScope.globalScope());
         try {
             meterAnotherId = future.get();
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
-        // Ids should be different, otherwise we had clash in the store
         assertNotEquals("Ids should be different", meterAnotherId, meterIdOne);
     }
 
@@ -311,12 +269,10 @@ public class DistributedMeterStoreTest {
      */
     @Test
     public void testQueryMeters() {
-        // Init the store
         initMeterStore(false);
-        // Let's test queryMeters
-        assertThat(mid1, is(meterStore.allocateMeterId(did3)));
-        // Let's test queryMeters error
-        assertNull(meterStore.allocateMeterId(did4));
+
+        assertThat(mid1, is(meterStore.allocateMeterId(did3, MeterScope.globalScope())));
+        assertNull(meterStore.allocateMeterId(did4, MeterScope.globalScope()));
     }
 
     /**
@@ -324,16 +280,12 @@ public class DistributedMeterStoreTest {
      */
     @Test
     public void testMaxMeterError() {
-        // Init the store
         initMeterStore(false);
-        // Reserve id 1
-        assertThat(mid1, is(meterStore.allocateMeterId(did1)));
-        // Reserve id 2
-        assertThat(mid2, is(meterStore.allocateMeterId(did1)));
-        // Reserve id 3
-        assertThat(mid3, is(meterStore.allocateMeterId(did1)));
-        // Max meter error
-        assertNull(meterStore.allocateMeterId(did1));
+
+        assertThat(mid1, is(meterStore.allocateMeterId(did1, MeterScope.globalScope())));
+        assertThat(mid2, is(meterStore.allocateMeterId(did1, MeterScope.globalScope())));
+        assertThat(mid3, is(meterStore.allocateMeterId(did1, MeterScope.globalScope())));
+        assertNull(meterStore.allocateMeterId(did1, MeterScope.globalScope()));
     }
 
     /**
@@ -341,13 +293,11 @@ public class DistributedMeterStoreTest {
      */
     @Test
     public void testStoreMeter() {
-        // Init the store
         initMeterStore(false);
-        // Simulate the allocation of an id
-        MeterId idOne = meterStore.allocateMeterId(did1);
-        // Verify the allocation
+
+        MeterCellId idOne = meterStore.allocateMeterId(did1, MeterScope.globalScope());
         assertThat(mid1, is(idOne));
-        // Let's create a meter
+
         Meter meterOne = DefaultMeter.builder()
                 .forDevice(did1)
                 .fromApp(APP_ID)
@@ -355,13 +305,9 @@ public class DistributedMeterStoreTest {
                 .withUnit(Meter.Unit.KB_PER_SEC)
                 .withBands(Collections.singletonList(b1))
                 .build();
-        // Set the state
         ((DefaultMeter) meterOne).setState(MeterState.PENDING_ADD);
-        // Store the meter
-        meterStore.storeMeter(meterOne);
-        // Let's create meter key
+        meterStore.addOrUpdateMeter(meterOne);
         MeterKey meterKey = MeterKey.key(did1, mid1);
-        // Verify the store
         assertThat(1, is(meterStore.getAllMeters().size()));
         assertThat(1, is(meterStore.getAllMeters(did1).size()));
         assertThat(m1, is(meterStore.getMeter(meterKey)));
@@ -372,13 +318,11 @@ public class DistributedMeterStoreTest {
      */
     @Test
     public void testDeleteMeter() {
-        // Init the store
         initMeterStore(false);
-        // Simulate the allocation of an id
-        MeterId idOne = meterStore.allocateMeterId(did1);
-        // Verify the allocation
+
+        MeterCellId idOne = meterStore.allocateMeterId(did1, MeterScope.globalScope());
         assertThat(mid1, is(idOne));
-        // Let's create a meter
+
         Meter meterOne = DefaultMeter.builder()
                 .forDevice(did1)
                 .fromApp(APP_ID)
@@ -386,31 +330,23 @@ public class DistributedMeterStoreTest {
                 .withUnit(Meter.Unit.KB_PER_SEC)
                 .withBands(Collections.singletonList(b1))
                 .build();
-        // Set the state
         ((DefaultMeter) meterOne).setState(MeterState.PENDING_ADD);
-        // Store the meter
-        meterStore.storeMeter(meterOne);
-        // Set the state
+        meterStore.addOrUpdateMeter(meterOne);
         ((DefaultMeter) meterOne).setState(MeterState.PENDING_REMOVE);
-        // Let's create meter key
         MeterKey meterKey = MeterKey.key(did1, mid1);
-        // Delete meter
         meterStore.deleteMeter(meterOne);
-        // Start an async delete, simulating the operation of the provider
         CompletableFuture<Void> future = CompletableFuture.runAsync(
-                () -> meterStore.deleteMeterNow(meterOne)
+                () -> meterStore.purgeMeter(meterOne)
         );
-        // Let's wait
         try {
             future.get();
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
-        // Verify delete
         assertThat(0, is(meterStore.getAllMeters().size()));
         assertThat(0, is(meterStore.getAllMeters(did1).size()));
         assertNull(meterStore.getMeter(meterKey));
-        assertThat(mid1, is(meterStore.allocateMeterId(did1)));
+        assertThat(mid1, is(meterStore.allocateMeterId(did1, MeterScope.globalScope())));
     }
 
     /**
@@ -418,13 +354,10 @@ public class DistributedMeterStoreTest {
      */
     @Test
     public void testNoDeleteMeter() {
-        // Init the store
         initMeterStore(false);
-        // Simulate the allocation of an id
-        MeterId idOne = meterStore.allocateMeterId(did1);
-        // Create the key
+
+        MeterCellId idOne = meterStore.allocateMeterId(did1, MeterScope.globalScope());
         MeterKey keyOne = MeterKey.key(did1, idOne);
-        // Let's create a meter
         Meter meterOne = DefaultMeter.builder()
                 .forDevice(did1)
                 .fromApp(APP_ID)
@@ -432,11 +365,8 @@ public class DistributedMeterStoreTest {
                 .withUnit(Meter.Unit.KB_PER_SEC)
                 .withBands(Collections.singletonList(b1))
                 .build();
-        // Set the state
         ((DefaultMeter) meterOne).setState(MeterState.PENDING_REMOVE);
-        // Delete meter
         meterStore.deleteMeter(meterOne);
-        // Verify No delete
         assertThat(0, is(meterStore.getAllMeters().size()));
         assertThat(0, is(meterStore.getAllMeters(did1).size()));
         assertNull(meterStore.getMeter(keyOne));
@@ -446,11 +376,10 @@ public class DistributedMeterStoreTest {
      * Test purge meter.
      */
     @Test
-    public void testPurgeMeter() {
-        // add the meter
+    public void testPurgeMeters() {
         testStoreMeter();
-        meterStore.purgeMeter(did1);
-        // Verify delete
+
+        meterStore.purgeMeters(did1);
         MeterKey keyOne = MeterKey.key(did1, mid1);
         assertThat(0, is(meterStore.getAllMeters().size()));
         assertThat(0, is(meterStore.getAllMeters(did1).size()));
@@ -461,20 +390,18 @@ public class DistributedMeterStoreTest {
      * Test purge meter given device and application.
      */
     @Test
-    public void testPurgeMeterDeviceAndApp() {
-        // Init the store
+    public void testPurgeMetersDeviceAndApp() {
         initMeterStore(false);
-        // add the meters
+
         ((DefaultMeter) m1).setState(MeterState.PENDING_ADD);
         ((DefaultMeter) m2).setState(MeterState.PENDING_ADD);
         ((DefaultMeter) m3).setState(MeterState.PENDING_ADD);
-        meterStore.storeMeter(m1);
-        meterStore.storeMeter(m2);
-        meterStore.storeMeter(m3);
+        meterStore.addOrUpdateMeter(m1);
+        meterStore.addOrUpdateMeter(m2);
+        meterStore.addOrUpdateMeter(m3);
         assertThat(3, is(meterStore.getAllMeters().size()));
 
         meterStore.purgeMeters(did1, APP_ID_2);
-        // Verify delete
         MeterKey keyTwo = MeterKey.key(did1, mid2);
         assertThat(2, is(meterStore.getAllMeters().size()));
         assertThat(1, is(meterStore.getAllMeters(did1).size()));
@@ -487,14 +414,10 @@ public class DistributedMeterStoreTest {
      */
     @Test
     public void testGetMetersImmutability() {
-        // Init the store
         initMeterStore(false);
 
-        // Simulate the allocation of an id
-        MeterId idOne = meterStore.allocateMeterId(did1);
-        // Verify the allocation
+        MeterCellId idOne = meterStore.allocateMeterId(did1, MeterScope.globalScope());
         assertThat(mid1, is(idOne));
-        // Let's create a meter
         Meter meterOne = DefaultMeter.builder()
                 .forDevice(did1)
                 .fromApp(APP_ID)
@@ -502,21 +425,16 @@ public class DistributedMeterStoreTest {
                 .withUnit(Meter.Unit.KB_PER_SEC)
                 .withBands(Collections.singletonList(b1))
                 .build();
-        // Set the state
         ((DefaultMeter) meterOne).setState(MeterState.PENDING_ADD);
-        // Store the meter
-        meterStore.storeMeter(meterOne);
+        meterStore.addOrUpdateMeter(meterOne);
 
-        // Verify the immutability
         Collection<Meter> meters = meterStore.getAllMeters();
         Collection<Meter> metersDevice = meterStore.getAllMeters(did1);
         assertThat(1, is(meters.size()));
         assertThat(1, is(metersDevice.size()));
 
-        MeterId idTwo = meterStore.allocateMeterId(did1);
-        // Verify the allocation
+        MeterCellId idTwo = meterStore.allocateMeterId(did1, MeterScope.globalScope());
         assertThat(mid2, is(idTwo));
-        // Let's create a meter
         Meter meterTwo = DefaultMeter.builder()
                 .forDevice(did1)
                 .fromApp(APP_ID)
@@ -524,14 +442,11 @@ public class DistributedMeterStoreTest {
                 .withUnit(Meter.Unit.KB_PER_SEC)
                 .withBands(Collections.singletonList(b1))
                 .build();
-        // Set the state
         ((DefaultMeter) meterTwo).setState(MeterState.PENDING_ADD);
-        // Store the meter
-        meterStore.storeMeter(meterTwo);
+        meterStore.addOrUpdateMeter(meterTwo);
 
         assertThat(1, is(meters.size()));
         assertThat(1, is(metersDevice.size()));
-
         meters = meterStore.getAllMeters();
         metersDevice = meterStore.getAllMeters(did1);
         assertThat(2, is(meters.size()));
@@ -544,6 +459,7 @@ public class DistributedMeterStoreTest {
     @Test(expected = IllegalArgumentException.class)
     public void testInvalidCellId() {
         initMeterStore(true);
+
         // MF defines an end index equals to 10
         Meter meterBad = DefaultMeter.builder()
                 .forDevice(did3)
@@ -553,7 +469,7 @@ public class DistributedMeterStoreTest {
                 .withBands(Collections.singletonList(b1))
                 .build();
         ((DefaultMeter) meterBad).setState(MeterState.PENDING_ADD);
-        meterStore.storeMeter(meterBad);
+        meterStore.addOrUpdateMeter(meterBad);
     }
 
     /**
@@ -562,6 +478,7 @@ public class DistributedMeterStoreTest {
     @Test
     public void testEnableUserDefinedIndex() {
         initMeterStore(false);
+
         assertTrue(meterStore.userDefinedIndexMode(true));
     }
 
@@ -571,6 +488,7 @@ public class DistributedMeterStoreTest {
     @Test
     public void testInvalidEnableUserDefinedIndex() {
         testStoreMeter();
+
         assertFalse(meterStore.userDefinedIndexMode(true));
     }
 
@@ -580,6 +498,7 @@ public class DistributedMeterStoreTest {
     @Test
     public void testDisableUserDefinedIndex() {
         initMeterStore(true);
+
         assertFalse(meterStore.userDefinedIndexMode(false));
     }
 
@@ -589,7 +508,7 @@ public class DistributedMeterStoreTest {
     @Test
     public void testStoreMeterInUserDefinedIndexMode() {
         initMeterStore(true);
-        // Let's create a meter
+
         Meter meterOne = DefaultMeter.builder()
                 .forDevice(did3)
                 .fromApp(APP_ID)
@@ -597,13 +516,9 @@ public class DistributedMeterStoreTest {
                 .withUnit(Meter.Unit.KB_PER_SEC)
                 .withBands(Collections.singletonList(b1))
                 .build();
-        // Set the state
         ((DefaultMeter) meterOne).setState(MeterState.PENDING_ADD);
-        // Store the meter
-        meterStore.storeMeter(meterOne);
-        // Let's create meter key
+        meterStore.addOrUpdateMeter(meterOne);
         MeterKey meterKey = MeterKey.key(did3, cid4);
-        // Verify the store
         assertThat(1, is(meterStore.getAllMeters().size()));
         assertThat(1, is(meterStore.getAllMeters(did3).size()));
         assertThat(m4, is(meterStore.getMeter(meterKey)));
@@ -615,6 +530,7 @@ public class DistributedMeterStoreTest {
     @Test
     public void testInvalidDisableUserDefinedIndex() {
         testStoreMeterInUserDefinedIndexMode();
+
         assertTrue(meterStore.userDefinedIndexMode(false));
     }
 
@@ -624,7 +540,8 @@ public class DistributedMeterStoreTest {
     @Test
     public void testAllocateIdInUserDefinedIndexMode() {
         initMeterStore(true);
-        assertNull(meterStore.allocateMeterId(did1));
+
+        assertNull(meterStore.allocateMeterId(did1, MeterScope.globalScope()));
     }
 
     /**
@@ -633,7 +550,7 @@ public class DistributedMeterStoreTest {
     @Test
     public void testFreeIdInUserMode() {
         initMeterStore(true);
-        // Free the id and expect not being available
+
         meterStore.freeMeterId(did1, mid1);
         MeterTableKey globalKey = MeterTableKey.key(did1, MeterScope.globalScope());
         assertNotNull(meterStore.availableMeterIds.get(globalKey));
@@ -646,6 +563,7 @@ public class DistributedMeterStoreTest {
     @Test
     public void testDeleteMeterInUserDefinedIndexMode() {
         initMeterStore(true);
+
         Meter meterOne = DefaultMeter.builder()
                 .forDevice(did3)
                 .fromApp(APP_ID)
@@ -654,7 +572,7 @@ public class DistributedMeterStoreTest {
                 .withBands(Collections.singletonList(b1))
                 .build();
         ((DefaultMeter) meterOne).setState(MeterState.PENDING_ADD);
-        meterStore.storeMeter(meterOne);
+        meterStore.addOrUpdateMeter(meterOne);
 
         ((DefaultMeter) meterOne).setState(MeterState.PENDING_REMOVE);
         MeterKey meterKey = MeterKey.key(did3, cid4);
@@ -676,7 +594,6 @@ public class DistributedMeterStoreTest {
         assertTrue(meterStore.availableMeterIds.get(globalKey).isEmpty());
     }
 
-    // Test class for driver service.
     private class TestDriverService extends DriverServiceAdapter {
         @Override
         public DriverHandler createHandler(DeviceId deviceId, String... credentials) {
@@ -684,7 +601,6 @@ public class DistributedMeterStoreTest {
         }
     }
 
-    // Test class for driver handler.
     private class TestDriverHandler implements DriverHandler {
 
         @Override
@@ -714,7 +630,6 @@ public class DistributedMeterStoreTest {
         }
     }
 
-    // Test meter query
     private class TestMeterQuery implements MeterQuery {
 
         @Override

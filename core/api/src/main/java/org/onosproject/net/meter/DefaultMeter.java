@@ -35,7 +35,6 @@ import static org.onosproject.net.meter.MeterCellId.MeterCellType.INDEX;
  */
 public final class DefaultMeter extends AbstractAnnotated implements Meter, MeterEntry {
 
-
     private final MeterCellId cellId;
     private final Optional<ApplicationId> appId;
     private final Unit unit;

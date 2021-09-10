@@ -106,11 +106,10 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class MeterManager
         extends AbstractListenerProviderRegistry<MeterEvent, MeterListener, MeterProvider, MeterProviderService>
         implements MeterService, MeterProviderRegistry {
-    // Installer related objects
+
     private PredictableExecutor meterInstallers;
     private static final String WORKER_PATTERN = "installer-%d";
     private static final String GROUP_THREAD_NAME = "onos/meter";
-    // Logging facility, meter store delegate and listener for device events.
     private final Logger log = getLogger(getClass());
     private final MeterStoreDelegate delegate = new InternalMeterStoreDelegate();
     private final DeviceListener deviceListener = new InternalDeviceListener();
@@ -152,7 +151,6 @@ public class MeterManager
     // Action triggered when the futures related to submit and withdrawal complete
     private TriConsumer<MeterRequest, MeterStoreResult, Throwable> onComplete;
 
-    // Meter provider reference
     private final MeterDriverProvider defaultProvider = new MeterDriverProvider();
 
     // Node id used to verify who is charge of the meter ops
@@ -298,7 +296,7 @@ public class MeterManager
         // Meter installation logic (happy ending case)
         // PENDING -> stats -> ADDED -> future completes
         m.setState(MeterState.PENDING_ADD);
-        store.storeMeter(m).whenComplete((result, error) ->
+        store.addOrUpdateMeter(m).whenComplete((result, error) ->
                                                  onComplete.accept(request, result, error));
         return m;
     }
@@ -324,7 +322,6 @@ public class MeterManager
         DefaultMeter m = (DefaultMeter) mBuilder.build();
         // Meter removal logic (happy ending case)
         // PENDING -> stats -> removed from the map -> future completes
-        // There is no transition to the REMOVED state
         m.setState(MeterState.PENDING_REMOVE);
         store.deleteMeter(m).whenComplete((result, error) ->
                                                   onComplete.accept(request, result, error));
@@ -359,7 +356,7 @@ public class MeterManager
     @Override
     public MeterId allocateMeterId(DeviceId deviceId) {
         // We delegate directly to the store
-        return store.allocateMeterId(deviceId);
+        return (MeterId) store.allocateMeterId(deviceId, MeterScope.globalScope());
     }
 
     private MeterCellId allocateMeterId(DeviceId deviceId, MeterScope scope) {
@@ -375,7 +372,7 @@ public class MeterManager
     @Override
     public void purgeMeters(DeviceId deviceId) {
         // We delegate directly to the store
-        store.purgeMeter(deviceId);
+        store.purgeMeters(deviceId);
     }
 
     @Override
@@ -404,7 +401,6 @@ public class MeterManager
 
         @Override
         public void pushMeterMetrics(DeviceId deviceId, Collection<Meter> meterEntries) {
-            // Each update on the store is reflected on this collection
             Collection<Meter> allMeters = store.getAllMeters(deviceId);
 
             Map<MeterCellId, Meter> meterEntriesMap = meterEntries.stream()
@@ -448,12 +444,8 @@ public class MeterManager
             Collection<Meter> newAllMeters = Sets.newHashSet(allMeters);
             newAllMeters.removeAll(addedMeters);
 
+            // Remove definetely the remaining meters
             newAllMeters.forEach(m -> {
-                // Remove workflow. Regarding OpenFlow, meters have been removed from
-                // the device but they are still in the store, we will purge them definitely.
-                // Instead, P4Runtime devices will not remove the meter. The first workaround
-                // for P4Runtime will avoid to send a remove op. Then, we reach this point
-                // and we purge the meter from the store
                 if (m.state() == MeterState.PENDING_REMOVE) {
                     log.debug("Delete meter {} now in store", m.meterCellId());
                     store.purgeMeter(m);
@@ -566,7 +558,7 @@ public class MeterManager
                             if (purge) {
                                 log.info("PurgeOnDisconnection is requested for device {}, " +
                                         "removing meters", deviceId);
-                                store.purgeMeter(deviceId);
+                                store.purgeMeters(deviceId);
                             }
                         }
                         break;
