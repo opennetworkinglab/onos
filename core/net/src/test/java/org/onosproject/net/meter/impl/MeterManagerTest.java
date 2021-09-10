@@ -68,7 +68,6 @@ import org.onosproject.net.meter.MeterProviderRegistry;
 import org.onosproject.net.meter.MeterProviderService;
 import org.onosproject.net.meter.MeterRequest;
 import org.onosproject.net.meter.MeterScope;
-import org.onosproject.net.meter.MeterService;
 import org.onosproject.net.meter.MeterState;
 import org.onosproject.net.pi.PiPipeconfServiceAdapter;
 import org.onosproject.net.pi.model.PiMeterId;
@@ -109,14 +108,10 @@ import static org.onosproject.net.OsgiPropertyConstants.MM_USER_DEFINED_INDEX;
  */
 public class MeterManagerTest {
 
-    // Test node id
     private static final NodeId NID_LOCAL = new NodeId("local");
-
-    // Test ip address
     private static final IpAddress LOCALHOST = IpAddress.valueOf("127.0.0.1");
 
     private static final ProviderId PID = new ProviderId("of", "foo");
-
     private static final ProviderId PROGRAMMABLE_PROVIDER = new ProviderId("foo", "foo");
     private static final DeviceId PROGRAMMABLE_DID = DeviceId.deviceId("test:002");
 
@@ -127,44 +122,23 @@ public class MeterManagerTest {
             new DefaultDevice(PROGRAMMABLE_PROVIDER, PROGRAMMABLE_DID, Device.Type.SWITCH,
                     "", "", "", "", null, ANNOTATIONS);
 
-    private MeterService service;
-
-    // Test Driver service used during the tests
-    private DriverManager driverService;
-
-    // Test device service used during the tests
-    private DeviceService deviceService;
-
-    // Test provider used during the tests
     private TestProvider provider;
-
-    // Meter manager
     private MeterManager manager;
-
-    // Meter provider registry
     private MeterProviderRegistry registry;
-
-    // Meter provider service
     private MeterProviderService providerService;
-
-    // Store under testing
     private DistributedMeterStore meterStore;
 
-    // Device ids used during the tests
     private DeviceId did1 = did("1");
     private DeviceId did2 = did("2");
 
-    // Meter ids used during the tests
     private MeterId mid1 = MeterId.meterId(1);
     private MeterCellId cid0 = PiMeterCellId.ofIndirect(PiMeterId.of("foo"), 0L);
 
-    // Bands used during the tests
     private static Band b1 = DefaultBand.builder()
             .ofType(Band.Type.DROP)
             .withRate(500)
             .build();
 
-    // Meters used during the tests
     private Meter m1 = DefaultMeter.builder()
             .forDevice(did1)
             .fromApp(APP_ID)
@@ -179,7 +153,6 @@ public class MeterManagerTest {
             .withUnit(Meter.Unit.KB_PER_SEC)
             .withBands(Collections.singletonList(b1))
             .build();
-
     private static Meter mProgrammable = DefaultMeter.builder()
             .forDevice(PROGRAMMABLE_DID)
             .fromApp(APP_ID)
@@ -194,7 +167,6 @@ public class MeterManagerTest {
             .withUnit(Meter.Unit.KB_PER_SEC)
             .withBands(Collections.singletonList(b1))
             .build();
-
     private static Meter mUserDefined = DefaultMeter.builder()
             .forDevice(PROGRAMMABLE_DID)
             .fromApp(APP_ID)
@@ -203,7 +175,6 @@ public class MeterManagerTest {
             .withBands(Collections.singletonList(b1))
             .build();
 
-    // Meter requests used during the tests
     private MeterRequest.Builder m1Request = DefaultMeterRequest.builder()
             .forDevice(did1)
             .fromApp(APP_ID)
@@ -214,7 +185,6 @@ public class MeterManagerTest {
             .fromApp(APP_ID)
             .withUnit(Meter.Unit.KB_PER_SEC)
             .withBands(Collections.singletonList(b1));
-
     private MeterRequest.Builder mProgrammableRequest = DefaultMeterRequest.builder()
             .forDevice(PROGRAMMABLE_DID)
             .fromApp(APP_ID)
@@ -225,7 +195,6 @@ public class MeterManagerTest {
             .fromApp(APP_ID)
             .withUnit(Meter.Unit.KB_PER_SEC)
             .withBands(Collections.singletonList(b1));
-
     private MeterRequest.Builder userDefinedRequest = DefaultMeterRequest.builder()
             .forDevice(PROGRAMMABLE_DID)
             .fromApp(APP_ID)
@@ -234,7 +203,6 @@ public class MeterManagerTest {
             .withScope(MeterScope.of("foo"))
             .withIndex(0L);
 
-    // Meter features used during the tests
     private MeterFeatures mef1 = DefaultMeterFeatures.builder().forDevice(did1)
             .withMaxMeters(3L)
             .withBandTypes(new HashSet<>())
@@ -279,72 +247,53 @@ public class MeterManagerTest {
 
     @Before
     public void setup() {
-        //Init step for the deviceService
-        deviceService = new TestDeviceService();
-        //Init step for the driver registry and driver service.
+        DeviceService deviceService = new TestDeviceService();
         DriverRegistryManager driverRegistry = new DriverRegistryManager();
-        driverService = new TestDriverManager(driverRegistry, deviceService, new NetworkConfigServiceAdapter());
+        DriverManager driverService = new TestDriverManager(driverRegistry, deviceService,
+                new NetworkConfigServiceAdapter());
         driverRegistry.addDriver(new DefaultDriver("foo", ImmutableList.of(), "",
                 "", "",
                 ImmutableMap.of(MeterProgrammable.class,
                         TestMeterProgrammable.class, MeterQuery.class, TestMeterQuery.class),
                 ImmutableMap.of()));
-
-        // Init step for the store
         meterStore = new DistributedMeterStore();
-        // Let's initialize some internal services of the store
         TestUtils.setField(meterStore, "storageService", new TestStorageService());
         TestUtils.setField(meterStore, "driverService", driverService);
-
-        // Inject TestApplicationId into the DistributedMeterStore serializer
         KryoNamespace.Builder testKryoBuilder = TestUtils.getField(meterStore, "APP_KRYO_BUILDER");
         testKryoBuilder.register(TestApplicationId.class);
         Serializer testSerializer = Serializer.using(Lists.newArrayList(testKryoBuilder.build()));
         TestUtils.setField(meterStore, "serializer", testSerializer);
 
-        // Activate the store
         meterStore.activate();
-        // Init step for the manager
+
         manager = new MeterManager();
-        // Let's initialize some internal services of the manager
         TestUtils.setField(manager, "store", meterStore);
         injectEventDispatcher(manager, new TestEventDispatcher());
         manager.deviceService = deviceService;
         manager.mastershipService = new TestMastershipService();
         manager.cfgService = new ComponentConfigAdapter();
         manager.clusterService = new TestClusterService();
-        // Init the reference of the registry
         registry = manager;
-
         manager.driverService = driverService;
 
-        // Activate the manager
         Dictionary<String, Object> cfgDict = new Hashtable<>();
         expect(componentContext.getProperties()).andReturn(cfgDict);
         replay(componentContext);
         manager.activate(componentContext);
 
-        // Initialize the test provider
         provider = new TestProvider(PID);
-        // Register the provider against the manager
         providerService = registry.register(provider);
-        // Verify register
         assertTrue("provider should be registered",
                    registry.getProviders().contains(provider.id()));
     }
 
     @After
     public void tearDown() {
-        // Unregister provider
         registry.unregister(provider);
-        // Verify unregister
         assertFalse("provider should not be registered",
                     registry.getProviders().contains(provider.id()));
-        // Deactivate manager
         manager.deactivate();
-        // Remove event dispatcher
         injectEventDispatcher(manager, null);
-        // Deactivate store
         meterStore.deactivate();
     }
 
@@ -407,24 +356,18 @@ public class MeterManagerTest {
      */
     @Test
     public void testAdd() {
-        // Init store
         initMeterStore();
-        // Submit meter request
         manager.submit(m1Request.add());
-        // Verify add
+
         assertEquals("The meter was not added", 1, manager.getAllMeters().size());
         assertEquals("The meter was not added", 1, manager.getMeters(did1).size());
-        // Get Meter
         Meter installingMeter = manager.getMeter(did1, mid1);
-        // Verify add of installingMeter and pending add state
         assertThat(installingMeter, is(m1));
-        // Verify pending add state
         assertThat(installingMeter.state(), is(MeterState.PENDING_ADD));
-        // Let's simulate a working data-plane
+
         pushMetrics(MeterOperation.Type.ADD, installingMeter);
-        // Get meter
+
         Meter installedMeter = manager.getMeter(did1, mid1);
-        // Verify installation
         assertThat(installedMeter.state(), is(MeterState.ADDED));
         assertEquals("The meter was not installed", 1, manager.getAllMeters().size());
         assertEquals("The meter was not installed", 1, manager.getMeters(did1).size());
@@ -478,21 +421,16 @@ public class MeterManagerTest {
      */
     @Test
     public void testRemove() {
-        // Init store
         initMeterStore();
-        // Submit meter request
         manager.submit(m1Request.add());
-        // Withdraw meter
         manager.withdraw(m1Request.remove(), m1.id());
-        // Get Meter
+
         Meter withdrawingMeter = manager.getMeter(did1, mid1);
-        // Verify withdrawing
         assertThat(withdrawingMeter.state(), is(MeterState.PENDING_REMOVE));
         assertEquals("The meter was not withdrawn", 1, manager.getAllMeters().size());
         assertEquals("The meter was not withdrawn", 1, manager.getMeters(did1).size());
-        // Let's simulate a working data-plane
+
         pushMetrics(MeterOperation.Type.REMOVE, withdrawingMeter);
-        // Verify withdrawn
         assertNull(manager.getMeter(did1, mid1));
         assertEquals("The meter was not removed", 0, manager.getAllMeters().size());
         assertEquals("The meter was not removed", 0, manager.getMeters(did1).size());
@@ -525,32 +463,24 @@ public class MeterManagerTest {
      */
     @Test
     public void testAddMultipleDevice() {
-        // Init store
         initMeterStore();
-        // Submit meter 1
         manager.submit(m1Request.add());
-        // Submit meter 2
         manager.submit(m2Request.add());
-        // Verify add
+
         assertEquals("The meter was not added", 2, manager.getAllMeters().size());
         assertEquals("The meter was not added", 1, manager.getMeters(did1).size());
         assertEquals("The meter was not added", 1, manager.getMeters(did2).size());
-        // Get Meters
         Meter installingMeter1 = manager.getMeter(did1, mid1);
         Meter installingMeter2 = manager.getMeter(did2, mid1);
-        // Verify add of installingMeter
         assertThat(installingMeter1, is(m1));
         assertThat(installingMeter2, is(m2));
-        // Verify pending add state
         assertThat(installingMeter1.state(), is(MeterState.PENDING_ADD));
         assertThat(installingMeter2.state(), is(MeterState.PENDING_ADD));
-        // Let's simulate a working data-plane
+
         pushMetrics(MeterOperation.Type.ADD, installingMeter1);
         pushMetrics(MeterOperation.Type.ADD, installingMeter2);
-        // Get meter
         Meter installedMeter1 = manager.getMeter(did1, mid1);
         Meter installedMeter2 = manager.getMeter(did2, mid1);
-        // Verify installation
         assertThat(installedMeter1.state(), is(MeterState.ADDED));
         assertThat(installedMeter2.state(), is(MeterState.ADDED));
         assertEquals("The meter was not installed", 2, manager.getAllMeters().size());
@@ -563,29 +493,22 @@ public class MeterManagerTest {
      */
     @Test
     public void testRemoveMultipleDevice() {
-        // Init store
         initMeterStore();
-        // Submit meter 1
         manager.submit(m1Request.add());
-        // Submit meter 2
         manager.submit(m2Request.add());
-        // Withdraw meter
         manager.withdraw(m1Request.remove(), m1.id());
-        // Withdraw meter
         manager.withdraw(m2Request.remove(), m2.id());
-        // Get Meters
+
         Meter withdrawingMeter1 = manager.getMeter(did1, mid1);
         Meter withdrawingMeter2 = manager.getMeter(did2, mid1);
-        // Verify withdrawing
         assertThat(withdrawingMeter1.state(), is(MeterState.PENDING_REMOVE));
         assertThat(withdrawingMeter2.state(), is(MeterState.PENDING_REMOVE));
         assertEquals("The meter was not withdrawn", 2, manager.getAllMeters().size());
         assertEquals("The meter was not withdrawn", 1, manager.getMeters(did1).size());
         assertEquals("The meter was not withdrawn", 1, manager.getMeters(did2).size());
-        // Let's simulate a working data-plane
+
         pushMetrics(MeterOperation.Type.REMOVE, withdrawingMeter1);
         pushMetrics(MeterOperation.Type.REMOVE, withdrawingMeter2);
-        // Verify withdrawn
         assertNull(manager.getMeter(did1, mid1));
         assertNull(manager.getMeter(did2, mid1));
         assertEquals("The meter was not removed", 0, manager.getAllMeters().size());
@@ -598,18 +521,15 @@ public class MeterManagerTest {
      */
     @Test
     public void testPurge() {
-        // Init store
         initMeterStore();
-        // Submit meter request
         manager.submit(m1Request.add());
-        // Verify submit
+
         Meter submittingMeter = manager.getMeter(did1, mid1);
         assertThat(submittingMeter.state(), is(MeterState.PENDING_ADD));
         assertEquals("The meter was not added", 1, manager.getAllMeters().size());
         assertEquals("The meter was not added", 1, manager.getMeters(did1).size());
-        // Purge the meters
+
         manager.purgeMeters(did1);
-        // Verify purge
         assertNull(manager.getMeter(did1, mid1));
         assertEquals("The meter was not purged", 0, manager.getAllMeters().size());
         assertEquals("The meter was not purged", 0, manager.getMeters(did1).size());
@@ -620,9 +540,9 @@ public class MeterManagerTest {
      */
     @Test
     public void testAddFromMeterProgrammable()  {
-        // Init store
         initMeterStore();
         manager.submit(mProgrammableRequest.add());
+
         TestTools.assertAfter(500, () -> {
             assertEquals("The meter was not added", 1, manager.getAllMeters().size());
             assertThat(manager.getMeter(PROGRAMMABLE_DID, MeterId.meterId(1)), is(mProgrammable));
@@ -634,10 +554,10 @@ public class MeterManagerTest {
      */
     @Test
     public void testAddBatchFromMeterProgrammable()  {
-        // Init store
         initMeterStore();
         List<MeterOperation> operations = ImmutableList.of(new MeterOperation(mProgrammable, MeterOperation.Type.ADD));
         manager.defaultProvider().performMeterOperation(PROGRAMMABLE_DID, new MeterOperations(operations));
+
         TestTools.assertAfter(500, () -> {
             assertEquals("The meter was not added", 1, meterOperations.size());
             assertEquals("Wrong Meter Operation", meterOperations.get(0).meter().id(), mProgrammable.id());
@@ -650,11 +570,11 @@ public class MeterManagerTest {
      */
     @Test
     public void testGetFromMeterProgrammable()  {
-        // Init store
         initMeterStore();
         MeterDriverProvider fallback = (MeterDriverProvider) manager.defaultProvider();
         testAddFromMeterProgrammable();
         fallback.init(manager.deviceService, fallback.meterProviderService, manager.mastershipService, 1);
+
         TestTools.assertAfter(2000, () -> {
             assertEquals("The meter was not added", 1, manager.getAllMeters().size());
             Meter m = manager.getMeters(PROGRAMMABLE_DID).iterator().next();
@@ -745,7 +665,6 @@ public class MeterManagerTest {
         });
     }
 
-    // Test cluster service
     private final class TestClusterService extends ClusterServiceAdapter {
 
         private ControllerNode local = new DefaultControllerNode(NID_LOCAL, LOCALHOST);
@@ -819,7 +738,7 @@ public class MeterManagerTest {
 
         @Override
         public CompletableFuture<Collection<Meter>> getMeters() {
-            //ADD METER
+            // ADD METER
             Collection<Meter> meters = Lists.newArrayList();
             DefaultMeter mProgrammableAdded = (DefaultMeter) mProgrammable;
             mProgrammableAdded.setState(MeterState.ADDED);
@@ -834,7 +753,6 @@ public class MeterManagerTest {
 
         @Override
         public CompletableFuture<Collection<MeterFeatures>> getMeterFeatures() {
-            //Currently unused.
             return CompletableFuture.completedFuture(Collections.emptySet());
         }
     }
@@ -847,16 +765,15 @@ public class MeterManagerTest {
 
         @Override
         public void performMeterOperation(DeviceId deviceId, MeterOperations meterOps) {
-            //Currently unused.
+
         }
 
         @Override
         public void performMeterOperation(DeviceId deviceId, MeterOperation meterOp) {
-            //Currently unused
+
         }
     }
 
-    // Test mastership service
     private final class TestMastershipService extends MastershipServiceAdapter {
         @Override
         public NodeId getMasterFor(DeviceId deviceId) {

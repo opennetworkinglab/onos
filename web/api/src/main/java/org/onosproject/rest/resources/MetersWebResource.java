@@ -32,7 +32,6 @@ import org.onosproject.net.meter.MeterService;
 import org.onosproject.net.pi.model.PiMeterId;
 import org.onosproject.net.pi.runtime.PiMeterCellId;
 import org.onosproject.rest.AbstractWebResource;
-import org.slf4j.Logger;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -51,7 +50,6 @@ import java.io.InputStream;
 
 import static org.onlab.util.Tools.nullIsNotFound;
 import static org.onlab.util.Tools.readTreeFromStream;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Query and program meter rules.
@@ -62,7 +60,6 @@ public class MetersWebResource extends AbstractWebResource {
     @Context
     private UriInfo uriInfo;
 
-    private final Logger log = getLogger(getClass());
     private static final String DEVICE_INVALID = "Invalid deviceId in meter creation request";
     private static final String METER_NOT_FOUND = "Meter is not found for ";
 

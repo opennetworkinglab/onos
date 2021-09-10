@@ -125,7 +125,7 @@ public interface MeterService
      * @param deviceId device identifier
      */
     default void purgeMeters(DeviceId deviceId) {
-        //Default implementation does nothing
+        throw new UnsupportedOperationException("purgeMeters not implemented");
     }
 
     /**

@@ -38,6 +38,13 @@ public class TofinoMeterProgrammable extends P4RuntimeMeterProgrammable implemen
         final PiMeterBand onosPeakBand = onosMeter.peakBand();
         final PiMeterBand deviceCommittedBand = deviceMeter.committedBand();
         final PiMeterBand devicePeakBand = deviceMeter.peakBand();
+
+        // Fail fast, this can easily happen if we send a write very
+        // close to a read, read can still return the default config
+        if (deviceCommittedBand == null || devicePeakBand == null) {
+            return false;
+        }
+
         final long onosCir = onosCommittedBand.rate();
         final long onosCburst = onosCommittedBand.burst();
         final long onosPir = onosPeakBand.rate();

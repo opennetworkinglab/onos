@@ -36,16 +36,6 @@ public interface MeterStore extends Store<MeterEvent, MeterStoreDelegate> {
     CompletableFuture<MeterStoreResult> addOrUpdateMeter(Meter meter);
 
     /**
-     * Adds a meter to the store.
-     *
-     * @param meter a meter
-     * @return a future indicating the result of the store operation
-     * @deprecated in onos-2.5 replaced by {@link #addOrUpdateMeter(Meter)}
-     */
-    @Deprecated
-    CompletableFuture<MeterStoreResult> storeMeter(Meter meter);
-
-    /**
      * Deletes a meter from the store.
      *
      * @param meter a meter
@@ -142,38 +132,8 @@ public interface MeterStore extends Store<MeterEvent, MeterStoreDelegate> {
      * Delete this meter immediately.
      *
      * @param m a meter
-     * @deprecated in onos-2.5 renamed {@link #purgeMeter(Meter)}
-     */
-    @Deprecated
-    void deleteMeterNow(Meter m);
-
-    /**
-     * Delete this meter immediately.
-     *
-     * @param m a meter
      */
     void purgeMeter(Meter m);
-
-    /**
-     * Retrieve maximum meters available for the device.
-     *
-     * @param key the meter features key
-     * @return the maximum number of meters supported by the device
-     * @deprecated in onos-2.5, Max meters is replaced by start and end index
-     */
-    @Deprecated
-    long getMaxMeters(MeterFeaturesKey key);
-
-    /**
-     * Allocates the first available MeterId.
-     *
-     * @param deviceId the device id
-     * @return the meter Id or null if it was not possible
-     * to allocate a meter id
-     * @deprecated in onos-2.5 replaced by {@link #allocateMeterId(DeviceId, MeterScope)}
-     */
-    @Deprecated
-    MeterId allocateMeterId(DeviceId deviceId);
 
     /**
      * Allocates the first available MeterId.
@@ -195,16 +155,6 @@ public interface MeterStore extends Store<MeterEvent, MeterStoreDelegate> {
      */
     @Deprecated
     void freeMeterId(DeviceId deviceId, MeterId meterId);
-
-    /**
-     * Removes all meters of given device from store.
-     * This API is typically used when the device is offline.
-     *
-     * @param deviceId the device id
-     * @deprecated in onos-2.5, replaced by {@link #purgeMeters(DeviceId)}
-     */
-    @Deprecated
-    void purgeMeter(DeviceId deviceId);
 
     /**
      * Removes all meters of given device from store.
