@@ -628,7 +628,8 @@ public class DeviceManager
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkValidity();
             deviceLocalStatus.put(deviceId, new LocalStatus(false, Instant.now()));
-            log.info("Device {} disconnected from this node", deviceId);
+            log.info("Device {} disconnected from this node: {}", deviceId,
+                     clusterService.getLocalNode().id());
 
             List<PortDescription> descs = store.getPortDescriptions(provider().id(), deviceId)
                     .map(desc -> ensurePortEnabledState(desc, false))
