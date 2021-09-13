@@ -330,6 +330,8 @@ public class DistributedMeterStoreTest {
         assertThat(mid1, is(meterStore.allocateMeterId(did1)));
         // Reserve id 2
         assertThat(mid2, is(meterStore.allocateMeterId(did1)));
+        // Reserve id 3
+        assertThat(mid3, is(meterStore.allocateMeterId(did1)));
         // Max meter error
         assertNull(meterStore.allocateMeterId(did1));
     }
