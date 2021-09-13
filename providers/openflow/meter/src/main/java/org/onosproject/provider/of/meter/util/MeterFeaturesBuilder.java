@@ -73,9 +73,15 @@ public class MeterFeaturesBuilder {
         MeterFeatures.Builder builder = DefaultMeterFeatures.builder()
                 .forDevice(deviceId)
                 .withMaxBands(ofMeterFeatures.getMaxBands())
-                .withMaxColors(ofMeterFeatures.getMaxColor())
-                .withStartIndex(OF_METER_START_INDEX)
-                .withEndIndex(ofMeterFeatures.getMaxMeter());
+                .withMaxColors(ofMeterFeatures.getMaxColor());
+
+        /*
+         * We extract the number of supported meters.
+         */
+        if (ofMeterFeatures.getMaxMeter() > 0) {
+            builder.withStartIndex(OF_METER_START_INDEX)
+                   .withEndIndex(ofMeterFeatures.getMaxMeter());
+        }
         /*
          * We extract the supported band types.
          */

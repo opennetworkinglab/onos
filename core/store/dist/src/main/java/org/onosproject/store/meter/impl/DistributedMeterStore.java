@@ -627,9 +627,9 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
             if (maxMeters == 0L) {
                 return null;
             } else {
-                // OpenFlow meter index starts from 1, ends with max-1
+                // OpenFlow meter index starts from 1, ends with max
                 startIndex = 1L;
-                endIndex = maxMeters - 1;
+                endIndex = maxMeters;
             }
         }
         // Get a new value
