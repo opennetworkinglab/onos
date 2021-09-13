@@ -174,7 +174,11 @@ public class OnosCfgMojo extends AbstractMojo {
             }
             JavaField field = javaClass.getFieldByName(name);
             if (field != null) {
+                // make sure that the new lines are removed from the comment, they will break the property loading.
                 String comment = field.getComment();
+                if (comment != null) {
+                    comment = comment.replace("\n", " ").replace("\r", " ");
+                }
                 return comment != null ? comment : NO_DESCRIPTION;
             }
             throw new IllegalStateException("cfgdef could not find a variable named " + name + " in " + javaClass.getName());
