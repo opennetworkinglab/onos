@@ -30,6 +30,7 @@ import org.onosproject.incubator.net.virtual.provider.VirtualProviderRegistrySer
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.meter.DefaultMeter;
 import org.onosproject.net.meter.Meter;
+import org.onosproject.net.meter.MeterCellId;
 import org.onosproject.net.meter.MeterEvent;
 import org.onosproject.net.meter.MeterFailReason;
 import org.onosproject.net.meter.MeterFeatures;
@@ -39,6 +40,7 @@ import org.onosproject.net.meter.MeterKey;
 import org.onosproject.net.meter.MeterListener;
 import org.onosproject.net.meter.MeterOperation;
 import org.onosproject.net.meter.MeterRequest;
+import org.onosproject.net.meter.MeterScope;
 import org.onosproject.net.meter.MeterService;
 import org.onosproject.net.meter.MeterState;
 import org.onosproject.net.meter.MeterStoreDelegate;
@@ -49,6 +51,7 @@ import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -139,11 +142,16 @@ public class VirtualNetworkMeterManager
 
     @Override
     public void withdraw(MeterRequest request, MeterId meterId) {
+        withdraw(request, (MeterCellId) meterId);
+    }
+
+    @Override
+    public void withdraw(MeterRequest request, MeterCellId meterCellId) {
         Meter.Builder mBuilder = DefaultMeter.builder()
                 .forDevice(request.deviceId())
                 .fromApp(request.appId())
                 .withBands(request.bands())
-                .withId(meterId)
+                .withCellId(meterCellId)
                 .withUnit(request.unit());
 
         if (request.isBurst()) {
@@ -158,6 +166,11 @@ public class VirtualNetworkMeterManager
 
     @Override
     public Meter getMeter(DeviceId deviceId, MeterId id) {
+        return getMeter(deviceId, (MeterCellId) id);
+    }
+
+    @Override
+    public Meter getMeter(DeviceId deviceId, MeterCellId id) {
         MeterKey key = MeterKey.key(deviceId, id);
         return store.getMeter(networkId(), key);
     }
@@ -166,6 +179,11 @@ public class VirtualNetworkMeterManager
     public Collection<Meter> getMeters(DeviceId deviceId) {
         return store.getAllMeters(networkId()).stream()
                 .filter(m -> m.deviceId().equals(deviceId)).collect(Collectors.toList());
+    }
+
+    @Override
+    public Collection<Meter> getMeters(DeviceId deviceId, MeterScope scope) {
+        return Collections.emptyList();
     }
 
     @Override

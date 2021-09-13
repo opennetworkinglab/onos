@@ -34,7 +34,7 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.meter.DefaultMeter;
 import org.onosproject.net.meter.Meter;
-import org.onosproject.net.meter.MeterCellId.MeterCellType;
+import org.onosproject.net.meter.MeterCellId;
 import org.onosproject.net.meter.MeterEvent;
 import org.onosproject.net.meter.MeterFailReason;
 import org.onosproject.net.meter.MeterFeatures;
@@ -46,6 +46,7 @@ import org.onosproject.net.meter.MeterProvider;
 import org.onosproject.net.meter.MeterProviderRegistry;
 import org.onosproject.net.meter.MeterProviderService;
 import org.onosproject.net.meter.MeterRequest;
+import org.onosproject.net.meter.MeterScope;
 import org.onosproject.net.meter.MeterService;
 import org.onosproject.net.meter.MeterState;
 import org.onosproject.net.meter.MeterStore;
@@ -53,6 +54,8 @@ import org.onosproject.net.meter.MeterStoreDelegate;
 import org.onosproject.net.meter.MeterStoreResult;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
+import org.onosproject.net.pi.model.PiMeterId;
+import org.onosproject.net.pi.runtime.PiMeterCellId;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -68,6 +71,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.PredictableExecutor.newPredictableExecutor;
@@ -79,6 +83,8 @@ import static org.onosproject.net.OsgiPropertyConstants.MM_NUM_THREADS;
 import static org.onosproject.net.OsgiPropertyConstants.MM_NUM_THREADS_DEFAULT;
 import static org.onosproject.net.OsgiPropertyConstants.MM_PURGE_ON_DISCONNECTION;
 import static org.onosproject.net.OsgiPropertyConstants.MM_PURGE_ON_DISCONNECTION_DEFAULT;
+import static org.onosproject.net.OsgiPropertyConstants.MM_USER_DEFINED_INDEX;
+import static org.onosproject.net.OsgiPropertyConstants.MM_USER_DEFINED_INDEX_DEFAULT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -94,6 +100,7 @@ import static org.slf4j.LoggerFactory.getLogger;
                 MM_NUM_THREADS + ":Integer=" + MM_NUM_THREADS_DEFAULT,
                 MM_FALLBACK_METER_POLL_FREQUENCY + ":Integer=" + MM_FALLBACK_METER_POLL_FREQUENCY_DEFAULT,
                 MM_PURGE_ON_DISCONNECTION + ":Boolean=" + MM_PURGE_ON_DISCONNECTION_DEFAULT,
+                MM_USER_DEFINED_INDEX + ":Boolean=" + MM_USER_DEFINED_INDEX_DEFAULT,
         }
 )
 public class MeterManager
@@ -138,6 +145,9 @@ public class MeterManager
 
     /** Purge entries associated with a device when the device goes offline. */
     private boolean purgeOnDisconnection = MM_PURGE_ON_DISCONNECTION_DEFAULT;
+
+    /** Enable user defined index mode. Users can provide their own meter index. */
+    protected boolean userDefinedIndex = MM_USER_DEFINED_INDEX_DEFAULT;
 
     // Action triggered when the futures related to submit and withdrawal complete
     private TriConsumer<MeterRequest, MeterStoreResult, Throwable> onComplete;
@@ -218,6 +228,11 @@ public class MeterManager
                      purgeOnDisconnection ? "enabled" : "disabled");
         }
 
+        flag = Tools.isPropertyEnabled(properties, MM_USER_DEFINED_INDEX);
+        boolean enable = flag == null ? userDefinedIndex : flag;
+        userDefinedIndex = store.userDefinedIndexMode(enable);
+        log.info("UserDefinedIndex is {}", userDefinedIndex ? "enabled" : "disabled");
+
         String s = get(properties, MM_FALLBACK_METER_POLL_FREQUENCY);
         try {
             fallbackMeterPollFrequency = isNullOrEmpty(s) ?
@@ -252,13 +267,26 @@ public class MeterManager
     @Override
     public Meter submit(MeterRequest request) {
         checkNotNull(request, "request cannot be null.");
-        // Allocate an id and then submit the request
-        MeterId id = allocateMeterId(request.deviceId());
+        MeterCellId cellId;
+        if (request.index().isPresent()) {
+            checkArgument(userDefinedIndex, "Index cannot be provided when userDefinedIndex mode is disabled");
+            // User provides index
+            if (request.scope().isGlobal()) {
+                cellId = MeterId.meterId(request.index().get());
+            } else {
+                cellId = PiMeterCellId.ofIndirect(
+                    PiMeterId.of(request.scope().id()), request.index().get());
+            }
+        } else {
+            checkArgument(!userDefinedIndex, "Index cannot be allocated when userDefinedIndex mode is enabled");
+            // Allocate an id
+            cellId = allocateMeterId(request.deviceId(), request.scope());
+        }
         Meter.Builder mBuilder = DefaultMeter.builder()
                 .forDevice(request.deviceId())
                 .fromApp(request.appId())
                 .withBands(request.bands())
-                .withCellId(id)
+                .withCellId(cellId)
                 .withUnit(request.unit());
         if (request.isBurst()) {
             mBuilder.burst();
@@ -277,12 +305,17 @@ public class MeterManager
 
     @Override
     public void withdraw(MeterRequest request, MeterId meterId) {
+        withdraw(request, (MeterCellId) meterId);
+    }
+
+    @Override
+    public void withdraw(MeterRequest request, MeterCellId meterCellId) {
         checkNotNull(request, "request cannot be null.");
         Meter.Builder mBuilder = DefaultMeter.builder()
                 .forDevice(request.deviceId())
                 .fromApp(request.appId())
                 .withBands(request.bands())
-                .withCellId(meterId)
+                .withCellId(meterCellId)
                 .withUnit(request.unit());
 
         if (request.isBurst()) {
@@ -299,14 +332,23 @@ public class MeterManager
 
     @Override
     public Meter getMeter(DeviceId deviceId, MeterId id) {
+        return getMeter(deviceId, (MeterCellId) id);
+    }
+
+    @Override
+    public Meter getMeter(DeviceId deviceId, MeterCellId id) {
         MeterKey key = MeterKey.key(deviceId, id);
         return store.getMeter(key);
     }
 
     @Override
     public Collection<Meter> getMeters(DeviceId deviceId) {
-        return store.getAllMeters().stream().filter(m ->
-                m.deviceId().equals(deviceId)).collect(Collectors.toList());
+        return store.getAllMeters(deviceId);
+    }
+
+    @Override
+    public Collection<Meter> getMeters(DeviceId deviceId, MeterScope scope) {
+        return store.getAllMeters(deviceId, scope);
     }
 
     @Override
@@ -318,6 +360,10 @@ public class MeterManager
     public MeterId allocateMeterId(DeviceId deviceId) {
         // We delegate directly to the store
         return store.allocateMeterId(deviceId);
+    }
+
+    private MeterCellId allocateMeterId(DeviceId deviceId, MeterScope scope) {
+        return store.allocateMeterId(deviceId, scope);
     }
 
     @Override
@@ -361,14 +407,14 @@ public class MeterManager
             // Each update on the store is reflected on this collection
             Collection<Meter> allMeters = store.getAllMeters(deviceId);
 
-            Map<MeterId, Meter> meterEntriesMap = meterEntries.stream()
-                    .collect(Collectors.toMap(Meter::id, Meter -> Meter));
+            Map<MeterCellId, Meter> meterEntriesMap = meterEntries.stream()
+                    .collect(Collectors.toMap(Meter::meterCellId, Meter -> Meter));
 
             // Look for meters defined in onos and missing in the device (restore)
             allMeters.stream().forEach(m -> {
                 if ((m.state().equals(MeterState.PENDING_ADD) ||
                         m.state().equals(MeterState.ADDED)) &&
-                        !meterEntriesMap.containsKey(m.id())) {
+                        !meterEntriesMap.containsKey(m.meterCellId())) {
                     // The meter is missing in the device. Reinstall!
                     log.debug("Adding meter missing in device {} {}", deviceId, m);
                     // offload the task to avoid the overloading of the sb threads
@@ -378,27 +424,21 @@ public class MeterManager
 
             // Look for meters defined in the device and not in onos (remove)
             meterEntriesMap.entrySet().stream()
-                    .filter(md -> !allMeters.stream().anyMatch(m -> m.id().equals(md.getKey())))
+                    .filter(md -> !allMeters.stream().anyMatch(m -> m.meterCellId().equals(md.getKey())))
                     .forEach(mio -> {
                         Meter meter = mio.getValue();
-                        // FIXME: Removing a meter is meaningful for OpenFlow, but not for P4Runtime.
-                        // In P4Runtime meter cells cannot be removed. For the
-                        // moment, we make the distinction between OpenFlow and
-                        // P4Runtime by looking at the MeterCellType (always
-                        // INDEX for OpenFlow).
-                        if (meter.meterCellId().type() == MeterCellType.INDEX) {
-                            // The meter is missing in onos. Uninstall!
-                            log.debug("Remove meter in device not in onos {} {}", deviceId, mio.getKey());
-                            // offload the task to avoid the overloading of the sb threads
-                            meterInstallers.execute(new MeterInstaller(deviceId, meter, MeterOperation.Type.REMOVE));
-                        }
+                        // The meter is missing in onos. Uninstall!
+                        log.debug("Remove meter in device not in onos {} {}", deviceId, mio.getKey());
+                        // offload the task to avoid the overloading of the sb threads
+                        meterInstallers.execute(new MeterInstaller(deviceId, meter, MeterOperation.Type.REMOVE));
                     });
 
             // Update the meter stats in the store (first time move the state from pending to added)
             Collection<Meter> addedMeters = Sets.newHashSet();
             meterEntries.stream()
                     .filter(m -> allMeters.stream()
-                            .anyMatch(sm -> sm.deviceId().equals(deviceId) && sm.id().equals(m.id())))
+                            .anyMatch(sm -> sm.deviceId().equals(deviceId) &&
+                             sm.meterCellId().equals(m.meterCellId())))
                     .forEach(m -> {
                         Meter updatedMeter = store.updateMeterState(m);
                         if (updatedMeter != null && updatedMeter.state() == MeterState.ADDED) {
@@ -409,20 +449,13 @@ public class MeterManager
             newAllMeters.removeAll(addedMeters);
 
             newAllMeters.forEach(m -> {
-                // FIXME: Installing a meter is meaningful for OpenFlow, but not for P4Runtime.
-                // It looks like this flow is used only for p4runtime to emulate the installation
-                // since meters are already instantiated - we need just modify the params.
-                if (m.state() == MeterState.PENDING_ADD && m.meterCellId().type() != MeterCellType.INDEX) {
-                    // offload the task to avoid the overloading of the sb threads
-                    log.debug("Modify meter {} in device {}", m.id(), deviceId);
-                    meterInstallers.execute(new MeterInstaller(m.deviceId(), m, MeterOperation.Type.MODIFY));
                 // Remove workflow. Regarding OpenFlow, meters have been removed from
                 // the device but they are still in the store, we will purge them definitely.
                 // Instead, P4Runtime devices will not remove the meter. The first workaround
                 // for P4Runtime will avoid to send a remove op. Then, we reach this point
                 // and we purge the meter from the store
-                } else if (m.state() == MeterState.PENDING_REMOVE) {
-                    log.debug("Delete meter {} now in store", m.id());
+                if (m.state() == MeterState.PENDING_REMOVE) {
+                    log.debug("Delete meter {} now in store", m.meterCellId());
                     store.purgeMeter(m);
                 }
             });
@@ -498,7 +531,7 @@ public class MeterManager
             NodeId master = mastershipService.getMasterFor(meter.deviceId());
             if (!Objects.equals(local, master)) {
                 log.trace("Not the master of device {}, skipping installation of the meter {}",
-                        meter.deviceId(), meter.id());
+                        meter.deviceId(), meter.meterCellId());
                 return;
             }
             MeterProvider p = getProvider(this.deviceId);
@@ -511,7 +544,7 @@ public class MeterManager
 
         @Override
         public int hint() {
-            return meter.id().hashCode();
+            return meter.meterCellId().hashCode();
         }
     }
 

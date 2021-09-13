@@ -42,8 +42,18 @@ public interface MeterService
      *
      * @param meter a meter to remove
      * @param meterId the meter id of the meter to remove.
+     * @deprecated in onos-2.5, replace MeterId with MeterCellId
      */
+    @Deprecated
     void withdraw(MeterRequest meter, MeterId meterId);
+
+    /**
+     * Remove a meter from the system and the dataplane.
+     *
+     * @param meter a meter to remove
+     * @param meterCellId the meter cell id of the meter to remove.
+     */
+    void withdraw(MeterRequest meter, MeterCellId meterCellId);
 
     /**
      * Fetch the meter by the meter id.
@@ -51,8 +61,19 @@ public interface MeterService
      * @param deviceId a device id
      * @param id a meter id
      * @return a meter
+     * @deprecated in onos-2.5, Replace MeterId with MeterCellId
      */
+    @Deprecated
     Meter getMeter(DeviceId deviceId, MeterId id);
+
+    /**
+     * Fetch the meter by the meter id.
+     *
+     * @param deviceId a device id
+     * @param id a meter cell id
+     * @return a meter
+     */
+    Meter getMeter(DeviceId deviceId, MeterCellId id);
 
     /**
      * Fetches all the meters.
@@ -68,6 +89,15 @@ public interface MeterService
      * @return a collection of meters
      */
     Collection<Meter> getMeters(DeviceId deviceId);
+
+    /**
+     * Fetches the meters by the device id and scope.
+     *
+     * @param deviceId a device id
+     * @param scope meters scope
+     * @return a collection of meters
+     */
+    Collection<Meter> getMeters(DeviceId deviceId, MeterScope scope);
 
     /**
      * Allocates a new meter id in the system.

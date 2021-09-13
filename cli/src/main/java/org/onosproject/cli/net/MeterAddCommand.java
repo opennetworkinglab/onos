@@ -28,6 +28,7 @@ import org.onosproject.net.meter.DefaultBand;
 import org.onosproject.net.meter.DefaultMeterRequest;
 import org.onosproject.net.meter.Meter;
 import org.onosproject.net.meter.MeterRequest;
+import org.onosproject.net.meter.MeterScope;
 import org.onosproject.net.meter.MeterService;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -45,9 +46,8 @@ public class MeterAddCommand extends AbstractShellCommand {
 
     private Meter.Unit unit;
     private Set<Band> bands = new HashSet<>();
-    private Long rate;
-    private Long burstSize;
-
+    private MeterScope scope;
+    private Long index;
 
     @Option(name = "-bd", aliases = "--bandDrop",
             description = "Assign band DROP to this meter",
@@ -59,6 +59,16 @@ public class MeterAddCommand extends AbstractShellCommand {
             required = false, multiValued = false)
     private boolean hasBandRemark = false;
 
+    @Option(name = "-by", aliases = "--bandYel",
+            description = "Assign band MARK_YELLOW to this meter",
+            required = false, multiValued = false)
+    private boolean hasBandYel = false;
+
+    @Option(name = "-bre", aliases = "--bandRed",
+            description = "Assign band MARK_RED to this meter",
+            required = false, multiValued = false)
+    private boolean hasBandRed = false;
+
     @Option(name = "-up", aliases = "--unitPkts",
             description = "Assign unit Packets per Second to this meter",
             required = false, multiValued = false)
@@ -69,18 +79,31 @@ public class MeterAddCommand extends AbstractShellCommand {
             required = false, multiValued = false)
     private boolean hasKbps = false;
 
+    @Option(name = "-ub", aliases = "--unitBytes",
+            description = "Assign unit Bytes per Second to this meter",
+            required = false, multiValued = false)
+    private boolean hasBytes = false;
+
     @Option(name = "-ib", aliases = "--isBurst",
             description = "Set meter applicable only to burst",
             required = false, multiValued = false)
     private boolean isBurst = false;
 
     @Option(name = "-b", aliases = "--bandwidth", description = "Bandwidth",
-            required = false, multiValued = false)
-    private String bandwidthString = null;
+            required = false, multiValued = true)
+    private String[] bandwidthString = null;
 
     @Option(name = "-bs", aliases = "--burstSize", description = "Burst size",
+            required = false, multiValued = true)
+    private String[] burstSizeString = null;
+
+    @Option(name = "-sc", aliases = "--scope", description = "Scope",
             required = false, multiValued = false)
-    private String burstSizeString = null;
+    private String scopeString = null;
+
+    @Option(name = "-id", aliases = "--index", description = "Index",
+            required = false, multiValued = false)
+    private String indexString = null;
 
     @Argument(index = 0, name = "uri", description = "Device ID",
             required = true, multiValued = false)
@@ -93,53 +116,110 @@ public class MeterAddCommand extends AbstractShellCommand {
         // check units
         if (hasPkts) {
             unit = Meter.Unit.PKTS_PER_SEC;
-        } else {
+        } else if (hasKbps) {
             unit = Meter.Unit.KB_PER_SEC;
+        } else if (hasBytes) {
+            unit = Meter.Unit.BYTES_PER_SEC;
         }
 
+        int numBands = 0;
+        if (hasBandDrop) {
+            numBands++;
+        }
+        if (hasBandRemark) {
+            numBands++;
+        }
+        if (hasBandYel) {
+            numBands++;
+        }
+        if (hasBandRed) {
+            numBands++;
+        }
+
+        long[] rates = new long[numBands];
+        long[] bursts = new long[numBands];
         // check rate (does not take into account if it is kbps or pkts)
-        if (!isNullOrEmpty(bandwidthString)) {
-            rate = Long.parseLong(bandwidthString);
-        } else {
-            rate = 500L;
-        }
-
-        // burst size
-        if (!isNullOrEmpty(burstSizeString)) {
-            burstSize = Long.parseLong(burstSizeString);
-        } else {
-            burstSize = 0L;
+        if (bandwidthString != null && bandwidthString.length == numBands &&
+                burstSizeString != null && burstSizeString.length == numBands) {
+            for (int i = 0; i < bandwidthString.length; i++) {
+                rates[i] = 500L;
+                bursts[i] = 0L;
+                if (!isNullOrEmpty(bandwidthString[i])) {
+                    rates[i] = Long.parseLong(bandwidthString[i]);
+                }
+                if (!isNullOrEmpty(burstSizeString[i])) {
+                    bursts[i] = Long.parseLong(burstSizeString[i]);
+                }
+            }
+        } else if (bandwidthString != null && bandwidthString.length < numBands &&
+                burstSizeString != null && burstSizeString.length < numBands) {
+            for (int i = 0; i < numBands; i++) {
+                rates[i] = 500L;
+                bursts[i] = 0L;
+                if (i < bandwidthString.length && !isNullOrEmpty(bandwidthString[i])) {
+                    rates[i] = Long.parseLong(bandwidthString[i]);
+                }
+                if (i < burstSizeString.length && !isNullOrEmpty(burstSizeString[i])) {
+                    bursts[i] = Long.parseLong(burstSizeString[i]);
+                }
+            }
         }
 
         // Create bands
+        int i = 0;
         if (hasBandDrop) {
             Band band = DefaultBand.builder()
                     .ofType(Band.Type.DROP)
-                    .withRate(rate)
-                    .burstSize(burstSize)
+                    .withRate(rates[i])
+                    .burstSize(bursts[i])
                     .build();
             bands.add(band);
+            i++;
         }
         if (hasBandRemark) {
             Band band = DefaultBand.builder()
                     .ofType(Band.Type.REMARK)
-                    .withRate(rate)
-                    .burstSize(burstSize)
+                    .withRate(rates[i])
+                    .burstSize(bursts[i])
+                    .build();
+            bands.add(band);
+            i++;
+        }
+        if (hasBandYel) {
+            Band band = DefaultBand.builder()
+                    .ofType(Band.Type.MARK_YELLOW)
+                    .withRate(rates[i])
+                    .burstSize(bursts[i])
+                    .build();
+            bands.add(band);
+            i++;
+        }
+        if (hasBandRed) {
+            Band band = DefaultBand.builder()
+                    .ofType(Band.Type.MARK_RED)
+                    .withRate(rates[i])
+                    .burstSize(bursts[i])
                     .build();
             bands.add(band);
         }
+
         // default band is drop
         if (bands.size() == 0) {
             Band band = DefaultBand.builder()
                     .ofType(Band.Type.DROP)
-                    .withRate(rate)
-                    .burstSize(burstSize)
+                    .withRate(500L)
+                    .burstSize(0L)
                     .build();
             bands.add(band);
         }
 
+        if (!isNullOrEmpty(scopeString)) {
+            scope = MeterScope.of(scopeString);
+        }
 
-
+        if (!isNullOrEmpty(indexString) && scope != null) {
+            index = Long.parseLong(indexString);
+        }
     }
 
     @Override
@@ -151,22 +231,32 @@ public class MeterAddCommand extends AbstractShellCommand {
 
         checkOptions();
 
-
         MeterRequest.Builder builder = DefaultMeterRequest.builder()
                 .forDevice(deviceId)
                 .fromApp(coreService.registerApplication(appId))
                 .withUnit(unit)
                 .withBands(bands);
 
-
         if (isBurst) {
             builder = builder.burst();
+        }
+
+        // Scope is by default global but we can still provide the index
+        // otherwise we can specify both scope and index or let the meter
+        // service allocate the meter for us. User defined index requires
+        // the user defined mode being active.
+        if (scope != null) {
+            builder = builder.withScope(scope);
+        }
+
+        if (index != null) {
+            builder = builder.withIndex(index);
         }
 
         MeterRequest request = builder.add();
 
         Meter m = service.submit(request);
-        log.info("Requested meter with id {}: {}", m.id().toString(), m.toString());
-        print("Requested meter with id %s: %s", m.id().toString(), m.toString());
+        log.info("Requested meter with cellId {}: {}", m.meterCellId().toString(), m.toString());
+        print("Requested meter with cellId %s: %s", m.meterCellId().toString(), m.toString());
     }
 }

@@ -42,6 +42,8 @@ public final class MeterEnumsProtoTranslator {
                 return Optional.of(Meter.Unit.PKTS_PER_SEC);
             case KB_PER_SEC:
                 return Optional.of(Meter.Unit.KB_PER_SEC);
+            case BYTES_PER_SEC:
+                return Optional.of(Meter.Unit.BYTES_PER_SEC);
             default:
                 log.warn("Unrecognized MeterUnit gRPC message: {}", unit);
                 return Optional.empty();
@@ -60,6 +62,8 @@ public final class MeterEnumsProtoTranslator {
                 return MeterEnumsProto.MeterUnitProto.PKTS_PER_SEC;
             case KB_PER_SEC:
                 return MeterEnumsProto.MeterUnitProto.KB_PER_SEC;
+            case BYTES_PER_SEC:
+                return MeterEnumsProto.MeterUnitProto.BYTES_PER_SEC;
             default:
                 log.warn("Unrecognized MeterUnit ONOS message: {}", unit);
                 return MeterEnumsProto.MeterUnitProto.UNRECOGNIZED;
@@ -80,8 +84,6 @@ public final class MeterEnumsProtoTranslator {
                 return MeterEnumsProto.MeterStateProto.ADDED;
             case PENDING_REMOVE:
                 return MeterEnumsProto.MeterStateProto.PENDING_REMOVE;
-            case REMOVED:
-                return MeterEnumsProto.MeterStateProto.REMOVED;
             default:
                 log.warn("Unrecognized MeterState ONOS message: {}", meterState);
                 return MeterEnumsProto.MeterStateProto.UNRECOGNIZED;

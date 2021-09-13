@@ -23,6 +23,7 @@ import org.onosproject.kubevirtnode.api.KubevirtApiConfig;
 import org.onosproject.kubevirtnode.api.KubevirtApiConfigService;
 import org.onosproject.kubevirtnode.api.KubevirtNode;
 import org.onosproject.kubevirtnode.api.KubevirtNodeAdminService;
+import org.onosproject.kubevirtnode.api.KubevirtNodeService;
 import org.onosproject.kubevirtnode.api.KubevirtNodeState;
 import org.onosproject.rest.AbstractWebResource;
 import org.slf4j.Logger;
@@ -281,11 +282,28 @@ public class KubevirtNodeWebResource extends AbstractWebResource {
     @Path("healthz")
     public Response healthz() {
         KubevirtApiConfigService configService = get(KubevirtApiConfigService.class);
-        KubevirtApiConfig config = configService.apiConfig();
+        KubevirtNodeService nodeService = get(KubevirtNodeService.class);
 
         // TODO: we need to add more health check items
+        boolean allInit = true;
+        KubevirtApiConfig config = configService.apiConfig();
+
+        if (nodeService.nodes().size() == 0) {
+            allInit = false;
+        } else {
+            for (KubevirtNode node : nodeService.nodes()) {
+                if (node.state() != INIT) {
+                    allInit = false;
+                }
+            }
+        }
+
+        String result = ERROR;
+        if (config != null && !allInit) {
+            result = OK;
+        }
+
         ObjectNode jsonResult = mapper().createObjectNode();
-        String result = config != null ? OK : ERROR;
         jsonResult.put(API_CONFIG, result);
         return ok(jsonResult).build();
     }

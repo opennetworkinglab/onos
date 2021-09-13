@@ -43,22 +43,27 @@ public final class PacketDetectionRule {
     private final Integer ctrId;  // Counter ID unique to this PDR
     private final Integer farId;  // The PFCP session-local ID of the FAR that should apply after this PDR hits
     private final Type type;
-    private final Integer schedulingPriority;
+
+    private final Byte qfi; // QoS Flow Identifier of this PDR
+    private final boolean qfiPush; // True when QFI should be pushed to the packet
+    private final boolean qfiMatch; // True when QFI should be matched
 
     private static final int SESSION_ID_BITWIDTH = 96;
 
     private PacketDetectionRule(ImmutableByteSequence sessionId, Integer ctrId,
-                                Integer farId, Integer schedulingPriority,
-                                Ip4Address ueAddr, ImmutableByteSequence teid,
-                                Ip4Address tunnelDst, Type type) {
+                                Integer farId, Ip4Address ueAddr, Byte qfi,
+                                ImmutableByteSequence teid, Ip4Address tunnelDst,
+                                Type type, boolean qfiPush, boolean qfiMatch) {
         this.ueAddr = ueAddr;
         this.teid = teid;
         this.tunnelDst = tunnelDst;
         this.sessionId = sessionId;
         this.ctrId = ctrId;
         this.farId = farId;
-        this.schedulingPriority = schedulingPriority;
+        this.qfi = qfi;
         this.type = type;
+        this.qfiPush = qfiPush;
+        this.qfiMatch = qfiMatch;
     }
 
     public static Builder builder() {
@@ -72,7 +77,9 @@ public final class PacketDetectionRule {
      */
     public String matchString() {
         if (matchesEncapped()) {
-            return String.format("Match(Dst=%s, TEID=%s)", tunnelDest(), teid());
+            return matchQfi() ?
+                    String.format("Match(Dst=%s, TEID=%s, QFI=%s)", tunnelDest(), teid(), qfi()) :
+                    String.format("Match(Dst=%s, TEID=%s)", tunnelDest(), teid());
         } else {
             return String.format("Match(Dst=%s, !GTP)", ueAddress());
         }
@@ -82,8 +89,12 @@ public final class PacketDetectionRule {
     public String toString() {
         String actionParams = "";
         if (hasActionParameters()) {
-            actionParams = String.format("SEID=%s, FAR=%d, CtrIdx=%d, SchedulingPrio=%d",
-                                         sessionId.toString(), farId, ctrId, schedulingPriority);
+            actionParams = hasQfi() && !matchQfi() ?
+                    String.format("SEID=%s, FAR=%d, CtrIdx=%d, QFI=%s",
+                                  sessionId.toString(), farId, ctrId, qfi) :
+                    String.format("SEID=%s, FAR=%d, CtrIdx=%d",
+                                  sessionId.toString(), farId, ctrId);
+            actionParams = pushQfi() ? String.format("%s, QFI_PUSH", actionParams) : actionParams;
         }
 
         return String.format("PDR{%s -> LoadParams(%s)}",
@@ -111,13 +122,15 @@ public final class PacketDetectionRule {
                 Objects.equals(this.ctrId, that.ctrId) &&
                 Objects.equals(this.sessionId, that.sessionId) &&
                 Objects.equals(this.farId, that.farId) &&
-                Objects.equals(this.schedulingPriority, that.schedulingPriority));
+                Objects.equals(this.qfi, that.qfi) &&
+                Objects.equals(this.qfiPush, that.qfiPush) &&
+                Objects.equals(this.qfiMatch, that.qfiMatch));
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(ueAddr, teid, tunnelDst, sessionId, ctrId, farId,
-                            schedulingPriority, type);
+                            qfi, type);
     }
 
     /**
@@ -139,10 +152,14 @@ public final class PacketDetectionRule {
      */
     public PacketDetectionRule withoutActionParams() {
         if (matchesEncapped()) {
-            return PacketDetectionRule.builder()
+            PacketDetectionRule.Builder pdrBuilder = PacketDetectionRule.builder()
                     .withTeid(teid)
-                    .withTunnelDst(tunnelDst)
-                    .build();
+                    .withTunnelDst(tunnelDst);
+            if (this.hasQfi() && this.matchQfi()) {
+                pdrBuilder.withQfiMatch();
+                pdrBuilder.withQfi(qfi);
+            }
+            return pdrBuilder.build();
         } else {
             return PacketDetectionRule.builder()
                     .withUeAddr(ueAddr).build();
@@ -227,22 +244,39 @@ public final class PacketDetectionRule {
     }
 
     /**
-     * Get the scheduling priority that this PDR is assigned.
+     * Get the QoS Flow Identifier for this PDR.
      *
-     * @return scheduling priority
+     * @return QoS Flow Identifier
      */
-    public int schedulingPriority() {
-        return schedulingPriority;
+    public byte qfi() {
+        return qfi;
     }
 
     /**
-     * This method is used to differentiate between prioritized and non-prioritized
-     * flows.
+     * Returns whether QFi should be pushed to the packet.
      *
-     * @return true if scheduling priority is assigned.
+     * @return True if the QFI should be pushed to the packet, false otherwise
      */
-    public boolean hasSchedulingPriority() {
-        return schedulingPriority > 0;
+    public boolean pushQfi() {
+        return qfiPush;
+    }
+
+    /**
+     * Returns whether QFI should be matched on the packet or not.
+     *
+     * @return True if QFI should be matched on the packet, false otherwise
+     */
+    public boolean matchQfi() {
+        return qfiMatch;
+    }
+
+    /**
+     * Checks if the PDR has a QFI to match upon or to push on the packet.
+     *
+     * @return True if the PDR has a QFI, false otherwise
+     */
+    public boolean hasQfi() {
+        return qfi != null;
     }
 
     private enum Type {
@@ -276,6 +310,9 @@ public final class PacketDetectionRule {
         private Ip4Address ueAddr = null;
         private ImmutableByteSequence teid = null;
         private Ip4Address tunnelDst = null;
+        private Byte qfi = null;
+        private boolean qfiPush = false;
+        private boolean qfiMatch = false;
 
         public Builder() {
 
@@ -342,8 +379,36 @@ public final class PacketDetectionRule {
             return this;
         }
 
-        public Builder withSchedulingPriority(int schedulingPriority) {
-            this.schedulingPriority = schedulingPriority;
+        /**
+         * Set the QoS Flow Identifier for this PDR.
+         *
+         * @param qfi GTP Tunnel QFI
+         * @return This builder object
+         */
+        public Builder withQfi(byte qfi) {
+            this.qfi = qfi;
+            return this;
+        }
+
+        /**
+         * The QoS Flow Identifier should be pushed to the packet.
+         * This is valid for downstream packets and for 5G traffic only.
+         *
+         * @return This builder object
+         */
+        public Builder withQfiPush() {
+            this.qfiPush = true;
+            return this;
+        }
+
+        /**
+         * The QoS Flow Identifier should be matched to the packet.
+         * This is valid for upstream packets and for 5G traffic only.
+         *
+         * @return This builder object
+         */
+        public Builder withQfiMatch() {
+            this.qfiMatch = true;
             return this;
         }
 
@@ -393,6 +458,21 @@ public final class PacketDetectionRule {
             return this;
         }
 
+        /**
+         * Set the tunnel ID, destination IP and QFI of the GTP tunnel that this PDR matches on.
+         *
+         * @param teid      GTP tunnel ID
+         * @param tunnelDst GTP tunnel destination IP
+         * @param qfi       GTP QoS Flow Identifier
+         * @return This builder object
+         */
+        public Builder withTunnel(ImmutableByteSequence teid, Ip4Address tunnelDst, byte qfi) {
+            this.teid = teid;
+            this.tunnelDst = tunnelDst;
+            this.qfi = qfi;
+            return this;
+        }
+
         public PacketDetectionRule build() {
             // Some match keys are required.
             checkArgument(
@@ -401,9 +481,15 @@ public final class PacketDetectionRule {
                     "Either a UE address or a TEID and Tunnel destination must be provided, but not both.");
             // Action parameters are optional but must be all provided together if they are provided
             checkArgument(
-                    (sessionId != null && ctrId != null && localFarId != null && schedulingPriority != null) ||
-                            (sessionId == null && ctrId == null && localFarId == null && schedulingPriority == null),
+                    (sessionId != null && ctrId != null && localFarId != null) ||
+                            (sessionId == null && ctrId == null && localFarId == null),
                     "PDR action parameters must be provided together or not at all.");
+            checkArgument(!qfiPush || !qfiMatch,
+                          "Either match of push QFI can be true, not both.");
+            checkArgument(!qfiPush || qfi != null,
+                          "A QFI must be provided when pushing QFI to the packet.");
+            checkArgument(!qfiMatch || qfi != null,
+                          "A QFI must be provided when matching QFI on the packet.");
             Type type;
             if (teid != null) {
                 if (sessionId != null) {
@@ -418,8 +504,9 @@ public final class PacketDetectionRule {
                     type = Type.MATCH_UNENCAPPED_NO_ACTION;
                 }
             }
-            return new PacketDetectionRule(sessionId, ctrId, localFarId, schedulingPriority,
-                                           ueAddr, teid, tunnelDst, type);
+            return new PacketDetectionRule(sessionId, ctrId, localFarId, ueAddr,
+                                           qfi, teid, tunnelDst, type,
+                                           qfiPush, qfiMatch);
         }
     }
 }

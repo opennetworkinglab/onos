@@ -66,6 +66,7 @@ import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceFieldSelector;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.SELinuxOptions;
+import io.fabric8.kubernetes.api.model.SeccompProfile;
 import io.fabric8.kubernetes.api.model.SecretEnvSource;
 import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.fabric8.kubernetes.api.model.SecretVolumeSource;
@@ -196,6 +197,7 @@ public class DistributedK8sPodStore
             .register(NodeSelectorTerm.class)
             .register(NodeSelectorRequirement.class)
             .register(PreferredSchedulingTerm.class)
+            .register(SeccompProfile.class)
             .register(PodAffinity.class)
             .register(WeightedPodAffinityTerm.class)
             .register(PodAffinityTerm.class)

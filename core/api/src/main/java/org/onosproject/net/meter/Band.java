@@ -51,8 +51,27 @@ public interface Band {
          * Defines a meter band with no action, used to mark
          * packets internally in the pipeline, i.e. without
          * modifying the packet headers.
+         *
+         * @deprecated in onos-2.5, replace by MARK_YELLOW and MARK_RED
          */
+        @Deprecated
         NONE,
+
+        /**
+         * Defines a meter band for the configuration of the committed
+         * rate AND the committed burst size. Used in conjunction with MARK_RED
+         * to implement a srTCM or trTCM, see RFCs 2697 and 2698 respectively.
+         */
+        MARK_YELLOW,
+
+        /**
+         * Defines a meter band for the configuration of the peak rate
+         * AND the peak burst size OR the excess burst size. When used to
+         * configure a srTCM excess rate must be 0. Used in conjunction with
+         * MARK_YELLOW to implement a srTCM or trTCM, see RFCs 2697 and 2698
+         * respectively.
+         */
+        MARK_RED,
     }
 
     /**

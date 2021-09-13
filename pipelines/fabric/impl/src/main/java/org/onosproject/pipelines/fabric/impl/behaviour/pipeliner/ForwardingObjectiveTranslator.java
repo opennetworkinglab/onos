@@ -32,7 +32,6 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
-import org.onosproject.net.flow.criteria.MetadataCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.PiCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
@@ -59,6 +58,10 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.onosproject.net.group.DefaultGroupBucket.createCloneGroupBucket;
+import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.PAIR_PORT;
+import static org.onosproject.pipelines.fabric.impl.behaviour.FabricUtils.isSrMetadataSet;
+import static org.onosproject.pipelines.fabric.impl.behaviour.FabricUtils.isValidSrMetadata;
+import static org.onosproject.pipelines.fabric.impl.behaviour.FabricUtils.portType;
 import static org.onosproject.pipelines.fabric.impl.behaviour.FabricUtils.criterionNotNull;
 import static org.onosproject.pipelines.fabric.impl.behaviour.FabricUtils.outputPort;
 import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.PORT_TYPE_MASK;
@@ -119,6 +122,13 @@ class ForwardingObjectiveTranslator
     @Override
     public ObjectiveTranslation doTranslate(ForwardingObjective obj)
             throws FabricPipelinerException {
+
+        if (!isValidSrMetadata(obj)) {
+            throw new FabricPipelinerException(
+                    format("Unsupported metadata configuration: metadata=%s", obj.meta()),
+                    ObjectiveError.BADPARAMS);
+        }
+
         final ObjectiveTranslation.Builder resultBuilder =
                 ObjectiveTranslation.builder();
         switch (obj.flag()) {
@@ -299,11 +309,11 @@ class ForwardingObjectiveTranslator
         }
         TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder(obj.selector());
         // Meta are used to signal the port type which can be edge or infra
-        if (obj.meta() != null && obj.meta().getCriterion(Criterion.Type.METADATA) != null) {
-            long portType = ((MetadataCriterion) obj.meta().getCriterion(Criterion.Type.METADATA)).metadata();
+        Byte portType = portType(obj);
+        if (portType != null && !isSrMetadataSet(obj, PAIR_PORT)) {
             if (portType == PORT_TYPE_EDGE || portType == PORT_TYPE_INFRA) {
                 selectorBuilder.matchPi(PiCriterion.builder()
-                        .matchTernary(FabricConstants.HDR_PORT_TYPE, portType, PORT_TYPE_MASK)
+                        .matchTernary(FabricConstants.HDR_PORT_TYPE, (long) portType, PORT_TYPE_MASK)
                         .build());
             } else {
                 throw new FabricPipelinerException(format("Port type '%s' is not allowed for table '%s'",

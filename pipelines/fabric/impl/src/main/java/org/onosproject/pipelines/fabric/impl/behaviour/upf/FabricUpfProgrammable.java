@@ -70,11 +70,15 @@ import static org.onosproject.pipelines.fabric.FabricConstants.FABRIC_INGRESS_SP
 import static org.onosproject.pipelines.fabric.FabricConstants.FABRIC_INGRESS_SPGW_UPLINK_PDRS;
 import static org.onosproject.pipelines.fabric.FabricConstants.HDR_FAR_ID;
 import static org.onosproject.pipelines.fabric.FabricConstants.HDR_GTPU_IS_VALID;
+import static org.onosproject.pipelines.fabric.FabricConstants.HDR_HAS_QFI;
 import static org.onosproject.pipelines.fabric.FabricConstants.HDR_IPV4_DST_ADDR;
+import static org.onosproject.pipelines.fabric.FabricConstants.HDR_QFI;
 import static org.onosproject.pipelines.fabric.FabricConstants.HDR_TEID;
 import static org.onosproject.pipelines.fabric.FabricConstants.HDR_TUNNEL_IPV4_DST;
 import static org.onosproject.pipelines.fabric.FabricConstants.HDR_UE_ADDR;
-
+import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.DEFAULT_QFI;
+import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.FALSE;
+import static org.onosproject.pipelines.fabric.impl.behaviour.Constants.TRUE;
 
 /**
  * Implementation of a UPF programmable device behavior.
@@ -531,10 +535,17 @@ public class FabricUpfProgrammable extends AbstractP4RuntimeHandlerBehaviour
         final PiCriterion match;
         final PiTableId tableId;
         if (pdr.matchesEncapped()) {
-            match = PiCriterion.builder()
+            PiCriterion.Builder criterionBuilder = PiCriterion.builder()
                     .matchExact(HDR_TEID, pdr.teid().asArray())
-                    .matchExact(HDR_TUNNEL_IPV4_DST, pdr.tunnelDest().toInt())
-                    .build();
+                    .matchExact(HDR_TUNNEL_IPV4_DST, pdr.tunnelDest().toInt());
+            if (pdr.matchQfi()) {
+                criterionBuilder.matchExact(HDR_HAS_QFI, TRUE);
+                criterionBuilder.matchExact(HDR_QFI, pdr.qfi());
+            } else {
+                criterionBuilder.matchExact(HDR_HAS_QFI, FALSE);
+                criterionBuilder.matchExact(HDR_QFI, DEFAULT_QFI);
+            }
+            match = criterionBuilder.build();
             tableId = FABRIC_INGRESS_SPGW_UPLINK_PDRS;
         } else {
             match = PiCriterion.builder()

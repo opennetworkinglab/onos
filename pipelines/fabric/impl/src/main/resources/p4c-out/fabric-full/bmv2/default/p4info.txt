@@ -721,6 +721,92 @@ tables {
 }
 tables {
   preamble {
+    id: 34606298
+    name: "FabricIngress.slice_tc_classifier.classifier"
+    alias: "classifier"
+  }
+  match_fields {
+    id: 1
+    name: "ig_port"
+    bitwidth: 9
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 2
+    name: "ipv4_src"
+    bitwidth: 32
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 3
+    name: "ipv4_dst"
+    bitwidth: 32
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 4
+    name: "ip_proto"
+    bitwidth: 8
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 5
+    name: "l4_sport"
+    bitwidth: 16
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 6
+    name: "l4_dport"
+    bitwidth: 16
+    match_type: TERNARY
+  }
+  action_refs {
+    id: 23786376
+  }
+  action_refs {
+    id: 25983516
+  }
+  const_default_action_id: 23786376
+  direct_resource_ids: 334706097
+  size: 512
+}
+tables {
+  preamble {
+    id: 36435258
+    name: "FabricIngress.qos.queues"
+    alias: "queues"
+  }
+  match_fields {
+    id: 1
+    name: "slice_id"
+    bitwidth: 4
+    match_type: EXACT
+  }
+  match_fields {
+    id: 2
+    name: "tc"
+    bitwidth: 2
+    match_type: EXACT
+  }
+  match_fields {
+    id: 3
+    name: "color"
+    bitwidth: 2
+    match_type: TERNARY
+  }
+  action_refs {
+    id: 32116918
+  }
+  action_refs {
+    id: 28214351
+  }
+  const_default_action_id: 32116918
+  direct_resource_ids: 327743278
+  size: 128
+}
+tables {
+  preamble {
     id: 36113154
     name: "FabricIngress.spgw.interfaces"
     alias: "interfaces"
@@ -789,6 +875,18 @@ tables {
     id: 2
     name: "teid"
     bitwidth: 32
+    match_type: EXACT
+  }
+  match_fields {
+    id: 3
+    name: "has_qfi"
+    bitwidth: 1
+    match_type: EXACT
+  }
+  match_fields {
+    id: 4
+    name: "qfi"
+    bitwidth: 6
     match_type: EXACT
   }
   action_refs {
@@ -941,6 +1039,32 @@ tables {
   const_default_action_id: 30812542
   direct_resource_ids: 318892680
   size: 1024
+}
+tables {
+  preamble {
+    id: 49970092
+    name: "FabricEgress.dscp_rewriter.rewriter"
+    alias: "rewriter"
+  }
+  match_fields {
+    id: 1
+    name: "eg_port"
+    bitwidth: 9
+    match_type: EXACT
+  }
+  action_refs {
+    id: 27951287
+  }
+  action_refs {
+    id: 24120545
+  }
+  action_refs {
+    id: 28485346
+    annotations: "@defaultonly"
+    scope: DEFAULT_ONLY
+  }
+  const_default_action_id: 28485346
+  size: 512
 }
 actions {
   preamble {
@@ -1339,6 +1463,49 @@ actions {
 }
 actions {
   preamble {
+    id: 23786376
+    name: "FabricIngress.slice_tc_classifier.set_slice_id_tc"
+    alias: "set_slice_id_tc"
+  }
+  params {
+    id: 1
+    name: "slice_id"
+    bitwidth: 4
+  }
+  params {
+    id: 2
+    name: "tc"
+    bitwidth: 2
+  }
+}
+actions {
+  preamble {
+    id: 25983516
+    name: "FabricIngress.slice_tc_classifier.trust_dscp"
+    alias: "trust_dscp"
+  }
+}
+actions {
+  preamble {
+    id: 32116918
+    name: "FabricIngress.qos.set_queue"
+    alias: "set_queue"
+  }
+  params {
+    id: 1
+    name: "qid"
+    bitwidth: 5
+  }
+}
+actions {
+  preamble {
+    id: 28214351
+    name: "FabricIngress.qos.meter_drop"
+    alias: "meter_drop"
+  }
+}
+actions {
+  preamble {
     id: 18186268
     name: "FabricIngress.spgw.load_iface"
     alias: "load_iface"
@@ -1347,6 +1514,11 @@ actions {
     id: 1
     name: "src_iface"
     bitwidth: 8
+  }
+  params {
+    id: 2
+    name: "slice_id"
+    bitwidth: 4
   }
 }
 actions {
@@ -1377,6 +1549,11 @@ actions {
     name: "needs_gtpu_decap"
     bitwidth: 1
   }
+  params {
+    id: 4
+    name: "tc"
+    bitwidth: 2
+  }
 }
 actions {
   preamble {
@@ -1401,8 +1578,18 @@ actions {
   }
   params {
     id: 4
-    name: "qid"
-    bitwidth: 5
+    name: "needs_qfi_push"
+    bitwidth: 1
+  }
+  params {
+    id: 5
+    name: "qfi"
+    bitwidth: 6
+  }
+  params {
+    id: 6
+    name: "tc"
+    bitwidth: 2
   }
 }
 actions {
@@ -1600,6 +1787,20 @@ actions {
     id: 30812542
     name: "FabricEgress.egress_next.drop"
     alias: "egress_next.drop"
+  }
+}
+actions {
+  preamble {
+    id: 27951287
+    name: "FabricEgress.dscp_rewriter.rewrite"
+    alias: "rewrite"
+  }
+}
+actions {
+  preamble {
+    id: 24120545
+    name: "FabricEgress.dscp_rewriter.clear"
+    alias: "clear"
   }
 }
 action_profiles {
@@ -1868,6 +2069,28 @@ direct_counters {
 }
 direct_counters {
   preamble {
+    id: 334706097
+    name: "FabricIngress.slice_tc_classifier.classifier_stats"
+    alias: "classifier_stats"
+  }
+  spec {
+    unit: PACKETS
+  }
+  direct_table_id: 34606298
+}
+direct_counters {
+  preamble {
+    id: 327743278
+    name: "FabricIngress.qos.queues_stats"
+    alias: "queues_stats"
+  }
+  spec {
+    unit: PACKETS
+  }
+  direct_table_id: 36435258
+}
+direct_counters {
+  preamble {
     id: 322470063
     name: "FabricEgress.process_int_main.process_int_source.counter_int_source"
     alias: "counter_int_source"
@@ -1909,6 +2132,17 @@ meters {
     unit: BYTES
   }
   size: 8192
+}
+meters {
+  preamble {
+    id: 348573637
+    name: "FabricIngress.qos.slice_tc_meter"
+    alias: "slice_tc_meter"
+  }
+  spec {
+    unit: BYTES
+  }
+  size: 64
 }
 controller_packet_metadata {
   preamble {

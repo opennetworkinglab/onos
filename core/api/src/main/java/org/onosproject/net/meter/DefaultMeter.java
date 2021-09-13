@@ -23,6 +23,7 @@ import org.onosproject.net.Annotations;
 import org.onosproject.net.DeviceId;
 
 import java.util.Collection;
+import java.util.Optional;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
@@ -36,7 +37,7 @@ public final class DefaultMeter extends AbstractAnnotated implements Meter, Mete
 
 
     private final MeterCellId cellId;
-    private final ApplicationId appId;
+    private final Optional<ApplicationId> appId;
     private final Unit unit;
     private final boolean burst;
     private final Collection<Band> bands;
@@ -48,8 +49,9 @@ public final class DefaultMeter extends AbstractAnnotated implements Meter, Mete
     private long packets;
     private long bytes;
 
-    private DefaultMeter(DeviceId deviceId, MeterCellId cellId, ApplicationId appId,
-                         Unit unit, boolean burst, Collection<Band> bands,
+    private DefaultMeter(DeviceId deviceId, MeterCellId cellId,
+                         Optional<ApplicationId> appId, Unit unit,
+                         boolean burst, Collection<Band> bands,
                          Annotations... annotations) {
         super(annotations);
         this.deviceId = deviceId;
@@ -81,7 +83,8 @@ public final class DefaultMeter extends AbstractAnnotated implements Meter, Mete
 
     @Override
     public ApplicationId appId() {
-        return appId;
+        return appId.orElse(null);
+        // TODO: Deprecate this API because AppId becomes optional in Meter
     }
 
     @Override
@@ -158,7 +161,7 @@ public final class DefaultMeter extends AbstractAnnotated implements Meter, Mete
         return toStringHelper(this)
                 .add("device", deviceId)
                 .add("cellId", cellId)
-                .add("appId", appId.name())
+                .add("appId", appId.orElse(null))
                 .add("unit", unit)
                 .add("isBurst", burst)
                 .add("state", state)
@@ -190,7 +193,7 @@ public final class DefaultMeter extends AbstractAnnotated implements Meter, Mete
     public static final class Builder implements Meter.Builder {
 
         private MeterCellId cellId;
-        private ApplicationId appId;
+        private Optional<ApplicationId> appId = Optional.empty();
         private Unit unit = Unit.KB_PER_SEC;
         private boolean burst = false;
         private Collection<Band> bands;
@@ -217,7 +220,7 @@ public final class DefaultMeter extends AbstractAnnotated implements Meter, Mete
 
         @Override
         public Meter.Builder fromApp(ApplicationId appId) {
-            this.appId = appId;
+            this.appId = Optional.ofNullable(appId);
             return this;
         }
 
@@ -250,7 +253,6 @@ public final class DefaultMeter extends AbstractAnnotated implements Meter, Mete
             checkNotNull(deviceId, "Must specify a device");
             checkNotNull(bands, "Must have bands.");
             checkArgument(!bands.isEmpty(), "Must have at least one band.");
-            checkNotNull(appId, "Must have an application id");
             checkArgument(cellId != null, "Must specify a cell id.");
             return new DefaultMeter(deviceId, cellId, appId, unit, burst, bands,
                                     annotations);

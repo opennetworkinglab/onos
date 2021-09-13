@@ -33,8 +33,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class DefaultMeterRequest extends AbstractAnnotated implements MeterRequest {
 
-
-
     private final ApplicationId appId;
     private final Meter.Unit unit;
     private final boolean burst;
@@ -42,11 +40,14 @@ public final class DefaultMeterRequest extends AbstractAnnotated implements Mete
     private final DeviceId deviceId;
     private final Optional<MeterContext> context;
     private final Type op;
+    private final MeterScope scope;
+    private final Optional<Long> index;
 
     private DefaultMeterRequest(DeviceId deviceId, ApplicationId appId,
                                 Meter.Unit unit, boolean burst,
                                 Collection<Band> bands, MeterContext context,
-                                Type op, Annotations... annotations) {
+                                Type op, MeterScope scope, Optional<Long> index,
+                                Annotations... annotations) {
         super(annotations);
         this.deviceId = deviceId;
         this.appId = appId;
@@ -55,6 +56,8 @@ public final class DefaultMeterRequest extends AbstractAnnotated implements Mete
         this.bands = bands;
         this.context = Optional.ofNullable(context);
         this.op = op;
+        this.scope = scope;
+        this.index = index;
     }
 
     @Override
@@ -88,7 +91,15 @@ public final class DefaultMeterRequest extends AbstractAnnotated implements Mete
         return context;
     }
 
+    @Override
+    public MeterScope scope() {
+        return scope;
+    }
 
+    @Override
+    public Optional<Long> index() {
+        return index;
+    }
 
     public static Builder builder() {
         return new Builder();
@@ -102,11 +113,15 @@ public final class DefaultMeterRequest extends AbstractAnnotated implements Mete
                 .add("unit", unit)
                 .add("isBurst", burst)
                 .add("bands", bands)
+                .add("scope", scope)
+                .add("desired index", index.orElse(null))
                 .add("annotations", annotations())
                 .toString();
     }
 
     public static final class Builder implements MeterRequest.Builder {
+        // Relevant only for delete
+        private static final Band DUMMY_BAND = new DefaultBand(Band.Type.DROP, 0L, 0L, (short) 0);
 
         private ApplicationId appId;
         private Meter.Unit unit = Meter.Unit.KB_PER_SEC;
@@ -114,9 +129,9 @@ public final class DefaultMeterRequest extends AbstractAnnotated implements Mete
         private Collection<Band> bands;
         private DeviceId deviceId;
         private MeterContext context;
-        private Optional<MeterId> desiredId = Optional.empty();
         private Annotations annotations;
-
+        private MeterScope scope = MeterScope.globalScope();
+        private Optional<Long> desiredIndex = Optional.empty();
 
         @Override
         public MeterRequest.Builder forDevice(DeviceId deviceId) {
@@ -131,19 +146,19 @@ public final class DefaultMeterRequest extends AbstractAnnotated implements Mete
         }
 
         @Override
-        public MeterRequest.Builder  withUnit(Meter.Unit unit) {
+        public MeterRequest.Builder withUnit(Meter.Unit unit) {
             this.unit = unit;
             return this;
         }
 
         @Override
-        public MeterRequest.Builder  burst() {
+        public MeterRequest.Builder burst() {
             this.burst = true;
             return this;
         }
 
         @Override
-        public MeterRequest.Builder  withBands(Collection<Band> bands) {
+        public MeterRequest.Builder withBands(Collection<Band> bands) {
             this.bands = ImmutableSet.copyOf(bands);
             return this;
         }
@@ -161,17 +176,34 @@ public final class DefaultMeterRequest extends AbstractAnnotated implements Mete
         }
 
         @Override
+        public MeterRequest.Builder withScope(MeterScope scope) {
+            this.scope = scope;
+            return this;
+        }
+
+        @Override
+        public MeterRequest.Builder withIndex(Long index) {
+            this.desiredIndex = Optional.ofNullable(index);
+            return this;
+        }
+
+        @Override
         public MeterRequest add() {
             validate();
-            return new DefaultMeterRequest(deviceId, appId, unit, burst, bands,
-                                           context, Type.ADD, annotations);
+            return new DefaultMeterRequest(deviceId, appId, unit, burst, bands, context,
+                                           Type.ADD, scope, desiredIndex, annotations);
         }
 
         @Override
         public MeterRequest remove() {
+            // Allow to create the removal request without specifying bands
+            if (bands == null || bands.isEmpty()) {
+                bands = ImmutableSet.of(DUMMY_BAND);
+            }
+
             validate();
-            return new DefaultMeterRequest(deviceId, appId, unit, burst, bands,
-                                           context, Type.REMOVE, annotations);
+            return new DefaultMeterRequest(deviceId, appId, unit, burst, bands, context,
+                                           Type.REMOVE, scope, desiredIndex, annotations);
         }
 
         private void validate() {
@@ -179,6 +211,9 @@ public final class DefaultMeterRequest extends AbstractAnnotated implements Mete
             checkNotNull(bands, "Must have bands.");
             checkArgument(!bands.isEmpty(), "Must have at least one band.");
             checkNotNull(appId, "Must have an application id");
+            if (desiredIndex.isPresent()) {
+                checkArgument(desiredIndex.get() >= 0, "Desired index cannot be negative");
+            }
         }
 
 

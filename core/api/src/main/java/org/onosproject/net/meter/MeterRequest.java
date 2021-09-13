@@ -77,6 +77,20 @@ public interface MeterRequest extends Annotated {
     Optional<MeterContext> context();
 
     /**
+     * Returns the scope of this meter request.
+     *
+     * @return a meter scope
+     */
+    MeterScope scope();
+
+    /**
+     * Returns the desired meter index of this meter request.
+     *
+     * @return an optional long index
+     */
+    Optional<Long> index();
+
+    /**
      * A meter builder.
      */
     interface Builder {
@@ -137,6 +151,22 @@ public interface MeterRequest extends Annotated {
          * @return builder object
          */
         Builder withAnnotations(Annotations annotations);
+
+        /**
+         * Sets the scope.
+         *
+         * @param scope a meter scope
+         * @return this
+         */
+        Builder withScope(MeterScope scope);
+
+        /**
+         * Sets the index.
+         *
+         * @param index an optional index
+         * @return this
+         */
+        Builder withIndex(Long index);
 
         /**
          * Requests the addition of a meter.

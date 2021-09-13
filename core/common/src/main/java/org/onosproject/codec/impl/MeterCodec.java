@@ -21,17 +21,14 @@ import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.net.meter.Band;
 import org.onosproject.net.meter.Meter;
-import org.slf4j.Logger;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
 
 
 /**
  * Meter JSON codec.
  */
 public final class MeterCodec extends JsonCodec<Meter> {
-    private final Logger log = getLogger(getClass());
 
     // JSON field names
     private static final String ID = "id";
@@ -51,7 +48,7 @@ public final class MeterCodec extends JsonCodec<Meter> {
     public ObjectNode encode(Meter meter, CodecContext context) {
         checkNotNull(meter, "Meter cannot be null");
         ObjectNode result = context.mapper().createObjectNode()
-                .put(ID, meter.id().toString())
+                .put(ID, meter.meterCellId().toString())
                 .put(LIFE, meter.life())
                 .put(PACKETS, meter.packetsSeen())
                 .put(BYTES, meter.bytesSeen())
