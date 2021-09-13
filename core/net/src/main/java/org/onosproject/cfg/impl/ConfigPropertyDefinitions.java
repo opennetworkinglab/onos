@@ -75,6 +75,11 @@ public final class ConfigPropertyDefinitions {
             while ((line = br.readLine()) != null) {
                 if (!line.isEmpty() && !line.startsWith(COMMENT)) {
                     String[] f = line.split(SEP, 4);
+                    if (f.length < 4) {
+                        log.warn("Cannot parse property from line: '{}'. " +
+                                "This property will be ignored", line);
+                        continue;
+                    }
                     builder.add(defineProperty(f[0], Type.valueOf(f[1]), f[2], f[3]));
                 }
             }
