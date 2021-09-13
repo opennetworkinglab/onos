@@ -314,9 +314,13 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
                     // The scope value will be PiMeterId
                     .withScope(MeterScope.of(piMeterModel.id().id()))
                     .withMaxBands(PI_METER_MAX_BAND)
-                    .withMaxColors(PI_METER_MAX_COLOR)
-                    .withStartIndex(PI_METER_START_INDEX)
-                    .withEndIndex(piMeterModel.size() - 1);
+                    .withMaxColors(PI_METER_MAX_COLOR);
+
+            // We extract the number of supported meters.
+            if (piMeterModel.size() > 0) {
+                builder.withStartIndex(PI_METER_START_INDEX)
+                       .withEndIndex(piMeterModel.size() - 1);
+            }
 
             // p4rt meters support MARK_YELLOW (committed config) and
             // MARK_RED (peak config) band types.

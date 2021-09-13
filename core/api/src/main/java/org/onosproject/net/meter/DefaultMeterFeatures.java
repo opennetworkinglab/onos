@@ -66,8 +66,11 @@ public final class DefaultMeterFeatures implements MeterFeatures {
 
     @Override
     public long maxMeter() {
-        // For OpenFlow meter, return end index as maxMeter
-        return scope.isGlobal() ? endIndex + 1 : endIndex - startIndex + 1;
+        long maxMeter = 0;
+        if (startIndex != -1 && endIndex != -1) {
+            maxMeter = endIndex - startIndex + 1;
+        }
+        return maxMeter;
     }
 
     @Override
@@ -243,7 +246,7 @@ public final class DefaultMeterFeatures implements MeterFeatures {
             // 0, for the rest (A P4RT meter)
             if (mmeter != 0L && starti == -1L && endi == -1L) {
                 starti = mscope.isGlobal() ? 1 : 0;
-                endi = mmeter - 1;
+                endi = mscope.isGlobal() ? mmeter : mmeter - 1;
             }
             // If one of the index is unset/unvalid value, treated as no meter features
             if (starti <= -1 || endi <= -1) {
