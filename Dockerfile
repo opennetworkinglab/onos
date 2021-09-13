@@ -67,9 +67,14 @@ LABEL org.label-schema.name="ONOS" \
 RUN apt-get update && apt-get install -y curl && \
 	rm -rf /var/lib/apt/lists/*
 
-# Install ONOS in /root/onos
-COPY --from=builder /output/ /root/onos/
-WORKDIR /root/onos
+# Add system user with no-login shell
+RUN groupadd -g 1000 onos && useradd -r -s /bin/false -u 1000 -g onos onos
+
+ENV APP_DIR /app/onos
+WORKDIR ${APP_DIR}
+RUN chown -R 1000:1000 ${APP_DIR}
+
+COPY --from=builder /output/ ${APP_DIR}
 
 # Set JAVA_HOME (by default not exported by zulu images)
 ARG JAVA_PATH
@@ -82,6 +87,10 @@ ENV JAVA_HOME ${JAVA_PATH}
 # 8101 - ONOS CLI
 # 9876 - ONOS intra-cluster communication
 EXPOSE 6653 6640 8181 8101 9876
+
+RUN chown -R 1000:1000 ${APP_DIR}
+# Non-root user
+USER onos
 
 # Run ONOS
 ENTRYPOINT ["./bin/onos-service"]
