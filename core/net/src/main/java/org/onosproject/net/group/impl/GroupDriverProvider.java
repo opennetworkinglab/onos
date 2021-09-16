@@ -130,8 +130,12 @@ public class GroupDriverProvider extends AbstractProvider implements GroupProvid
     }
 
     private void pollDeviceGroups(DeviceId deviceId) {
-        Collection<Group> groups = getGroupProgrammable(deviceId).getGroups();
-        groupProviderService.pushGroupMetrics(deviceId, groups);
+        try {
+            Collection<Group> groups = getGroupProgrammable(deviceId).getGroups();
+            groupProviderService.pushGroupMetrics(deviceId, groups);
+        } catch (Exception e) {
+            log.warn("Exception thrown while polling groups from {}", deviceId, e);
+        }
     }
 
     private GroupProgrammable getGroupProgrammable(DeviceId deviceId) {
