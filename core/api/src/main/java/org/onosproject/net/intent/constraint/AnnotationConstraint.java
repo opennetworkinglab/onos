@@ -76,9 +76,11 @@ public class AnnotationConstraint extends BooleanConstraint {
     }
 
     private boolean isValid(Link link) {
-        double value = getAnnotatedValue(link, key);
-
-        return value <= threshold;
+        if (link.annotations().value(key) != null) {
+            return getAnnotatedValue(link, key) <= threshold;
+        } else {
+            return false;
+        }
     }
 
     // doesn't use LinkResourceService

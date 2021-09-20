@@ -30,6 +30,7 @@ import static org.easymock.EasyMock.createMock;
 import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThan;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.onosproject.net.DefaultLinkTest.cp;
 import static org.onosproject.net.DeviceId.deviceId;
@@ -47,6 +48,7 @@ public class AnnotationConstraintTest {
     private static final PortNumber PID1 = portNumber(1);
     private static final PortNumber PID2 = portNumber(2);
     private static final String KEY = "distance";
+    private static final String MISSING_KEY = "loss";
     private static final double VALUE = 100;
 
     private AnnotationConstraint sut;
@@ -98,5 +100,17 @@ public class AnnotationConstraintTest {
                 .addEqualityGroup(new AnnotationConstraint(KEY, 120))
                 .addEqualityGroup(new AnnotationConstraint("latency", 100))
                 .testEquals();
+    }
+
+    /**
+     * Tests the annotated constraint is invalid and has negative cost if the key is not annotated on the link.
+     */
+    @Test
+    public void testNotAnnotated() {
+        sut = new AnnotationConstraint(MISSING_KEY, 80);
+
+        assertThat(link.annotations().value(MISSING_KEY), nullValue());
+        assertThat(sut.isValid(link, resourceContext), is(false));
+        assertThat(sut.cost(link, resourceContext), is(lessThan(0.0)));
     }
 }
