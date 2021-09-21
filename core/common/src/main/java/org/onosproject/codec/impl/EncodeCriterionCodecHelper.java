@@ -95,6 +95,7 @@ public final class EncodeCriterionCodecHelper {
         formatMap.put(Criterion.Type.ETH_DST, new FormatEth());
         formatMap.put(Criterion.Type.ETH_DST_MASKED, new FormatEthMasked());
         formatMap.put(Criterion.Type.ETH_SRC, new FormatEth());
+        formatMap.put(Criterion.Type.ETH_SRC_MASKED, new FormatEthMasked());
         formatMap.put(Criterion.Type.ETH_TYPE, new FormatEthType());
         formatMap.put(Criterion.Type.VLAN_VID, new FormatVlanVid());
         formatMap.put(Criterion.Type.VLAN_PCP, new FormatVlanPcp());
@@ -151,14 +152,6 @@ public final class EncodeCriterionCodecHelper {
         formatMap.put(Criterion.Type.TCP_FLAGS, new FormatUnknown());
         formatMap.put(Criterion.Type.ACTSET_OUTPUT, new FormatUnknown());
         formatMap.put(Criterion.Type.PACKET_TYPE, new FormatUnknown());
-        formatMap.put(Criterion.Type.ETH_SRC_MASKED, new FormatUnknown());
-        formatMap.put(Criterion.Type.TCP_SRC_MASKED, new FormatUnknown());
-        formatMap.put(Criterion.Type.TCP_DST_MASKED, new FormatUnknown());
-        formatMap.put(Criterion.Type.UDP_SRC_MASKED, new FormatUnknown());
-        formatMap.put(Criterion.Type.UDP_DST_MASKED, new FormatUnknown());
-        formatMap.put(Criterion.Type.SCTP_SRC_MASKED, new FormatUnknown());
-        formatMap.put(Criterion.Type.SCTP_DST_MASKED, new FormatUnknown());
-
     }
 
     private interface CriterionTypeFormatter {

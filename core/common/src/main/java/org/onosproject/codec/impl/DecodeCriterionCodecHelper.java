@@ -82,6 +82,7 @@ public final class DecodeCriterionCodecHelper {
         decoderMap.put(Criterion.Type.ETH_DST.name(), new EthDstDecoder());
         decoderMap.put(Criterion.Type.ETH_DST_MASKED.name(), new EthDstMaskedDecoder());
         decoderMap.put(Criterion.Type.ETH_SRC.name(), new EthSrcDecoder());
+        decoderMap.put(Criterion.Type.ETH_SRC_MASKED.name(), new EthSrcMaskedDecoder());
         decoderMap.put(Criterion.Type.ETH_TYPE.name(), new EthTypeDecoder());
         decoderMap.put(Criterion.Type.VLAN_VID.name(), new VlanVidDecoder());
         decoderMap.put(Criterion.Type.VLAN_PCP.name(), new VlanPcpDecoder());
@@ -155,9 +156,9 @@ public final class DecodeCriterionCodecHelper {
         @Override
         public Criterion decodeCriterion(ObjectNode json) {
             MacAddress mac = MacAddress.valueOf(nullIsIllegal(json.get(CriterionCodec.MAC),
-                                                              CriterionCodec.MAC + MISSING_MEMBER_MESSAGE).asText());
+                    CriterionCodec.MAC + MISSING_MEMBER_MESSAGE).asText());
             MacAddress macMask = MacAddress.valueOf(nullIsIllegal(json.get(CriterionCodec.MAC_MASK),
-                                                              CriterionCodec.MAC + MISSING_MEMBER_MESSAGE).asText());
+                    CriterionCodec.MAC_MASK + MISSING_MEMBER_MESSAGE).asText());
             return Criteria.matchEthDstMasked(mac, macMask);
         }
     }
@@ -169,6 +170,17 @@ public final class DecodeCriterionCodecHelper {
                     CriterionCodec.MAC + MISSING_MEMBER_MESSAGE).asText());
 
             return Criteria.matchEthSrc(mac);
+        }
+    }
+
+    private class EthSrcMaskedDecoder implements CriterionDecoder {
+        @Override
+        public Criterion decodeCriterion(ObjectNode json) {
+            MacAddress mac = MacAddress.valueOf(nullIsIllegal(json.get(CriterionCodec.MAC),
+                    CriterionCodec.MAC + MISSING_MEMBER_MESSAGE).asText());
+            MacAddress macMask = MacAddress.valueOf(nullIsIllegal(json.get(CriterionCodec.MAC_MASK),
+                    CriterionCodec.MAC_MASK + MISSING_MEMBER_MESSAGE).asText());
+            return Criteria.matchEthSrcMasked(mac, macMask);
         }
     }
 
