@@ -370,20 +370,14 @@ public class LinkManager
             Link link = getLink(src, dst);
             LinkDescription desc;
 
-            if (link == null) {
-                // TODO Revisit this behaviour.
-                // config alone probably should not be adding a link,
-                // netcfg provider should be the one.
-                desc = BasicLinkOperator.descriptionOf(src, dst, cfg);
-            } else {
+            if (link != null) {
                 desc = BasicLinkOperator.combine(cfg,
                         BasicLinkOperator.descriptionOf(src, dst, link));
+                ProviderId pid = Optional.ofNullable(link)
+                        .map(Link::providerId)
+                        .orElse(ProviderId.NONE);
+                store.createOrUpdateLink(pid, desc);
             }
-
-            ProviderId pid = Optional.ofNullable(link)
-                    .map(Link::providerId)
-                    .orElse(ProviderId.NONE);
-            store.createOrUpdateLink(pid, desc);
         }
     }
 }
