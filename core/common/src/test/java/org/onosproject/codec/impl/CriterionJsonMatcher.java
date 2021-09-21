@@ -138,7 +138,7 @@ public final class CriterionJsonMatcher extends
             description.appendText("mac was " + jsonMac);
             return false;
         }
-        if (criterion.type() == Criterion.Type.ETH_DST_MASKED) {
+        if (criterion.type() == Criterion.Type.ETH_SRC_MASKED || criterion.type() == Criterion.Type.ETH_DST_MASKED) {
             final String macMask = criterion.mask().toString();
             final String jsonMacMask = jsonCriterion.get("macMask").textValue();
             if (!macMask.equals(jsonMacMask)) {
@@ -278,6 +278,15 @@ public final class CriterionJsonMatcher extends
                     + Integer.toString(jsonTcpPort));
             return false;
         }
+        if (criterion.type() == Criterion.Type.TCP_SRC_MASKED || criterion.type() == Criterion.Type.TCP_DST_MASKED) {
+            final int tcpMask = criterion.mask().toInt();
+            final int jsonTcpMask = jsonCriterion.get("tcpMask").intValue();
+            if (tcpMask != jsonTcpMask) {
+                description.appendText("tcp mask was "
+                        + Integer.toString(jsonTcpMask));
+                return false;
+            }
+        }
         return true;
     }
 
@@ -295,6 +304,16 @@ public final class CriterionJsonMatcher extends
                     + Integer.toString(jsonUdpPort));
             return false;
         }
+
+        if (criterion.type() == Criterion.Type.UDP_SRC_MASKED || criterion.type() == Criterion.Type.UDP_DST_MASKED) {
+            final int udpMask = criterion.mask().toInt();
+            final int jsonUdpMask = jsonCriterion.get("udpMask").intValue();
+            if (udpMask != jsonUdpMask) {
+                description.appendText("udp mask was "
+                        + Integer.toString(jsonUdpMask));
+                return false;
+            }
+        }
         return true;
     }
 
@@ -311,6 +330,15 @@ public final class CriterionJsonMatcher extends
             description.appendText("sctp port was "
                     + Integer.toString(jsonSctpPort));
             return false;
+        }
+        if (criterion.type() == Criterion.Type.SCTP_SRC_MASKED || criterion.type() == Criterion.Type.SCTP_DST_MASKED) {
+            final int sctpMask = criterion.mask().toInt();
+            final int jsonSctpMask = jsonCriterion.get("sctpMask").intValue();
+            if (sctpMask != jsonSctpMask) {
+                description.appendText("sctp mask was "
+                        + Integer.toString(jsonSctpMask));
+                return false;
+            }
         }
         return true;
     }
@@ -676,6 +704,7 @@ public final class CriterionJsonMatcher extends
             case ETH_DST:
             case ETH_DST_MASKED:
             case ETH_SRC:
+            case ETH_SRC_MASKED:
                 return matchCriterion((EthCriterion) criterion);
 
             case ETH_TYPE:
@@ -703,15 +732,21 @@ public final class CriterionJsonMatcher extends
                 return matchCriterion((IPCriterion) criterion);
 
             case TCP_SRC:
+            case TCP_SRC_MASKED:
             case TCP_DST:
+            case TCP_DST_MASKED:
                 return matchCriterion((TcpPortCriterion) criterion);
 
             case UDP_SRC:
+            case UDP_SRC_MASKED:
             case UDP_DST:
+            case UDP_DST_MASKED:
                 return matchCriterion((UdpPortCriterion) criterion);
 
             case SCTP_SRC:
+            case SCTP_SRC_MASKED:
             case SCTP_DST:
+            case SCTP_DST_MASKED:
                 return matchCriterion((SctpPortCriterion) criterion);
 
             case ICMPV4_TYPE:
