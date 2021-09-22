@@ -64,6 +64,14 @@ public interface FlowRuleService
     }
 
     /**
+     * Returns the stored flow.
+     *
+     * @param rule the rule to look for
+     * @return a flow rule
+     */
+    FlowEntry getFlowEntry(FlowRule rule);
+
+    /**
      * Returns the collection of flow entries applied on the specified device.
      * This will include flow rules which may not yet have been applied to
      * the device.
