@@ -29,6 +29,11 @@ public class FlowRuleServiceAdapter implements FlowRuleService {
     }
 
     @Override
+    public FlowEntry getFlowEntry(FlowRule rule) {
+        return null;
+    }
+
+    @Override
     public Iterable<FlowEntry> getFlowEntries(DeviceId deviceId) {
         return null;
     }

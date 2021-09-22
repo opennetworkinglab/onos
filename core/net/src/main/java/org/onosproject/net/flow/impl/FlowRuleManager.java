@@ -295,6 +295,13 @@ public class FlowRuleManager
     }
 
     @Override
+    public FlowEntry getFlowEntry(FlowRule rule) {
+        checkPermission(FLOWRULE_READ);
+        checkNotNull(rule, FLOW_RULE_NULL);
+        return store.getFlowEntry(rule);
+    }
+
+    @Override
     public Iterable<FlowEntry> getFlowEntries(DeviceId deviceId) {
         checkPermission(FLOWRULE_READ);
         checkNotNull(deviceId, DEVICE_ID_NULL);

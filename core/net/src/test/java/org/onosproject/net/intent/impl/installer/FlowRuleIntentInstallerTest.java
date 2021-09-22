@@ -26,10 +26,13 @@ import org.junit.Test;
 import org.onlab.packet.VlanId;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.NetworkResource;
+import org.onosproject.net.flow.DefaultFlowEntry;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleOperation;
 import org.onosproject.net.flow.FlowRuleOperations;
@@ -141,6 +144,8 @@ public class FlowRuleIntentInstallerTest extends AbstractIntentInstallerTest {
         IntentInstallationContext context = new IntentInstallationContext(toUninstall, toInstall);
         operationContext = new IntentOperationContext(intentsToUninstall, intentsToInstall, context);
 
+        flowRuleService.load(operationContext.intentsToUninstall());
+
         installer.apply(operationContext);
 
         IntentOperationContext successContext = intentInstallCoordinator.successContext;
@@ -153,6 +158,36 @@ public class FlowRuleIntentInstallerTest extends AbstractIntentInstallerTest {
                 .collect(Collectors.toSet());
 
         assertEquals(expectedFlowRules, flowRuleService.flowRulesRemove);
+    }
+
+    /**
+     * Uninstalls Intents only, no Intents to be install.  However, the flow rules do not exist
+     * in the FlowRuleService.
+     */
+    @Test
+    public void testUninstallOnlyMissing() {
+        List<Intent> intentsToInstall = Lists.newArrayList();
+        List<Intent> intentsToUninstall = createFlowRuleIntents();
+
+        IntentData toInstall = null;
+        IntentData toUninstall = new IntentData(createP2PIntent(),
+                IntentState.WITHDRAWING,
+                new WallClockTimestamp());
+        toUninstall = IntentData.compiled(toUninstall, intentsToUninstall);
+
+
+        IntentOperationContext<FlowRuleIntent> operationContext;
+        IntentInstallationContext context = new IntentInstallationContext(toUninstall, toInstall);
+        operationContext = new IntentOperationContext(intentsToUninstall, intentsToInstall, context);
+
+        installer.apply(operationContext);
+
+        IntentOperationContext successContext = intentInstallCoordinator.successContext;
+        assertEquals(successContext, operationContext);
+
+        assertEquals(0, flowRuleService.flowRulesRemove.size());
+        assertEquals(0, flowRuleService.flowRulesAdd.size());
+        assertEquals(0, flowRuleService.flowRulesModify.size());
     }
 
     /**
@@ -176,6 +211,8 @@ public class FlowRuleIntentInstallerTest extends AbstractIntentInstallerTest {
         IntentInstallationContext context = new IntentInstallationContext(toUninstall, toInstall);
         operationContext = new IntentOperationContext(intentsToUninstall, intentsToInstall, context);
 
+        flowRuleService.load(operationContext.intentsToUninstall());
+
         installer.apply(operationContext);
 
         IntentOperationContext successContext = intentInstallCoordinator.successContext;
@@ -186,6 +223,46 @@ public class FlowRuleIntentInstallerTest extends AbstractIntentInstallerTest {
                 .map(FlowRuleIntent::flowRules)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toSet());
+
+        assertEquals(expectedFlowRules, flowRuleService.flowRulesRemove);
+
+        expectedFlowRules = intentsToInstall.stream()
+                .map(intent -> (FlowRuleIntent) intent)
+                .map(FlowRuleIntent::flowRules)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
+
+        assertEquals(expectedFlowRules, flowRuleService.flowRulesAdd);
+    }
+
+    /**
+     * Do both install and uninstall Intents with different flow rules.  However, the flow rules do not exist
+     * in the FlowRuleService.
+     */
+    @Test
+    public void testUninstallAndInstallMissing() {
+        List<Intent> intentsToInstall = createAnotherFlowRuleIntents();
+        List<Intent> intentsToUninstall = createFlowRuleIntents();
+
+        IntentData toInstall = new IntentData(createP2PIntent(),
+                IntentState.INSTALLING,
+                new WallClockTimestamp());
+        toInstall = IntentData.compiled(toInstall, intentsToInstall);
+        IntentData toUninstall = new IntentData(createP2PIntent(),
+                IntentState.INSTALLED,
+                new WallClockTimestamp());
+        toUninstall = IntentData.compiled(toUninstall, intentsToUninstall);
+
+        IntentOperationContext<FlowRuleIntent> operationContext;
+        IntentInstallationContext context = new IntentInstallationContext(toUninstall, toInstall);
+        operationContext = new IntentOperationContext(intentsToUninstall, intentsToInstall, context);
+
+        installer.apply(operationContext);
+
+        IntentOperationContext successContext = intentInstallCoordinator.successContext;
+        assertEquals(successContext, operationContext);
+
+        Set<FlowRule> expectedFlowRules = Sets.newHashSet();
 
         assertEquals(expectedFlowRules, flowRuleService.flowRulesRemove);
 
@@ -219,6 +296,8 @@ public class FlowRuleIntentInstallerTest extends AbstractIntentInstallerTest {
         IntentInstallationContext context = new IntentInstallationContext(toUninstall, toInstall);
         operationContext = new IntentOperationContext(intentsToUninstall, intentsToInstall, context);
 
+        flowRuleService.load(operationContext.intentsToUninstall());
+
         installer.apply(operationContext);
 
         IntentOperationContext successContext = intentInstallCoordinator.successContext;
@@ -226,6 +305,38 @@ public class FlowRuleIntentInstallerTest extends AbstractIntentInstallerTest {
 
         assertEquals(0, flowRuleService.flowRulesRemove.size());
         assertEquals(0, flowRuleService.flowRulesAdd.size());
+        assertEquals(0, flowRuleService.flowRulesModify.size());
+    }
+
+    /**
+     * Do both install and uninstall Intents with same flow rules.  However, the flow rules do not exist
+     * in the FlowRuleService.
+     */
+    @Test
+    public void testUninstallAndInstallUnchangedMissing() {
+        List<Intent> intentsToInstall = createFlowRuleIntents();
+        List<Intent> intentsToUninstall = createFlowRuleIntents();
+
+        IntentData toInstall = new IntentData(createP2PIntent(),
+                IntentState.INSTALLING,
+                new WallClockTimestamp());
+        toInstall = IntentData.compiled(toInstall, intentsToInstall);
+        IntentData toUninstall = new IntentData(createP2PIntent(),
+                IntentState.INSTALLED,
+                new WallClockTimestamp());
+        toUninstall = IntentData.compiled(toUninstall, intentsToUninstall);
+
+        IntentOperationContext<FlowRuleIntent> operationContext;
+        IntentInstallationContext context = new IntentInstallationContext(toUninstall, toInstall);
+        operationContext = new IntentOperationContext(intentsToUninstall, intentsToInstall, context);
+
+        installer.apply(operationContext);
+
+        IntentOperationContext successContext = intentInstallCoordinator.successContext;
+        assertEquals(successContext, operationContext);
+
+        assertEquals(0, flowRuleService.flowRulesRemove.size());
+        assertEquals(1, flowRuleService.flowRulesAdd.size());
         assertEquals(0, flowRuleService.flowRulesModify.size());
     }
 
@@ -250,6 +361,8 @@ public class FlowRuleIntentInstallerTest extends AbstractIntentInstallerTest {
         IntentInstallationContext context = new IntentInstallationContext(toUninstall, toInstall);
         operationContext = new IntentOperationContext(intentsToUninstall, intentsToInstall, context);
 
+        flowRuleService.load(operationContext.intentsToUninstall());
+
         installer.apply(operationContext);
 
         IntentOperationContext successContext = intentInstallCoordinator.successContext;
@@ -257,6 +370,38 @@ public class FlowRuleIntentInstallerTest extends AbstractIntentInstallerTest {
 
         assertEquals(0, flowRuleService.flowRulesRemove.size());
         assertEquals(0, flowRuleService.flowRulesAdd.size());
+        assertEquals(0, flowRuleService.flowRulesModify.size());
+    }
+
+    /**
+     * Do both install and uninstall Intents with same flow rule Intent. However, the flow rules do not exist
+     * in the FlowRuleService.
+     */
+    @Test
+    public void testUninstallAndInstallSameMissing() {
+        List<Intent> intentsToInstall = createFlowRuleIntents();
+        List<Intent> intentsToUninstall = intentsToInstall;
+
+        IntentData toInstall = new IntentData(createP2PIntent(),
+                IntentState.INSTALLING,
+                new WallClockTimestamp());
+        toInstall = IntentData.compiled(toInstall, intentsToInstall);
+        IntentData toUninstall = new IntentData(createP2PIntent(),
+                IntentState.INSTALLED,
+                new WallClockTimestamp());
+        toUninstall = IntentData.compiled(toUninstall, intentsToUninstall);
+
+        IntentOperationContext<FlowRuleIntent> operationContext;
+        IntentInstallationContext context = new IntentInstallationContext(toUninstall, toInstall);
+        operationContext = new IntentOperationContext(intentsToUninstall, intentsToInstall, context);
+
+        installer.apply(operationContext);
+
+        IntentOperationContext successContext = intentInstallCoordinator.successContext;
+        assertEquals(successContext, operationContext);
+
+        assertEquals(0, flowRuleService.flowRulesRemove.size());
+        assertEquals(1, flowRuleService.flowRulesAdd.size());
         assertEquals(0, flowRuleService.flowRulesModify.size());
     }
 
@@ -327,6 +472,8 @@ public class FlowRuleIntentInstallerTest extends AbstractIntentInstallerTest {
         IntentInstallationContext context = new IntentInstallationContext(toUninstall, toInstall);
         operationContext = new IntentOperationContext(intentsToUninstall, intentsToInstall, context);
 
+        flowRuleService.load(operationContext.intentsToUninstall());
+
         installer.apply(operationContext);
 
         IntentOperationContext successContext = intentInstallCoordinator.successContext;
@@ -339,6 +486,42 @@ public class FlowRuleIntentInstallerTest extends AbstractIntentInstallerTest {
         FlowRuleIntent installedIntent = (FlowRuleIntent) intentsToInstall.get(0);
         assertEquals(flowRuleService.flowRulesModify.size(), installedIntent.flowRules().size());
         assertTrue(flowRuleService.flowRulesModify.containsAll(installedIntent.flowRules()));
+    }
+
+    /**
+     * Test intents with same match rules, should do modify instead of add.  However, the flow rules do not exist
+     * in the FlowRuleService.
+     */
+    @Test
+    public void testRuleModifyMissing() {
+        List<Intent> intentsToInstall = createFlowRuleIntents();
+        List<Intent> intentsToUninstall = createFlowRuleIntentsWithSameMatch();
+
+        IntentData toInstall = new IntentData(createP2PIntent(),
+                IntentState.INSTALLING,
+                new WallClockTimestamp());
+        toInstall = IntentData.compiled(toInstall, intentsToInstall);
+        IntentData toUninstall = new IntentData(createP2PIntent(),
+                IntentState.INSTALLED,
+                new WallClockTimestamp());
+        toUninstall = IntentData.compiled(toUninstall, intentsToUninstall);
+
+        IntentOperationContext<FlowRuleIntent> operationContext;
+        IntentInstallationContext context = new IntentInstallationContext(toUninstall, toInstall);
+        operationContext = new IntentOperationContext(intentsToUninstall, intentsToInstall, context);
+
+        installer.apply(operationContext);
+
+        IntentOperationContext successContext = intentInstallCoordinator.successContext;
+        assertEquals(successContext, operationContext);
+
+        assertEquals(0, flowRuleService.flowRulesRemove.size());
+        assertEquals(1, flowRuleService.flowRulesAdd.size());
+        assertEquals(0, flowRuleService.flowRulesModify.size());
+
+        FlowRuleIntent installedIntent = (FlowRuleIntent) intentsToInstall.get(0);
+        assertEquals(flowRuleService.flowRulesAdd.size(), installedIntent.flowRules().size());
+        assertTrue(flowRuleService.flowRulesAdd.containsAll(installedIntent.flowRules()));
     }
 
     /**
@@ -690,14 +873,42 @@ public class FlowRuleIntentInstallerTest extends AbstractIntentInstallerTest {
         return flowRuleIntents;
     }
 
+
+
     /**
      * The FlowRuleService for test; always success for any flow rule operations.
      */
     class TestFlowRuleService extends FlowRuleServiceAdapter {
 
+        Set<FlowEntry> flowEntries = Sets.newHashSet();
         Set<FlowRule> flowRulesAdd = Sets.newHashSet();
         Set<FlowRule> flowRulesModify = Sets.newHashSet();
         Set<FlowRule> flowRulesRemove = Sets.newHashSet();
+
+        @Override
+        public FlowEntry getFlowEntry(FlowRule flowRule) {
+            for (FlowEntry entry : flowEntries) {
+                if (entry.id().equals(flowRule.id()) && entry.deviceId().equals(flowRule.deviceId())) {
+                    return entry;
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public Iterable<FlowEntry> getFlowEntries(DeviceId deviceId) {
+            return flowEntries.stream()
+                    .filter(flow -> flow.deviceId().equals(deviceId))
+                    .collect(Collectors.toList());
+        }
+
+        public void load(List<FlowRuleIntent> intents) {
+            for (FlowRuleIntent flowRuleIntent : intents) {
+                for (FlowRule flowRule : flowRuleIntent.flowRules()) {
+                    flowEntries.add(new DefaultFlowEntry(flowRule, FlowEntry.FlowEntryState.ADDED));
+                }
+            }
+        }
 
         public void record(FlowRuleOperations ops) {
             flowRulesAdd.clear();
@@ -706,12 +917,15 @@ public class FlowRuleIntentInstallerTest extends AbstractIntentInstallerTest {
                 stage.forEach(op -> {
                     switch (op.type()) {
                         case ADD:
+                            flowEntries.add(new DefaultFlowEntry(op.rule(), FlowEntry.FlowEntryState.ADDED));
                             flowRulesAdd.add(op.rule());
                             break;
                         case REMOVE:
+                            flowEntries.remove(new DefaultFlowEntry(op.rule(), FlowEntry.FlowEntryState.ADDED));
                             flowRulesRemove.add(op.rule());
                             break;
                         case MODIFY:
+                            flowEntries.add(new DefaultFlowEntry(op.rule(), FlowEntry.FlowEntryState.ADDED));
                             flowRulesModify.add(op.rule());
                         default:
                             break;

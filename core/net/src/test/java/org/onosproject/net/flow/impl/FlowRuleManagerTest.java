@@ -207,7 +207,7 @@ public class FlowRuleManagerTest {
         FlowRule rule = flowRule(hval, hval);
         service.applyFlowRules(rule);
 
-        assertNotNull("rule should be found", service.getFlowEntries(DID));
+        assertNotNull("rule should be found", service.getFlowEntry(rule));
         return rule;
     }
 
@@ -231,6 +231,24 @@ public class FlowRuleManagerTest {
 
     private int flowCount() {
         return Sets.newHashSet(service.getFlowEntries(DID)).size();
+    }
+
+    @Test
+    public void getFlowEntry() {
+        assertTrue("store should be empty",
+                Sets.newHashSet(service.getFlowEntries(DID)).isEmpty());
+        FlowRule f1 = addFlowRule(1);
+        FlowRule f2 = addFlowRule(2);
+
+        FlowEntry fe1 = new DefaultFlowEntry(f1);
+        FlowEntry fe2 = new DefaultFlowEntry(f2);
+        assertEquals("2 rules should exist", 2, flowCount());
+
+        FlowEntry actual1 = service.getFlowEntry(f1);
+        FlowEntry actual2 = service.getFlowEntry(f2);
+
+        assertEquals(fe1, actual1);
+        assertEquals(fe2, actual2);
     }
 
     @Test
