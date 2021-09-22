@@ -114,7 +114,8 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
 
     // Meters id related objects
     private static final String AVAILABLEMETERIDSTORE = "onos-meters-available-store";
-    protected ConcurrentMap<MeterTableKey, DistributedSet<MeterKey>> availableMeterIds;
+    protected final ConcurrentMap<MeterTableKey, DistributedSet<MeterKey>> availableMeterIds =
+            new ConcurrentHashMap<>();
     private static final String METERIDSTORE = "onos-meters-id-store";
     private AtomicCounterMap<MeterTableKey> meterIdGenerators;
 
@@ -176,8 +177,6 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
                 .withTimestampProvider((key, features) -> new WallClockTimestamp())
                 .withSerializer(APP_KRYO_BUILDER).build();
         metersFeatures.addListener(featuresMapListener);
-
-        availableMeterIds = new ConcurrentHashMap<>();
 
         meterIdGenerators = storageService.<MeterTableKey>atomicCounterMapBuilder()
                 .withName(METERIDSTORE)
