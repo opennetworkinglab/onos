@@ -174,6 +174,7 @@ public class FlowRuleIntentInstaller implements IntentInstaller<FlowRuleIntent> 
             flowRulesToUninstall = uninstallIntents.stream()
                     .map(FlowRuleIntent::flowRules)
                     .flatMap(Collection::stream)
+                    .filter(flowRule -> flowRuleService.getFlowEntry(flowRule) != null)
                     .collect(Collectors.toList());
         } else {
             // No flow rules to be uninstalled.
