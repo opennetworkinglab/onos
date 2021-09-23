@@ -34,6 +34,7 @@
     <suppress files="org.onosproject.segmentrouting.*" checks="AbbreviationAsWordInName" />
     <suppress files="org.onosproject.segmentrouting.DefaultRoutingHandler.java" checks="FileLength" />
     <suppress files="org.onosproject.segmentrouting.mcast.McastHandler" checks="FileLength" />
+    <suppress files="org.onosproject.dhcprelay.Dhcp4HandlerImpl" checks="FileLength" />
 
     <!-- These files carry AT&T copyrights -->
     <suppress files="org.onlab.packet.EAP" checks="RegexpHeader" />
