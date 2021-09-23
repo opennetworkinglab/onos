@@ -17,7 +17,6 @@
 package org.onlab.packet.dhcp;
 
 import com.google.common.collect.Lists;
-import com.google.common.primitives.UnsignedLongs;
 import org.onlab.packet.VlanId;
 
 import java.nio.charset.StandardCharsets;
@@ -32,7 +31,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 public class CircuitId {
     private static final String SEPARATOR = ":";
     private static final String CIRCUIT_ID_FORMAT = "%s" + SEPARATOR + "%s";
-    private static final String DEVICE_PORT_SEPARATOR = "/";
     private String connectPoint;
     private VlanId vlanId;
 
@@ -72,16 +70,26 @@ public class CircuitId {
         // remove last element (vlan id)
         String vlanId = splittedCircuitId.remove(splittedCircuitId.size() - 1);
 
-        // Reconstruct device Id
+        // Reconstruct the connect point string
         String connectPoint = String.join(SEPARATOR, splittedCircuitId);
 
-        String[] splittedConnectPoint = connectPoint.split(DEVICE_PORT_SEPARATOR);
-        // Check connect point is valid or not
-        checkArgument(splittedConnectPoint.length == 2,
-                      "Connect point must be in \"deviceUri/portNumber\" format");
+        /*
+         * As device IDs may have a path component, we are expecting one
+         * of:
+         * - scheme:ip:port/cp
+         * - scheme:ip:port/path/cp
+         *
+         * The assumption is the last `/` will separate the device ID
+         * from the connection point number. Please note that we are
+         * not actually checking here the content of the strings
+         */
+        int idx = connectPoint.lastIndexOf("/");
+        checkArgument(idx != -1, "Connect point not specified, " +
+                "Connect point must be in \"deviceUri/portNumber\" format");
 
-        // Check the port number is a number or not
-        UnsignedLongs.decode(splittedConnectPoint[1]);
+        String cp = connectPoint.substring(idx + 1);
+        checkArgument(!cp.isEmpty(), "Connect point separator specified, " +
+                "but no port number included, connect point must be in \"deviceUri/portNumber\" format");
 
         return new CircuitId(connectPoint, VlanId.vlanId(vlanId));
     }
