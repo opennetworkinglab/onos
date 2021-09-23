@@ -223,7 +223,7 @@ public class LinkDiscovery implements TimerTask {
                     DeviceId srcDeviceId = DeviceId.deviceId(idString);
                     DeviceId dstDeviceId = packetContext.inPacket().receivedFrom().deviceId();
 
-                    ConnectPoint src = new ConnectPoint(srcDeviceId, srcPort);
+                    ConnectPoint src = translateSwitchPort(srcDeviceId, srcPort);
                     ConnectPoint dst = new ConnectPoint(dstDeviceId, dstPort);
 
                     LinkDescription ld = new DefaultLinkDescription(src, dst, lt);
@@ -476,5 +476,15 @@ public class LinkDiscovery implements TimerTask {
 
     public boolean containsPort(long portNumber) {
         return portMap.containsKey(portNumber);
+    }
+
+    /* Port number created from ONOS lldp does not have port name
+       we use the device service as translation service */
+    private ConnectPoint translateSwitchPort(DeviceId deviceId, PortNumber portNumber) {
+        Port devicePort = this.context.deviceService().getPort(deviceId, portNumber);
+        if (devicePort != null) {
+            return new ConnectPoint(deviceId, devicePort.number());
+        }
+        return new ConnectPoint(deviceId, portNumber);
     }
 }
