@@ -23,16 +23,11 @@ import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cli.PlaceholderCompleter;
 import org.onosproject.cli.net.NetconfOperationCompleter;
 import org.onosproject.cli.net.OpticalConnectPointCompleter;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.ChannelSpacing;
-import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.Device;
-import org.onosproject.net.GridType;
-import org.onosproject.net.OchSignal;
-import org.onosproject.net.Port;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -41,9 +36,17 @@ import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.optical.OchPort;
 import org.onosproject.net.optical.device.OchPortHelper;
+import org.onosproject.net.ChannelSpacing;
+import org.onosproject.net.OchSignal;
+import org.onosproject.net.GridType;
+import org.onosproject.net.Port;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Device;
+import org.onosproject.net.OchSignalType;
 
 import java.util.Map;
 import java.util.Optional;
@@ -56,11 +59,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 @Service
 @Command(scope = "onos", name = "wavelength-config",
-        description = "Enable the optical channel and tune the wavelength via a flow rule ")
+        description = "Send a flow rule to TERMINAL_DEVICE or ROADM devices")
 public class PortWaveLengthCommand extends AbstractShellCommand {
 
     private static final String SIGNAL_FORMAT = "slotGranularity/channelSpacing(in GHz e.g 6.25,12.5,25,50,100)/" +
-            "spaceMultiplier/gridType(cwdm, flex, dwdm) " + "e.g 1/6.25/1/flex";
+            "spaceMultiplier/gridType(cwdm, flex, dwdm) " + "e.g 4/50/12/dwdm";
 
     private static final String CH_6P25 = "6.25";
     private static final String CH_12P5 = "12.5";
@@ -77,22 +80,30 @@ public class PortWaveLengthCommand extends AbstractShellCommand {
             .put(CH_50, ChannelSpacing.CHL_50GHZ)
             .put(CH_100, ChannelSpacing.CHL_100GHZ)
             .build();
-    @Argument(index = 0, name = "operation", description = "Netconf Operation including get, edit-config, etc.",
+
+    @Argument(index = 0, name = "operation",
+            description = "Netconf operation (supported: edit-config and delete-config)",
             required = true, multiValued = false)
     @Completion(NetconfOperationCompleter.class)
     private String operation = null;
 
-    @Argument(index = 1, name = "connectPoint",
-            description = "Device/Port Description",
+    @Argument(index = 1, name = "input connectPoint",
+            description = "Input connectPoint (format device/port)",
             required = true, multiValued = false)
     @Completion(OpticalConnectPointCompleter.class)
-    String connectPointString = "";
+    private String inConnectPointString = null;
 
-    @Argument(index = 2, name = "value",
-            description = "Optical Signal or wavelength. Provide wavelenght in MHz, while Och Format = "
-                    + SIGNAL_FORMAT, required = false, multiValued = false)
-    String parameter = "";
+    @Argument(index = 2, name = "OchSignal",
+            description = "Optical Signal or wavelength. Provide wavelength in MHz, or Och Format = "
+                    + SIGNAL_FORMAT, required = true, multiValued = false)
+    @Completion(PlaceholderCompleter.class)
+    private String parameter = null;
 
+    @Argument(index = 3, name = "output connectPoint",
+            description = "Output connectPoint, required for ROADM devices",
+            required = false, multiValued = false)
+    @Completion(OpticalConnectPointCompleter.class)
+    private String outConnectPointString = null;
 
     private OchSignal createOchSignal() throws IllegalArgumentException {
         if (parameter == null) {
@@ -138,10 +149,9 @@ public class PortWaveLengthCommand extends AbstractShellCommand {
             int multiplier = getMultplier(wavelength, gridType, channelSpacing);
             return new OchSignal(gridType, channelSpacing, multiplier, slotGranularity);
         } else {
-            print("Connect point %s is not OChPort", cp);
+            print("[ERROR] connect point %s is not OChPort", cp);
             return null;
         }
-
     }
 
     private int getMultplier(long wavelength, GridType gridType, ChannelSpacing channelSpacing) {
@@ -167,54 +177,161 @@ public class PortWaveLengthCommand extends AbstractShellCommand {
 
     @Override
     protected void doExecute() throws Exception {
-        if (operation.equals("edit-config")) {
+        if (operation.equals("edit-config") || operation.equals("delete-config")) {
             FlowRuleService flowService = get(FlowRuleService.class);
             DeviceService deviceService = get(DeviceService.class);
             CoreService coreService = get(CoreService.class);
-            ConnectPoint cp = ConnectPoint.deviceConnectPoint(connectPointString);
 
             TrafficSelector.Builder trafficSelectorBuilder = DefaultTrafficSelector.builder();
             TrafficTreatment.Builder trafficTreatmentBuilder = DefaultTrafficTreatment.builder();
             FlowRule.Builder flowRuleBuilder = DefaultFlowRule.builder();
 
+            ConnectPoint inCp, outCp = null;
+            Device inDevice, outDevice = null;
 
-            // an empty traffic selector
-            TrafficSelector trafficSelector = trafficSelectorBuilder.matchInPort(cp.port()).build();
-            OchSignal ochSignal;
-            if (parameter.contains("/")) {
-                ochSignal = createOchSignal();
-            } else if (parameter.matches("-?\\d+(\\.\\d+)?")) {
-                ochSignal = createOchSignalFromWavelength(deviceService, cp);
-            } else {
-                print("Signal or wavelength %s are in uncorrect format");
-                return;
+            inCp = ConnectPoint.deviceConnectPoint(inConnectPointString);
+            inDevice = deviceService.getDevice(inCp.deviceId());
+            if (outConnectPointString != null) {
+                outCp = ConnectPoint.deviceConnectPoint(outConnectPointString);
+                outDevice = deviceService.getDevice(outCp.deviceId());
             }
-            if (ochSignal == null) {
-                print("Error in creating OchSignal");
-                return;
-            }
-            TrafficTreatment trafficTreatment = trafficTreatmentBuilder
-                    .add(Instructions.modL0Lambda(ochSignal))
-                    .add(Instructions.createOutput(deviceService.getPort(cp).number()))
-                    .build();
 
-            Device device = deviceService.getDevice(cp.deviceId());
-            int priority = 100;
-            ApplicationId appId = coreService.registerApplication("org.onosproject.optical-model");
-            log.info(appId.name());
-            FlowRule addFlow = flowRuleBuilder
-                    .withPriority(priority)
-                    .fromApp(appId)
-                    .withTreatment(trafficTreatment)
-                    .withSelector(trafficSelector)
-                    .forDevice(device.id())
-                    .makePermanent()
-                    .build();
-            flowService.applyFlowRules(addFlow);
-            String msg = String.format("Setting wavelength %s", ochSignal.centralFrequency().asGHz());
-            print(msg);
+            if (inDevice.type().equals(Device.Type.TERMINAL_DEVICE)) {
+
+                //Parsing the ochSignal
+                OchSignal ochSignal;
+                if (parameter.contains("/")) {
+                    ochSignal = createOchSignal();
+                } else if (parameter.matches("-?\\d+(\\.\\d+)?")) {
+                    ochSignal = createOchSignalFromWavelength(deviceService, inCp);
+                } else {
+                    print("[ERROR] signal or wavelength %s are in uncorrect format");
+                    return;
+                }
+                if (ochSignal == null) {
+                    print("[ERROR] problem while creating OchSignal");
+                    return;
+                }
+
+                //Traffic selector
+                TrafficSelector trafficSelector = trafficSelectorBuilder
+                        .matchInPort(inCp.port())
+                        .build();
+
+                //Traffic treatment including ochSignal
+                TrafficTreatment trafficTreatment = trafficTreatmentBuilder
+                        .add(Instructions.modL0Lambda(ochSignal))
+                        .add(Instructions.createOutput(deviceService.getPort(inCp).number()))
+                        .build();
+
+                int priority = 100;
+                ApplicationId appId = coreService.registerApplication("org.onosproject.optical-model");
+
+                //Flow rule using selector and treatment
+                FlowRule addFlow = flowRuleBuilder
+                        .withPriority(priority)
+                        .fromApp(appId)
+                        .withTreatment(trafficTreatment)
+                        .withSelector(trafficSelector)
+                        .forDevice(inDevice.id())
+                        .makePermanent()
+                        .build();
+
+                //Print output on CLI
+                if (operation.equals("edit-config")) {
+                    flowService.applyFlowRules(addFlow);
+                    print("[INFO] Setting ochSignal on TERMINAL_DEVICE %s", ochSignal);
+                    print("--- device: %s", inDevice.id());
+                    print("--- port: %s", inCp.port());
+                    print("--- central frequency (GHz): %s", ochSignal.centralFrequency().asGHz());
+                } else {
+                    //This is delete-config
+                    flowService.removeFlowRules(addFlow);
+                    print("[INFO] Deleting ochSignal on TERMINAL_DEVICE %s", ochSignal);
+                    print("--- device: %s", inDevice.id());
+                    print("--- port: %s", inCp.port());
+                    print("--- central frequency (GHz): %s", ochSignal.centralFrequency().asGHz());
+                }
+            }
+
+            if (inDevice.type().equals(Device.Type.ROADM)) {
+
+                if (outConnectPointString == null) {
+                    print("[ERROR] output port is required for ROADM devices");
+                    return;
+                }
+
+                if (!inDevice.equals(outDevice)) {
+                    print("[ERROR] input and output ports must be on the same device");
+                    return;
+                }
+
+                //Parsing the ochSignal
+                OchSignal ochSignal;
+                if (parameter.contains("/")) {
+                    ochSignal = createOchSignal();
+                } else if (parameter.matches("-?\\d+(\\.\\d+)?")) {
+                    ochSignal = createOchSignalFromWavelength(deviceService, inCp);
+                } else {
+                    print("[ERROR] signal or wavelength %s are in uncorrect format");
+                    return;
+                }
+                if (ochSignal == null) {
+                    print("[ERROR] problem while creating OchSignal");
+                    return;
+                }
+
+                //Traffic selector
+                TrafficSelector trafficSelector = trafficSelectorBuilder
+                        .matchInPort(inCp.port())
+                        .add(Criteria.matchOchSignalType(OchSignalType.FIXED_GRID))
+                        .add(Criteria.matchLambda(ochSignal))
+                        .build();
+
+                //Traffic treatment
+                TrafficTreatment trafficTreatment = trafficTreatmentBuilder
+                        .add(Instructions.modL0Lambda(ochSignal))
+                        .add(Instructions.createOutput(deviceService.getPort(outCp).number()))
+                        .build();
+
+                int priority = 100;
+                ApplicationId appId = coreService.registerApplication("org.onosproject.optical-model");
+
+                //Flow rule using selector and treatment
+                FlowRule addFlow = flowRuleBuilder
+                        .withPriority(priority)
+                        .fromApp(appId)
+                        .withTreatment(trafficTreatment)
+                        .withSelector(trafficSelector)
+                        .forDevice(inDevice.id())
+                        .makePermanent()
+                        .build();
+
+                //Print output on CLI
+                if (operation.equals("edit-config")) {
+                    flowService.applyFlowRules(addFlow);
+                    print("[INFO] Setting ochSignal on ROADM %s", ochSignal);
+                    print("--- device: %s", inDevice.id());
+                    print("--- input port %s, outpot port %s", inCp.port(), outCp.port());
+                    print("--- central frequency (GHz): %s", ochSignal.centralFrequency().asGHz());
+                    print("--- frequency slot width (GHz): %s", ochSignal.slotGranularity() * 12.5);
+                } else {
+                    //This is delete-config
+                    flowService.removeFlowRules(addFlow);
+                    print("[INFO] Deleting ochSignal on ROADM %s", ochSignal);
+                    print("--- device: %s", inDevice.id());
+                    print("--- input port %s, outpot port %s", inCp.port(), outCp.port());
+                    print("--- central frequency (GHz): %s", ochSignal.centralFrequency().asGHz());
+                    print("--- frequency slot width (GHz): %s", ochSignal.slotGranularity() * 12.5);
+                }
+            }
+
+            if (!inDevice.type().equals(Device.Type.ROADM) && !inDevice.type().equals(Device.Type.TERMINAL_DEVICE)) {
+                print("[ERROR] wrong device type: %s", inDevice.type());
+            }
+
         } else {
-            print("Operation %s are not supported now.", operation);
+            print("[ERROR] operation %s is not yet supported", operation);
         }
 
     }
