@@ -26,7 +26,8 @@ import static com.google.common.base.Preconditions.checkArgument;
  */
 public final class DefaultKubevirtLoadBalancerRule implements KubevirtLoadBalancerRule {
     private static final String NOT_NULL_MSG = "Load Balancer Rule % cannot be null";
-    private static final String ICMP = "ICMP";
+    private static final String TCP = "TCP";
+    private static final String UDP = "UDP";
 
     private final String protocol;
     private final Integer portRangeMax;
@@ -110,7 +111,7 @@ public final class DefaultKubevirtLoadBalancerRule implements KubevirtLoadBalanc
         public KubevirtLoadBalancerRule build() {
             checkArgument(protocol != null, NOT_NULL_MSG, "protocol");
 
-            if (!protocol.equalsIgnoreCase(ICMP)) {
+            if (protocol.equalsIgnoreCase(TCP) || protocol.equalsIgnoreCase(UDP)) {
                 checkArgument(portRangeMax != null, NOT_NULL_MSG, "portRangeMax");
                 checkArgument(portRangeMin != null, NOT_NULL_MSG, "portRangeMin");
             }

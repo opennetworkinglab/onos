@@ -15,6 +15,7 @@
  */
 package org.onosproject.kubevirtnetworking.codec;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
@@ -23,7 +24,6 @@ import org.onosproject.kubevirtnetworking.api.KubevirtLoadBalancerRule;
 import org.slf4j.Logger;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onlab.util.Tools.nullIsIllegal;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -36,7 +36,8 @@ public final class KubevirtLoadBalancerRuleCodec extends JsonCodec<KubevirtLoadB
     private static final String PROTOCOL = "protocol";
     private static final String PORT_RANGE_MAX = "portRangeMax";
     private static final String PORT_RANGE_MIN = "portRangeMin";
-    private static final String ICMP = "ICMP";
+    private static final String TCP = "TCP";
+    private static final String UDP = "UDP";
 
     private static final String MISSING_MESSAGE = " is required in KubevirtLoadBalancerRule";
 
@@ -46,7 +47,7 @@ public final class KubevirtLoadBalancerRuleCodec extends JsonCodec<KubevirtLoadB
 
         ObjectNode result = context.mapper().createObjectNode().put(PROTOCOL, rule.protocol());
 
-        if (!rule.protocol().equalsIgnoreCase(ICMP)) {
+        if (rule.protocol().equalsIgnoreCase(TCP) || rule.protocol().equalsIgnoreCase(UDP)) {
             result.put(PORT_RANGE_MAX, rule.portRangeMax()).put(PORT_RANGE_MIN, rule.portRangeMin());
         }
         return result;
@@ -60,11 +61,14 @@ public final class KubevirtLoadBalancerRuleCodec extends JsonCodec<KubevirtLoadB
 
         KubevirtLoadBalancerRule.Builder builder = DefaultKubevirtLoadBalancerRule.builder();
 
-        String protocol = nullIsIllegal(json.get(PROTOCOL).asText(), PROTOCOL + MISSING_MESSAGE);
-
+        JsonNode protocolJson = json.get(PROTOCOL);
+        String protocol = "";
+        if (protocolJson != null) {
+            protocol = protocolJson.asText();
+        }
         builder.protocol(protocol);
 
-        if (!protocol.equalsIgnoreCase(ICMP)) {
+        if (protocol.equalsIgnoreCase(TCP) || protocol.equalsIgnoreCase(UDP)) {
             Integer portRangeMax = json.get(PORT_RANGE_MAX).asInt();
             Integer portRangeMin = json.get(PORT_RANGE_MIN).asInt();
             builder.portRangeMax(portRangeMax).portRangeMin(portRangeMin);
