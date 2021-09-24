@@ -191,8 +191,10 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
     public void deactivate() {
         meters.removeListener(metersMapListener);
         metersFeatures.removeListener(featuresMapListener);
-        meters.destroy();
+
+        // EC map does clean only the local state
         metersFeatures.destroy();
+        // Distributed set does not override the default behavior
         availableMeterIds.forEach((key, set) -> set.destroy());
 
         log.info("Stopped");
