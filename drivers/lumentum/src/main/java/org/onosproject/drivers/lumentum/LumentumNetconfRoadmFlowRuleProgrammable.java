@@ -130,6 +130,7 @@ public class LumentumNetconfRoadmFlowRuleProgrammable extends AbstractHandlerBeh
             if (rpcAddConnection(lumFlowRule)) {
                 added.add(lumFlowRule);
                 getConnectionCache().add(did(), lumFlowRule.getConnectionName(), lumFlowRule);
+                log.debug("Adding connection with selector {}", lumFlowRule.selector());
             }
         }
 
@@ -273,6 +274,7 @@ public class LumentumNetconfRoadmFlowRuleProgrammable extends AbstractHandlerBeh
                 .build();
 
         log.debug("Lumentum NETCONF - retrieved FlowRule startFreq {} endFreq {}", startFreq, endFreq);
+        log.debug("Lumentum NETCONF - retrieved FlowRule selector {}", selector);
 
         //Lookup of connection
         //Retrieved rules, cached rules are considered equal if the selector is equal
@@ -287,7 +289,7 @@ public class LumentumNetconfRoadmFlowRuleProgrammable extends AbstractHandlerBeh
 
         if (cacheRule == null) {
             //TODO consider a way to keep "external" FlowRules
-            log.error("Lumentum NETCONF connection not in the cache {}", pair.getRight());
+            log.error("Lumentum NETCONF connection {} not in the cache", pair.getRight());
             rpcDeleteExternalConnection(moduleId, connId);
             return null;
         } else {
@@ -491,7 +493,7 @@ public class LumentumNetconfRoadmFlowRuleProgrammable extends AbstractHandlerBeh
         try {
             return session.editConfig(xcString);
         } catch (NetconfException e) {
-            log.error("Failed to edit the CrossConnect edid-cfg for device {}",
+            log.error("Failed to edit the CrossConnect edit-cfg for device {}",
                       handler().data().deviceId(), e);
             log.debug("Failed configuration {}", xcString);
             return false;

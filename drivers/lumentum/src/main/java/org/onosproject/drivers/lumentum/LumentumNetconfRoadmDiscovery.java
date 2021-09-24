@@ -57,6 +57,11 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Device description behaviour for Lumentum ROADM-A Whitebox devices using NETCONF.
+ *
+ * Tested on device Lumentum:ROADM with Twin 1X20 WSS
+ * Software versions:
+ * - dcian_R3.1.2_057
+ * - dcian_R2.1.4_136
  */
 public class LumentumNetconfRoadmDiscovery
         extends AbstractHandlerBehaviour implements DeviceDescriptionDiscovery {
@@ -237,11 +242,14 @@ public class LumentumNetconfRoadmDiscovery
             Port.Type type = null;
             for (Object o : pcfg.getList(PORT_EXTENSION)) {
                 String s = (String) o;
-                if (s.equals(OPTICAL_INPUT) || s.equals(OPTICAL_OUTPUT)) {
+                if (s.contains(OPTICAL_INPUT) || s.contains(OPTICAL_OUTPUT)) {
                     type = Port.Type.FIBER;
+                    log.debug("Loaded OPTICAL port {}", portNum);
 
-                } else if (s.equals(PORT_ETHERNET) || s.equals(PORT_PLUGGABLE)) {
+                } else if (s.contains(PORT_ETHERNET) || s.contains(PORT_PLUGGABLE)) {
                     type = Port.Type.COPPER;
+                    log.debug("Loaded PACKET port {}", portNum);
+
                 }
             }
 
@@ -250,9 +258,18 @@ public class LumentumNetconfRoadmDiscovery
             if (type != null) {
                 if (type.equals(Port.Type.COPPER)) {
                     String speedString = pcfg.getString(PORT_SPEED);
+                    log.debug("--- port {} loaded speed {}", portNum, speedString);
                     if (speedString != null) {
-                        speed = Long.parseLong(speedString.substring(speedString.lastIndexOf("speed_") + 6,
-                                speedString.lastIndexOf("Mb")));
+                        if (speedString.contains("Mb")) {
+                            speed = Long.parseLong(speedString.substring(
+                                    speedString.lastIndexOf("speed_") + 6,
+                                    speedString.lastIndexOf("Mb")));
+                        }
+                        if (speedString.contains("Gb")) {
+                            speed = 1000 * Long.parseLong(speedString.substring(
+                                    speedString.lastIndexOf("speed_") + 6,
+                                    speedString.lastIndexOf("Gb")));
+                        }
                     } else {
                         log.error("Lumentum NETCONF - Port speed of Ethernet port not correctly loaded");
                     }
