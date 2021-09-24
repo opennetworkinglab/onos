@@ -94,7 +94,6 @@ public class DistributedMcastRoutesStore
     @Deactivate
     public void deactivate() {
         mcastRib.removeListener(mcastRouteListener);
-        mcastRib.destroy();
         log.info("Stopped");
     }
 
