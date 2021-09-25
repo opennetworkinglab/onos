@@ -32,4 +32,7 @@ public final class OsgiPropertyConstants {
     public static final String MAX_RETRIES = "maxRetries";
     public static final int MAX_RETRIES_DEFAULT = 5;
 
+    public static final String FORCE_PORT_UPDATES = "forcePortUpdates";
+    public static final boolean FORCE_PORT_UPDATES_DEFAULT = false;
+
 }

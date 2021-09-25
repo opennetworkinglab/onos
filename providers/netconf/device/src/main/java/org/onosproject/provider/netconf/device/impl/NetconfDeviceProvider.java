@@ -111,7 +111,8 @@ import static org.slf4j.LoggerFactory.getLogger;
         property = {
                 POLL_FREQUENCY_SECONDS + ":Integer=" + POLL_FREQUENCY_SECONDS_DEFAULT,
                 MAX_RETRIES + ":Integer=" + MAX_RETRIES_DEFAULT,
-                RETRY_FREQUENCY_SECONDS + ":Integer=" + RETRY_FREQUENCY_SECONDS_DEFAULT
+                RETRY_FREQUENCY_SECONDS + ":Integer=" + RETRY_FREQUENCY_SECONDS_DEFAULT,
+                FORCE_PORT_UPDATES + ":Boolean=" + FORCE_PORT_UPDATES_DEFAULT
         })
 public class NetconfDeviceProvider extends AbstractProvider
         implements DeviceProvider {
@@ -170,6 +171,11 @@ public class NetconfDeviceProvider extends AbstractProvider
      * Configure retry frequency for connecting with device again; default is 30 sec.
      */
     private int retryFrequency = RETRY_FREQUENCY_SECONDS_DEFAULT;
+
+    /**
+     * Configure option to allow ports to be periodically updated; default is false.
+     */
+    private boolean forcePortUpdates = FORCE_PORT_UPDATES_DEFAULT;
 
     protected ExecutorService connectionExecutor = Executors.newFixedThreadPool(CORE_POOL_SIZE,
             groupedThreads("onos/netconfDeviceProviderConnection",
@@ -272,6 +278,13 @@ public class NetconfDeviceProvider extends AbstractProvider
                 scheduledReconnectionTask = scheduleConnectDevices();
                 log.info("Configured. Retry frequency is configured to {} seconds", retryFrequency);
             }
+
+            boolean newForcePortUpdates = Tools.isPropertyEnabled(properties, FORCE_PORT_UPDATES,
+                                          FORCE_PORT_UPDATES_DEFAULT);
+            if (newForcePortUpdates != forcePortUpdates) {
+                forcePortUpdates = newForcePortUpdates;
+            }
+            log.info("Configured. Force port updates flag is set to {}", forcePortUpdates);
 
             maxRetries = Tools.getIntegerProperty(properties, MAX_RETRIES, MAX_RETRIES_DEFAULT);
             log.info("Configured. Number of retries is configured to {} times", maxRetries);
@@ -626,23 +639,21 @@ public class NetconfDeviceProvider extends AbstractProvider
         }
     }
 
-
     private void discoverOrUpdatePorts(DeviceId deviceId) {
         retriedPortDiscoveryMap.put(deviceId, new AtomicInteger(0));
         AtomicInteger count = retriedPortDiscoveryMap.get(deviceId);
-        //TODO this does not enable port discovery if port changes.
         Device device = deviceService.getDevice(deviceId);
         if (device == null) {
-            log.debug("Cant' reach device {}, not updating ports", deviceId);
+            log.debug("Can't reach device {}, not updating ports", deviceId);
             return;
         }
-        if (deviceService.getPorts(deviceId).isEmpty()
-                && count != null && count.getAndIncrement() < maxRetries) {
+        if (forcePortUpdates || (deviceService.getPorts(deviceId).isEmpty()
+                && count != null && count.getAndIncrement() < maxRetries)) {
             if (device.is(DeviceDescriptionDiscovery.class)) {
                 providerService.updatePorts(deviceId,
                         device.as(DeviceDescriptionDiscovery.class).discoverPortDetails());
             } else {
-                log.warn("No DeviceDescirption behaviour for device {}", deviceId);
+                log.warn("No DeviceDescription behaviour for device {}", deviceId);
             }
 
         }
