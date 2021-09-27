@@ -20,6 +20,7 @@ import gnmi.Gnmi;
 import org.onosproject.gnmi.api.GnmiClient;
 import org.onosproject.gnmi.api.GnmiController;
 import org.onosproject.grpc.utils.AbstractGrpcHandlerBehaviour;
+import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.PortAdmin;
 
@@ -70,6 +71,22 @@ public class OpenConfigGnmiPortAdminBehaviour
                      portNumber, deviceId);
             return;
         }
+
+        /* Requests coming from the north may come without name.
+           When this happens port name equals to port number */
+        if (!portNumber.hasName()) {
+            if (deviceService == null) {
+                log.warn("Cannot update port status of port {} on {} because the device " +
+                                "service is null", portNumber, deviceId);
+                return;
+            }
+            Port devicePort = deviceService.getPort(deviceId, portNumber);
+            if (devicePort != null) {
+                // Some devices may reject the config, make sure we act on the reported port
+                portNumber = devicePort.number();
+            }
+        }
+
         final Gnmi.Path path = Gnmi.Path.newBuilder()
                 .addElem(Gnmi.PathElem.newBuilder().setName("interfaces").build())
                 .addElem(Gnmi.PathElem.newBuilder().setName("interface")
