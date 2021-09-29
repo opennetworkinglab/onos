@@ -187,6 +187,12 @@ public class DistributedApplicationStore extends ApplicationArchive
                 .withCompatibilityFunction(this::convertApplication)
                 .build();
 
+        /* To update the version in application store if it does not matche with the local system.
+           This will happen only when upgrading onos using issu or during rollback if upgrade does not work.
+         */
+        apps.asJavaMap().forEach((appId, holder) -> apps.asJavaMap()
+                .put(appId, convertApplication(holder, versionService.version())));
+
         appActivationTopic = storageService.<Application>topicBuilder()
             .withName("onos-apps-activation-topic")
             .withSerializer(Serializer.using(KryoNamespaces.API))
@@ -215,13 +221,20 @@ public class DistributedApplicationStore extends ApplicationArchive
     }
 
     /**
-     * Converts the versions of stored applications propagated from the prior version to the local application versions.
+     * Converts the version of the application in store to the version of the local application.
      */
     private InternalApplicationHolder convertApplication(InternalApplicationHolder appHolder, Version version) {
         // Load the application description from disk. If the version doesn't match the persisted
         // version, update the stored application with the new version.
-        ApplicationDescription appDesc = getApplicationDescription(appHolder.app.id().name());
-        if (!appDesc.version().equals(appHolder.app().version())) {
+        ApplicationDescription appDesc = null;
+        try {
+            appDesc = getApplicationDescription(appHolder.app.id().name());
+        } catch (ApplicationException e) {
+            // If external application is not present then just ignore it as it will be installed from other onos nodes
+            log.warn("Application : {} not found in disk", appHolder.app.id().name());
+        }
+        if (appDesc != null && !appDesc.version().equals(appHolder.app().version())) {
+            log.info("Updating app version to : {} in store for app : {}", appDesc.version(), appHolder.app.id());
             Application newApplication = DefaultApplication.builder(appDesc)
                 .withAppId(appHolder.app.id())
                 .build();
@@ -250,6 +263,7 @@ public class DistributedApplicationStore extends ApplicationArchive
      * Downloads any missing bits for installed applications.
      */
     private void downloadMissingApplications() {
+        log.info("Going to download missing applications");
         apps.asJavaMap().forEach((appId, holder) -> fetchBitsIfNeeded(holder.app));
     }
 
@@ -257,6 +271,7 @@ public class DistributedApplicationStore extends ApplicationArchive
      * Activates applications that should be activated according to the distributed store.
      */
     private void activateExistingApplications() {
+        log.info("Going to activate existing applications");
         getApplicationNames().forEach(appName -> {
             // Only update the application version if the application has already been installed.
             ApplicationId appId = getId(appName);
@@ -264,10 +279,16 @@ public class DistributedApplicationStore extends ApplicationArchive
                 ApplicationDescription appDesc = getApplicationDescription(appName);
                 InternalApplicationHolder appHolder = Versioned.valueOrNull(apps.get(appId));
 
+                if (appHolder != null && appHolder.state == ACTIVATED) {
+                    log.debug("App name and version from local system : {}, {}", appDesc.name(), appDesc.version());
+                    log.debug("App name and version from app store : {}, {}", appHolder.app.id(),
+                             appHolder.app().version());
+                }
                 // If the application has already been activated, set the local state to active.
                 if (appHolder != null
                     && appDesc.version().equals(appHolder.app().version())
                     && appHolder.state == ACTIVATED) {
+                    log.info("Going to activate app : {}", appHolder.app.id());
                     setActive(appName);
                     updateTime(appName);
                 }
@@ -663,7 +684,7 @@ public class DistributedApplicationStore extends ApplicationArchive
 
         // FIXME: send message with name & version to make sure we don't get served old bits
 
-        log.info("Downloading bits for application {}", app.id().name());
+        log.info("Downloading bits for application {} for version : {}", app.id().name(), app.version());
         for (ControllerNode node : clusterService.getNodes()) {
             if (latch.getCount() == 0) {
                 break;
