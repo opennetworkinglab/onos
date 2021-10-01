@@ -1037,6 +1037,20 @@ public class GossipDeviceStore
     }
 
     @Override
+    public DeviceDescription getDeviceDescription(ProviderId providerId, DeviceId deviceId) {
+        if (devices.containsKey(deviceId)) {
+            Map<ProviderId, DeviceDescriptions> descs = getOrCreateDeviceDescriptionsMap(deviceId);
+            synchronized (descs) {
+                DeviceDescriptions deviceDescriptions = descs.get(providerId);
+                return deviceDescriptions != null ? deviceDescriptions.getDeviceDesc().value() : null;
+            }
+        } else {
+            log.warn("Device {} does not exist in store", deviceId);
+        }
+        return null;
+    }
+
+    @Override
     public boolean isAvailable(DeviceId deviceId) {
         return availableDevices.contains(deviceId);
     }
@@ -1403,7 +1417,13 @@ public class GossipDeviceStore
      * @param advertisement to respond to
      */
     private void handleAdvertisement(DeviceAntiEntropyAdvertisement advertisement) {
-
+        /*
+         * NOTE that when an instance rejoins the cluster, it will generate
+         * device events and send to the local apps through the delegate. This
+         * approach might be not the best if the apps are not enough robust or
+         * if there is no proper coordination in the cluster. Also, note that
+         * any ECMap will act on the same way during the bootstrap process
+         */
         final NodeId sender = advertisement.sender();
 
         Map<DeviceFragmentId, Timestamp> devAds = new HashMap<>(advertisement.deviceFingerPrints());
@@ -1437,9 +1457,12 @@ public class GossipDeviceStore
                     if (advDevTimestamp == null || lProvDevice.isNewerThan(
                             advDevTimestamp)) {
                         // remote does not have it or outdated, suggest
+                        log.trace("send to {} device update {} for {}", sender, lProvDevice, deviceId);
                         notifyPeer(sender, new InternalDeviceEvent(provId, deviceId, lProvDevice));
                     } else if (!lProvDevice.timestamp().equals(advDevTimestamp)) {
                         // local is outdated, request
+                        log.trace("need update {} < {} for device {} from {}", lProvDevice.timestamp(),
+                                advDevTimestamp, deviceId, sender);
                         reqDevices.add(devFragId);
                     }
 
@@ -1456,10 +1479,12 @@ public class GossipDeviceStore
                         if (advPortTimestamp == null || lPort.isNewerThan(
                                 advPortTimestamp)) {
                             // remote does not have it or outdated, suggest
+                            log.trace("send to {} port update {} for {}/{}", sender, lPort, deviceId, num);
                             notifyPeer(sender, new InternalPortStatusEvent(provId, deviceId, lPort));
                         } else if (!lPort.timestamp().equals(advPortTimestamp)) {
                             // local is outdated, request
-                            log.trace("need update {} < {}", lPort.timestamp(), advPortTimestamp);
+                            log.trace("need update {} < {} for port {} from {}", lPort.timestamp(),
+                                    advPortTimestamp, num, sender);
                             reqPorts.add(portFragId);
                         }
 
@@ -1483,12 +1508,15 @@ public class GossipDeviceStore
                 if (localLatest == null || (rOffline != null && rOffline.compareTo(localLatest) > 0)) {
                     // remote offline timestamp suggests that the
                     // device is off-line
+                    log.trace("remote offline timestamp from {} suggests that the device {} is off-line",
+                            sender, deviceId);
                     markOfflineInternal(deviceId, rOffline);
                 }
 
                 Timestamp lOffline = offline.get(deviceId);
                 if (lOffline != null && rOffline == null) {
                     // locally offline, but remote is online, suggest offline
+                    log.trace("suggest to {} sthat the device {} is off-line", sender, deviceId);
                     notifyPeer(sender, new InternalDeviceStatusChangeEvent(deviceId, lOffline, false));
                 }
 
