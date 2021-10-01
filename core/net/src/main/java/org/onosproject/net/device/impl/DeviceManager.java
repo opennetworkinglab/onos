@@ -856,6 +856,14 @@ public class DeviceManager
                                                            deviceId, portStatistics);
             post(event);
         }
+
+        @Override
+        public DeviceDescription getDeviceDescription(DeviceId deviceId) {
+            checkNotNull(deviceId, DEVICE_ID_NULL);
+            checkValidity();
+
+            return store.getDeviceDescription(provider().id(), deviceId);
+        }
     }
 
     // by default allowed, otherwise check flag
