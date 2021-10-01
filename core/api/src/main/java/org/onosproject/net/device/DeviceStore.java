@@ -208,6 +208,17 @@ public interface DeviceStore extends Store<DeviceEvent, DeviceStoreDelegate> {
     PortDescription getPortDescription(ProviderId providerId, DeviceId deviceId, PortNumber portNumber);
 
     /**
+     * Returns the specified device description.
+     *
+     * @param providerId provider identifier
+     * @param deviceId device identifier
+     * @return device description or null if not present
+     */
+    default DeviceDescription getDeviceDescription(ProviderId providerId, DeviceId deviceId) {
+        return null;
+    }
+
+    /**
      * Indicates whether the specified device is available/online.
      *
      * @param deviceId device identifier

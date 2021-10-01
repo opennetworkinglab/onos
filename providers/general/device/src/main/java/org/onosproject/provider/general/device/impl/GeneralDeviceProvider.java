@@ -643,13 +643,35 @@ public class GeneralDeviceProvider extends AbstractProvider
             providerService.updatePorts(deviceId, ports);
         }
 
-        if (deviceService.getDevice(deviceId) != null
-                && deviceService.isAvailable(deviceId) == available) {
-            // Other nodes might have advertised this device before us.
-            return;
+        DeviceDescription deviceDescription = getDeviceDescription(deviceId, available);
+        DeviceDescription storeDescription = providerService.getDeviceDescription(deviceId);
+        if (deviceService.getDevice(deviceId) != null &&
+                deviceService.isAvailable(deviceId) == available &&
+                storeDescription != null) {
+            /*
+             * FIXME SDFAB-650 rethink the APIs and abstractions around the DeviceStore.
+             * Device registration is a two-step process for the GDP. Initially, the device is
+             * registered with default avail. to false. Later, the checkup task will update the
+             * description with the default avail to true in order to mark it available. Today,
+             * there is only one API to mark online a device from the device provider which is
+             * deviceConnected which assumes an update on the device description. The device provider
+             * is the only one able to update the device description and we have to make sure that
+             * the default avail. is flipped to true as it is used to mark as online the device when
+             * it is created or updated. Otherwise, if an ONOS instance fails and restarts, when re-joining
+             * the cluster, it will get the device marked as offline and will not be able to update
+             * its status until it become the master. This process concurs with the markOnline done
+             * by the background thread in the DeviceManager and its the reason why we cannot just check
+             * the device availability but we need to compare also the desc. Checking here the equality,
+             * as in general we may want to upgrade the device description at run time.
+             */
+            DeviceDescription testDeviceDescription = DefaultDeviceDescription.copyReplacingAnnotation(
+                    deviceDescription, storeDescription.annotations());
+            if (testDeviceDescription.equals(storeDescription)) {
+                return;
+            }
         }
-        providerService.deviceConnected(deviceId, getDeviceDescription(
-                deviceId, available));
+
+        providerService.deviceConnected(deviceId, deviceDescription);
     }
 
     private boolean probeAvailability(DeviceHandshaker handshaker) {
