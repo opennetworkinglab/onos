@@ -17,14 +17,11 @@ package org.onosproject.rest.resources;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onosproject.codec.JsonCodec;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRuleService;
-import org.onosproject.net.intent.SinglePointToMultiPointIntent;
-import org.onosproject.net.intent.MultiPointToSinglePointIntent;
-import org.onosproject.net.intent.PointToPointIntent;
-import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentEvent;
@@ -43,6 +40,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -53,6 +51,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -72,14 +71,7 @@ public class IntentsWebResource extends AbstractWebResource {
     private static final int WITHDRAW_EVENT_TIMEOUT_SECONDS = 5;
 
     private static final String APP_ID_NOT_FOUND = "Application Id not found";
-    private static final String HOST_TO_HOST_INTENT = "HostToHostIntent";
-    private static final String POINT_TO_POINT_INTENT = "PointToPointIntent";
-    private static final String SINGLE_TO_MULTI_POINT_INTENT =
-            "SinglePointToMultiPointIntent";
-    private static final String MULTI_TO_SINGLE_POINT_INTENT =
-            "MultiPointToSinglePointIntent";
-
-    private static final String INTENT = "Intent";
+    private static final String INTENTS = "intents";
     private static final String APP_ID = "appId";
     private static final String ID = "id";
     private static final String INTENT_PATHS = "paths";
@@ -90,17 +82,37 @@ public class IntentsWebResource extends AbstractWebResource {
     private UriInfo uriInfo;
 
     /**
+     * Returns the JSON codec for the specified intent.
+     *
+     * @param intent the intent instance
+     * @return JSON codec
+     */
+    public JsonCodec<Intent> codec(Intent intent) {
+        return Optional.ofNullable((JsonCodec<Intent>) codec(intent.getClass()))
+                .orElse(codec(Intent.class));
+    }
+
+    /**
      * Gets all intents.
      * Returns array containing all the intents in the system.
+     * @param detail flag to return full details of intents in list.
      *
      * @return 200 OK with array of all the intents in the system
      * @onos.rsModel Intents
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getIntents() {
+    public Response getIntents(@QueryParam("detail") boolean detail) {
+        ObjectNode root = null;
         final Iterable<Intent> intents = get(IntentService.class).getIntents();
-        final ObjectNode root = encodeArray(Intent.class, "intents", intents);
+        if (detail) {
+            root = mapper().createObjectNode();
+            ArrayNode intentsNode = root.putArray(INTENTS);
+            intents.forEach(intent -> intentsNode.add(codec(intent).encode(intent, this)));
+        } else {
+            root = encodeArray(Intent.class, INTENTS, intents);
+        }
+
         return ok(root).build();
     }
 
@@ -179,18 +191,37 @@ public class IntentsWebResource extends AbstractWebResource {
         }
         nullIsNotFound(intent, INTENT_NOT_FOUND);
 
-        final ObjectNode root;
-        if (intent instanceof HostToHostIntent) {
-            root = codec(HostToHostIntent.class).encode((HostToHostIntent) intent, this);
-        } else if (intent instanceof PointToPointIntent) {
-            root = codec(PointToPointIntent.class).encode((PointToPointIntent) intent, this);
-        } else if (intent instanceof SinglePointToMultiPointIntent) {
-            root = codec(SinglePointToMultiPointIntent.class).encode((SinglePointToMultiPointIntent) intent, this);
-        } else if (intent instanceof MultiPointToSinglePointIntent) {
-            root = codec(MultiPointToSinglePointIntent.class).encode((MultiPointToSinglePointIntent) intent, this);
+        final ObjectNode root = codec(intent).encode(intent, this);
+
+        return ok(root).build();
+    }
+
+    /**
+     * Gets intents by application.
+     * Returns the intents specified by the application id.
+     * @param detail flag to return full details of intents in list.
+     *
+     * @param appId application identifier
+     * @return 200 OK with a collection of intents of given application id
+     * @onos.rsModel Intents
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("application/{appId}")
+    public Response getIntentsByAppId(@PathParam("appId") String appId, @QueryParam("detail") boolean detail) {
+        final ApplicationId app = get(CoreService.class).getAppId(appId);
+        nullIsNotFound(app, APP_ID_NOT_FOUND);
+
+        final Iterable<Intent> intents = get(IntentService.class).getIntentsByAppId(app);
+        ObjectNode root = null;
+        if (detail) {
+            root = mapper().createObjectNode();
+            ArrayNode intentsNode = root.putArray(INTENTS);
+            intents.forEach(intent -> intentsNode.add(codec(intent).encode(intent, this)));
         } else {
-            root = codec(Intent.class).encode(intent, this);
+            root = encodeArray(Intent.class, INTENTS, intents);
         }
+
         return ok(root).build();
     }
 
@@ -230,17 +261,7 @@ public class IntentsWebResource extends AbstractWebResource {
         List<Intent> installables =
                 intentService.getInstallableIntents(intent.key());
 
-        if (intent instanceof HostToHostIntent) {
-            root.put(INTENT_TYPE, HOST_TO_HOST_INTENT);
-        } else if (intent instanceof PointToPointIntent) {
-            root.put(INTENT_TYPE, POINT_TO_POINT_INTENT);
-        } else if (intent instanceof SinglePointToMultiPointIntent) {
-            root.put(INTENT_TYPE, SINGLE_TO_MULTI_POINT_INTENT);
-        } else if (intent instanceof MultiPointToSinglePointIntent) {
-            root.put(INTENT_TYPE, MULTI_TO_SINGLE_POINT_INTENT);
-        } else {
-            root.put(INTENT_TYPE, INTENT);
-        }
+        root.put(INTENT_TYPE, intent.getClass().getSimpleName());
 
         ArrayNode pathsNode = root.putArray(INTENT_PATHS);
 

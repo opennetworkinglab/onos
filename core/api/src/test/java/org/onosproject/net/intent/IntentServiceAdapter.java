@@ -16,6 +16,8 @@
 
 package org.onosproject.net.intent;
 
+import org.onosproject.core.ApplicationId;
+
 import java.util.List;
 
 /**
@@ -39,6 +41,11 @@ public class IntentServiceAdapter implements IntentService {
 
     @Override
     public Iterable<Intent> getIntents() {
+        return null;
+    }
+
+    @Override
+    public Iterable<Intent> getIntentsByAppId(ApplicationId id) {
         return null;
     }
 
