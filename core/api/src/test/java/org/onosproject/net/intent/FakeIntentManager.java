@@ -16,6 +16,7 @@
 package org.onosproject.net.intent;
 
 import com.google.common.collect.ImmutableMap;
+import org.onosproject.core.ApplicationId;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 /**
  * Fake implementation of the intent service to assist in developing tests of
@@ -176,6 +178,15 @@ public class FakeIntentManager implements TestableIntentService {
     @Override
     public Set<Intent> getIntents() {
         return Collections.unmodifiableSet(new HashSet<>(intents.values()));
+    }
+
+    @Override
+    public Set<Intent> getIntentsByAppId(ApplicationId id) {
+        return Collections.unmodifiableSet(
+                intents.values().stream()
+                        .filter(intent -> intent.appId().equals(id))
+                        .collect(Collectors.toSet())
+        );
     }
 
     @Override

@@ -17,6 +17,7 @@ package org.onosproject.net.intent;
 
 
 import com.google.common.annotations.Beta;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.event.ListenerService;
 
 import java.util.List;
@@ -70,6 +71,14 @@ public interface IntentService
      * @return set of intents
      */
     Iterable<Intent> getIntents();
+
+    /**
+     * Returns an iterable of all intents with this application ID.
+     *
+     * @param id the application ID to look up
+     * @return collection of intents
+     */
+    Iterable<Intent> getIntentsByAppId(ApplicationId id);
 
     /**
      * Adds an intent data object to the pending map for processing.
