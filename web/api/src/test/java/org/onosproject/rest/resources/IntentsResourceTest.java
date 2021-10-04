@@ -39,6 +39,8 @@ import org.onosproject.core.GroupId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultLink;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.FilteredConnectPoint;
+import org.onosproject.net.HostId;
 import org.onosproject.net.Link;
 import org.onosproject.net.NetworkResource;
 import org.onosproject.net.PortNumber;
@@ -54,14 +56,17 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.intent.ConnectivityIntent;
 import org.onosproject.net.intent.FakeIntentManager;
 import org.onosproject.net.intent.FlowRuleIntent;
+import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MockIdGenerator;
 import org.onosproject.net.intent.PathIntent;
+import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.provider.ProviderId;
 
 
@@ -85,6 +90,7 @@ import static org.easymock.EasyMock.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.onosproject.net.NetTestTools.hid;
 import static org.onosproject.net.intent.IntentTestsMocks.MockIntent;
 
 /**
@@ -116,6 +122,10 @@ public class IntentsResourceTest extends ResourceTest {
     final HashSet<Intent> intents = new HashSet<>();
     final List<org.onosproject.net.intent.Intent> installableIntents = new ArrayList<>();
     private static final ApplicationId APP_ID = new DefaultApplicationId(1, "test");
+    private static final ApplicationId APP_ID_2 = new DefaultApplicationId(2, "test2");
+
+    private final HostId hostId1 = hid("12:34:56:78:91:ab/1");
+    private final HostId hostId2 = hid("12:34:56:78:92:ab/1");
 
     final DeviceId deviceId1 = DeviceId.deviceId("1");
     final DeviceId deviceId2 = DeviceId.deviceId("2");
@@ -364,10 +374,16 @@ public class IntentsResourceTest extends ResourceTest {
      */
     public static class IntentJsonMatcher extends TypeSafeMatcher<JsonObject> {
         private final Intent intent;
+        private boolean detail = false;
         private String reason = "";
 
         public IntentJsonMatcher(Intent intentValue) {
             intent = intentValue;
+        }
+
+        public IntentJsonMatcher(Intent intentValue, boolean detailValue) {
+            intent = intentValue;
+            detail = detailValue;
         }
 
         @Override
@@ -449,7 +465,137 @@ public class IntentsResourceTest extends ResourceTest {
                 reason = "resources array empty";
                 return false;
             }
+
+            if (intent instanceof ConnectivityIntent && detail) {
+                return matchConnectivityIntent(jsonIntent);
+            }
+
             return true;
+        }
+
+        public boolean matchesConnectPoint(ConnectPoint connectPoint, JsonObject jsonConnectPoint) {
+            // check device
+            final String jsonDevice = jsonConnectPoint.get("device").asString();
+            final String device = connectPoint.deviceId().toString();
+            if (!jsonDevice.equals(device)) {
+                reason = "device was " + jsonDevice;
+                return false;
+            }
+
+            // check port
+            final String jsonPort = jsonConnectPoint.get("port").asString();
+            final String port = connectPoint.port().toString();
+            if (!jsonPort.equals(port)) {
+                reason = "port was " + jsonPort;
+                return false;
+            }
+
+            return true;
+        }
+
+        private boolean matchHostToHostIntent(JsonObject jsonIntent) {
+            final HostToHostIntent hostToHostIntent = (HostToHostIntent) intent;
+
+            // check host one
+            final String host1 = hostToHostIntent.one().toString();
+            final String jsonHost1 = jsonIntent.get("one").asString();
+            if (!host1.equals(jsonHost1)) {
+                reason = "host one was " + jsonHost1;
+                return false;
+            }
+
+            // check host 2
+            final String host2 = hostToHostIntent.two().toString();
+            final String jsonHost2 = jsonIntent.get("two").asString();
+            if (!host2.equals(jsonHost2)) {
+                reason = "host two was " + jsonHost2;
+                return false;
+            }
+            return true;
+        }
+
+        /**
+         * Matches the JSON representation of a point to point intent.
+         *
+         * @param jsonIntent JSON representation of the intent
+         * @return true if the JSON matches the intent, false otherwise
+         */
+        private boolean matchPointToPointIntent(JsonObject jsonIntent) {
+            final PointToPointIntent pointToPointIntent = (PointToPointIntent) intent;
+
+            // check ingress connection
+            final ConnectPoint ingress = pointToPointIntent.filteredIngressPoint().connectPoint();
+            final JsonObject jsonIngress = jsonIntent.get("ingressPoint").asObject();
+            final boolean ingressMatches = matchesConnectPoint(ingress, jsonIngress);
+
+            if (!ingressMatches) {
+                reason = "ingress was " + jsonIngress;
+                return false;
+            }
+
+            // check egress connection
+            final ConnectPoint egress = pointToPointIntent.filteredEgressPoint().connectPoint();
+            final JsonObject jsonEgress = jsonIntent.get("egressPoint").asObject();
+            final boolean egressMatches = matchesConnectPoint(egress, jsonEgress);
+
+            if (!egressMatches) {
+                reason = "egress was " + jsonEgress;
+                return false;
+            }
+
+            return true;
+        }
+
+        /**
+         * Matches the JSON representation of a connectivity intent. Calls the
+         * matcher for the connectivity intent subtype.
+         *
+         * @param jsonIntent JSON representation of the intent
+         * @return true if the JSON matches the intent, false otherwise
+         */
+        private boolean matchConnectivityIntent(JsonObject jsonIntent) {
+            final ConnectivityIntent connectivityIntent = (ConnectivityIntent) intent;
+
+            // check selector
+            final JsonObject jsonSelector = jsonIntent.get("selector").asObject();
+            final TrafficSelector selector = connectivityIntent.selector();
+            final Set<Criterion> criteria = selector.criteria();
+            final JsonArray jsonCriteria = jsonSelector.get("criteria").asArray();
+            if (jsonCriteria.size() != criteria.size()) {
+                reason = "size of criteria array is " + Integer.toString(jsonCriteria.size());
+                return false;
+            }
+
+            // check treatment
+            final JsonObject jsonTreatment = jsonIntent.get("treatment").asObject();
+            final TrafficTreatment treatment = connectivityIntent.treatment();
+            final List<Instruction> instructions = treatment.immediate();
+            final JsonArray jsonInstructions = jsonTreatment.get("instructions").asArray();
+            if (jsonInstructions.size() != instructions.size()) {
+                reason = "size of instructions array is " + Integer.toString(jsonInstructions.size());
+                return false;
+            }
+
+            // Check constraints
+            final JsonArray jsonConstraints = jsonIntent.get("constraints").asArray();
+            if (connectivityIntent.constraints() != null) {
+                if (connectivityIntent.constraints().size() != jsonConstraints.size()) {
+                    reason = "constraints array size was " + Integer.toString(jsonConstraints.size());
+                    return false;
+                }
+            } else if (jsonConstraints.size() != 0) {
+                reason = "constraint array not empty";
+                return false;
+            }
+
+            if (connectivityIntent instanceof HostToHostIntent) {
+                return matchHostToHostIntent(jsonIntent);
+            } else if (connectivityIntent instanceof PointToPointIntent) {
+                return matchPointToPointIntent(jsonIntent);
+            } else {
+                reason = "class of connectivity intent is unknown";
+                return false;
+            }
         }
 
         @Override
@@ -462,10 +608,11 @@ public class IntentsResourceTest extends ResourceTest {
      * Factory to allocate an intent matcher.
      *
      * @param intent intent object we are looking for
+     * @param detail flag to verify if JSON contains detailed attributes for the intent's implementation class.
      * @return matcher
      */
-    private static IntentJsonMatcher matchesIntent(Intent intent) {
-        return new IntentJsonMatcher(intent);
+    private static IntentJsonMatcher matchesIntent(Intent intent, boolean detail) {
+        return new IntentJsonMatcher(intent, detail);
     }
 
     /**
@@ -668,10 +815,12 @@ public class IntentsResourceTest extends ResourceTest {
      */
     public static class IntentJsonArrayMatcher extends TypeSafeMatcher<JsonArray> {
         private final Intent intent;
+        private boolean detail = false;
         private String reason = "";
 
-        public IntentJsonArrayMatcher(Intent intentValue) {
+        public IntentJsonArrayMatcher(Intent intentValue, boolean detailValue) {
             intent = intentValue;
+            detail = detailValue;
         }
 
         @Override
@@ -683,7 +832,7 @@ public class IntentsResourceTest extends ResourceTest {
 
                 final JsonObject jsonIntent = json.get(jsonIntentIndex).asObject();
 
-                if (jsonIntent.names().size() != expectedAttributes) {
+                if (jsonIntent.names().size() != expectedAttributes && !detail) {
                     reason = "Found an intent with the wrong number of attributes";
                     return false;
                 }
@@ -693,7 +842,7 @@ public class IntentsResourceTest extends ResourceTest {
                     intentFound = true;
 
                     //  We found the correct intent, check attribute values
-                    assertThat(jsonIntent, matchesIntent(intent));
+                    assertThat(jsonIntent, matchesIntent(intent, detail));
                 }
             }
             if (!intentFound) {
@@ -714,10 +863,11 @@ public class IntentsResourceTest extends ResourceTest {
      * Factory to allocate an intent array matcher.
      *
      * @param intent intent object we are looking for
+     * @param detail flag to verify if JSON contains detailed attributes for the intent's implementation class.
      * @return matcher
      */
-    private static IntentJsonArrayMatcher hasIntent(Intent intent) {
-        return new IntentJsonArrayMatcher(intent);
+    private static IntentJsonArrayMatcher hasIntent(Intent intent, boolean detail) {
+        return new IntentJsonArrayMatcher(intent, detail);
     }
 
     /**
@@ -793,8 +943,8 @@ public class IntentsResourceTest extends ResourceTest {
         final JsonArray jsonIntents = result.get("intents").asArray();
         assertThat(jsonIntents, notNullValue());
 
-        assertThat(jsonIntents, hasIntent(intent1));
-        assertThat(jsonIntents, hasIntent(intent2));
+        assertThat(jsonIntents, hasIntent(intent1, false));
+        assertThat(jsonIntents, hasIntent(intent2, false));
     }
 
     /**
@@ -832,13 +982,282 @@ public class IntentsResourceTest extends ResourceTest {
         final String response = wt.path("intents/" + APP_ID.name()
                 + "/0").request().get(String.class);
         final JsonObject result = Json.parse(response).asObject();
-        assertThat(result, matchesIntent(intent));
+        assertThat(result, matchesIntent(intent, true));
 
         // Test get using numeric value
         final String responseNumeric = wt.path("intents/" + APP_ID.name()
                 + "/0x0").request().get(String.class);
         final JsonObject resultNumeric = Json.parse(responseNumeric).asObject();
-        assertThat(resultNumeric, matchesIntent(intent));
+        assertThat(resultNumeric, matchesIntent(intent, true));
+    }
+
+    /**
+     * Tests the result of the rest api GET when intents are defined and the detail flag is false.
+     */
+    @Test
+    public void testIntentsArrayWithoutDetail() {
+        replay(mockIntentService);
+
+        final PointToPointIntent intent1 =
+                PointToPointIntent.builder()
+                        .appId(APP_ID)
+                        .selector(selector1)
+                        .treatment(treatment1)
+                        .filteredIngressPoint(new FilteredConnectPoint(connectPoint1))
+                        .filteredEgressPoint(new FilteredConnectPoint(connectPoint2))
+                        .build();
+
+        final HashSet<NetworkResource> resources = new HashSet<>();
+        resources.add(new MockResource(1));
+        resources.add(new MockResource(2));
+        resources.add(new MockResource(3));
+
+        final HostToHostIntent intent2 =
+                HostToHostIntent.builder()
+                        .appId(APP_ID)
+                        .selector(selector2)
+                        .treatment(treatment2)
+                        .one(hostId1)
+                        .two(hostId2)
+                        .build();
+
+        intents.add(intent1);
+        intents.add(intent2);
+
+        final WebTarget wt = target();
+        final String response = wt.path("intents").queryParam("detail", false).request().get(String.class);
+        assertThat(response, containsString("{\"intents\":["));
+
+        final JsonObject result = Json.parse(response).asObject();
+        assertThat(result, notNullValue());
+
+        assertThat(result.names(), hasSize(1));
+        assertThat(result.names().get(0), is("intents"));
+
+        final JsonArray jsonIntents = result.get("intents").asArray();
+        assertThat(jsonIntents, notNullValue());
+
+        assertThat(jsonIntents, hasIntent(intent1, false));
+    }
+
+    /**
+     * Tests the result of the rest api GET when intents are defined and the detail flag is true.
+     */
+    @Test
+    public void testIntentsArrayWithDetail() {
+        replay(mockIntentService);
+
+        final PointToPointIntent intent1 =
+                PointToPointIntent.builder()
+                        .appId(APP_ID)
+                        .selector(selector1)
+                        .treatment(treatment1)
+                        .filteredIngressPoint(new FilteredConnectPoint(connectPoint1))
+                        .filteredEgressPoint(new FilteredConnectPoint(connectPoint2))
+                        .build();
+
+        final HashSet<NetworkResource> resources = new HashSet<>();
+        resources.add(new MockResource(1));
+        resources.add(new MockResource(2));
+        resources.add(new MockResource(3));
+
+        final HostToHostIntent intent2 =
+                HostToHostIntent.builder()
+                        .appId(APP_ID)
+                        .selector(selector2)
+                        .treatment(treatment2)
+                        .one(hostId1)
+                        .two(hostId2)
+                        .build();
+
+        intents.add(intent1);
+        intents.add(intent2);
+
+        final WebTarget wt = target();
+        final String response = wt.path("intents").queryParam("detail", true).request().get(String.class);
+        assertThat(response, containsString("{\"intents\":["));
+
+        final JsonObject result = Json.parse(response).asObject();
+        assertThat(result, notNullValue());
+
+        assertThat(result.names(), hasSize(1));
+        assertThat(result.names().get(0), is("intents"));
+
+        final JsonArray jsonIntents = result.get("intents").asArray();
+        assertThat(jsonIntents, notNullValue());
+
+        assertThat(jsonIntents, hasIntent(intent1, true));
+    }
+
+    /**
+     * Tests the result of the rest api GET when intents are defined.
+     */
+    @Test
+    public void testIntentsForApplicationWithoutDetail() {
+        final Intent intent1 =
+                PointToPointIntent.builder()
+                        .key(Key.of(0, APP_ID))
+                        .appId(APP_ID)
+                        .selector(selector1)
+                        .treatment(treatment1)
+                        .filteredIngressPoint(new FilteredConnectPoint(connectPoint1))
+                        .filteredEgressPoint(new FilteredConnectPoint(connectPoint2))
+                        .build();
+
+        final HostToHostIntent intent2 =
+                HostToHostIntent.builder()
+                        .key(Key.of(1, APP_ID_2))
+                        .appId(APP_ID_2)
+                        .selector(selector2)
+                        .treatment(treatment2)
+                        .one(hostId1)
+                        .two(hostId2)
+                        .build();
+
+        intents.add(intent1);
+        List<Intent> appIntents1 = new ArrayList<>();
+        appIntents1.add(intent1);
+
+        intents.add(intent2);
+        List<Intent> appIntents2 = new ArrayList<>();
+        appIntents2.add(intent2);
+
+        expect(mockIntentService.getIntentsByAppId(APP_ID))
+                .andReturn(appIntents1)
+                .anyTimes();
+        expect(mockIntentService.getIntentsByAppId(APP_ID_2))
+                .andReturn(appIntents2)
+                .anyTimes();
+        replay(mockIntentService);
+
+        expect(mockCoreService.getAppId(APP_ID.name()))
+                .andReturn(APP_ID).anyTimes();
+        expect(mockCoreService.getAppId(APP_ID_2.name()))
+                .andReturn(APP_ID_2).anyTimes();
+        replay(mockCoreService);
+
+
+        final WebTarget wt = target();
+        // Verify intents for app_id
+        final String response1 = wt.path("intents/application/" + APP_ID.name()).request().get(String.class);
+        assertThat(response1, containsString("{\"intents\":["));
+
+        final JsonObject result1 = Json.parse(response1).asObject();
+        assertThat(result1, notNullValue());
+
+        assertThat(result1.names(), hasSize(1));
+        assertThat(result1.names().get(0), is("intents"));
+
+        final JsonArray jsonIntents1 = result1.get("intents").asArray();
+        assertThat(jsonIntents1, notNullValue());
+        assertThat(jsonIntents1.size(), is(1));
+
+        assertThat(jsonIntents1, hasIntent(intent1, false));
+        assertThat(jsonIntents1, is(not(hasIntent(intent2, false))));
+
+        // Verify intents for app_id_2 with detail = false
+        final String response2 = wt.path("intents/application/" + APP_ID_2.name())
+                .queryParam("detail", false).request().get(String.class);
+        assertThat(response2, containsString("{\"intents\":["));
+
+        final JsonObject result2 = Json.parse(response2).asObject();
+        assertThat(result2, notNullValue());
+
+        assertThat(result2.names(), hasSize(1));
+        assertThat(result2.names().get(0), is("intents"));
+
+        final JsonArray jsonIntents2 = result2.get("intents").asArray();
+        assertThat(jsonIntents2, notNullValue());
+        assertThat(jsonIntents2.size(), is(1));
+
+        assertThat(jsonIntents2, hasIntent(intent2, false));
+        assertThat(jsonIntents2, is(not(hasIntent(intent1, false))));
+    }
+
+    /**
+     * Tests the result of the rest api GET when intents are defined and the detail flag is true.
+     */
+    @Test
+    public void testIntentsForApplicationWithDetail() {
+        final Intent intent1 =
+                PointToPointIntent.builder()
+                        .key(Key.of(0, APP_ID))
+                        .appId(APP_ID)
+                        .selector(selector1)
+                        .treatment(treatment1)
+                        .filteredIngressPoint(new FilteredConnectPoint(connectPoint1))
+                        .filteredEgressPoint(new FilteredConnectPoint(connectPoint2))
+                        .build();
+
+        final HostToHostIntent intent2 =
+                HostToHostIntent.builder()
+                        .key(Key.of(1, APP_ID_2))
+                        .appId(APP_ID_2)
+                        .selector(selector2)
+                        .treatment(treatment2)
+                        .one(hostId1)
+                        .two(hostId2)
+                        .build();
+
+        intents.add(intent1);
+        List<Intent> appIntents1 = new ArrayList<>();
+        appIntents1.add(intent1);
+
+        intents.add(intent2);
+        List<Intent> appIntents2 = new ArrayList<>();
+        appIntents2.add(intent2);
+
+        expect(mockIntentService.getIntentsByAppId(APP_ID))
+                .andReturn(appIntents1)
+                .anyTimes();
+        expect(mockIntentService.getIntentsByAppId(APP_ID_2))
+                .andReturn(appIntents2)
+                .anyTimes();
+        replay(mockIntentService);
+
+        expect(mockCoreService.getAppId(APP_ID.name()))
+                .andReturn(APP_ID).anyTimes();
+        expect(mockCoreService.getAppId(APP_ID_2.name()))
+                .andReturn(APP_ID_2).anyTimes();
+        replay(mockCoreService);
+
+
+        final WebTarget wt = target();
+        // Verify intents for app_id
+        final String response1 = wt.path("intents/application/" + APP_ID.name())
+                .queryParam("detail", true).request().get(String.class);
+        assertThat(response1, containsString("{\"intents\":["));
+
+        final JsonObject result1 = Json.parse(response1).asObject();
+        assertThat(result1, notNullValue());
+
+        assertThat(result1.names(), hasSize(1));
+        assertThat(result1.names().get(0), is("intents"));
+
+        final JsonArray jsonIntents1 = result1.get("intents").asArray();
+        assertThat(jsonIntents1, notNullValue());
+        assertThat(jsonIntents1.size(), is(1));
+
+        assertThat(jsonIntents1, hasIntent(intent1, true));
+        assertThat(jsonIntents1, is(not(hasIntent(intent2, true))));
+
+        // Verify intents for app_id_2
+        final String response2 = wt.path("intents/application/" + APP_ID_2.name())
+                .queryParam("detail", true).request().get(String.class);
+        assertThat(response2, containsString("{\"intents\":["));
+
+        final JsonObject result2 = Json.parse(response2).asObject();
+        assertThat(result2, notNullValue());
+
+        assertThat(result2.names(), hasSize(1));
+        assertThat(result2.names().get(0), is("intents"));
+
+        final JsonArray jsonIntents2 = result2.get("intents").asArray();
+        assertThat(jsonIntents2, notNullValue());
+        assertThat(jsonIntents2.size(), is(1));
+
+        assertThat(jsonIntents2, hasIntent(intent2, true));
+        assertThat(jsonIntents2, is(not(hasIntent(intent1, true))));
     }
 
     /**
@@ -975,13 +1394,13 @@ public class IntentsResourceTest extends ResourceTest {
         final String response = wt.path("intents/installables/" + APP_ID.name()
                 + "/" + intentId).request().get(String.class);
         final JsonObject result = Json.parse(response).asObject();
-        assertThat(result.get(INSTALLABLES).asArray(), hasIntent(flowRuleIntent));
+        assertThat(result.get(INSTALLABLES).asArray(), hasIntent(flowRuleIntent, false));
 
         // Test get using numeric value
         final String responseNumeric = wt.path("intents/installables/" + APP_ID.name()
                 + "/" + Long.toHexString(intentId)).request().get(String.class);
         final JsonObject resultNumeric = Json.parse(responseNumeric).asObject();
-        assertThat(resultNumeric.get(INSTALLABLES).asArray(), hasIntent(flowRuleIntent));
+        assertThat(resultNumeric.get(INSTALLABLES).asArray(), hasIntent(flowRuleIntent, false));
     }
 
     /**

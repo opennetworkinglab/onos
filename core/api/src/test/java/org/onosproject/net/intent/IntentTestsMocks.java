@@ -19,6 +19,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.Sets;
 import org.onlab.graph.ScalarWeight;
 import org.onlab.graph.Weight;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultLink;
@@ -554,6 +555,12 @@ public class IntentTestsMocks {
         public MockIntent(Long number) {
             super(NetTestTools.APP_ID, null, Collections.emptyList(),
                   Intent.DEFAULT_INTENT_PRIORITY, null);
+            this.number = number;
+        }
+
+        public MockIntent(Long number, ApplicationId appId) {
+            super(appId, null, Collections.emptyList(),
+                    Intent.DEFAULT_INTENT_PRIORITY, null);
             this.number = number;
         }
 

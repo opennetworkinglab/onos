@@ -32,6 +32,7 @@ import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.impl.TestCoreManager;
+import org.onosproject.net.NetTestTools;
 import org.onosproject.net.NetworkResource;
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleOperationsContext;
@@ -557,8 +558,8 @@ public class IntentManagerTest {
         intents = Lists.newArrayList(service.getIntents());
         assertThat(intents, hasSize(0));
 
-        final MockIntent intent1 = new MockIntent(MockIntent.nextId());
-        final MockIntent intent2 = new MockIntent(MockIntent.nextId());
+        final MockIntent intent1 = new MockIntent(MockIntent.nextId(), NetTestTools.APP_ID);
+        final MockIntent intent2 = new MockIntent(MockIntent.nextId(), NetTestTools.APP_ID_2);
 
         listener.setLatch(2, Type.INSTALL_REQ);
         listener.setLatch(2, Type.INSTALLED);
@@ -574,6 +575,15 @@ public class IntentManagerTest {
 
         assertThat(intents, hasIntentWithId(intent1.id()));
         assertThat(intents, hasIntentWithId(intent2.id()));
+        verifyState();
+
+        List<Intent> intentsAppId = Lists.newArrayList(service.getIntentsByAppId(NetTestTools.APP_ID));
+        assertThat(intentsAppId, hasSize(1));
+        assertThat(intentsAppId, hasIntentWithId(intent1.id()));
+
+        List<Intent> intentsAppId2 = Lists.newArrayList(service.getIntentsByAppId(NetTestTools.APP_ID_2));
+        assertThat(intentsAppId2, hasSize(1));
+        assertThat(intentsAppId2, hasIntentWithId(intent2.id()));
         verifyState();
     }
 
