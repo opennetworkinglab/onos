@@ -20,6 +20,7 @@ import com.btisystems.pronx.ems.core.snmp.ISnmpConfiguration;
 import com.btisystems.pronx.ems.core.snmp.ISnmpConfigurationFactory;
 import com.btisystems.pronx.ems.core.snmp.ISnmpSession;
 import com.btisystems.pronx.ems.core.snmp.ISnmpSessionFactory;
+import com.google.common.collect.Maps;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.alarm.Alarm;
@@ -52,13 +53,15 @@ public class DefaultSnmpControllerTest {
 
     @Before
     public void setUp() {
-        snmpController.sessionFactory = mockSnmpSessionFactory;
+        snmpController.factoryMap = Maps.newHashMap();
+        snmpController.factoryMap.put(1, mockSnmpSessionFactory);
     }
 
     @Test
     public void testActivate() {
         snmpController.activate(null);
-        assertNotNull("Incorrect sessionFactory", snmpController.sessionFactory);
+        assertTrue("Snmp session factory map should contain atleast one factory object",
+                snmpController.factoryMap.size() > 0);
     }
 
     @Test

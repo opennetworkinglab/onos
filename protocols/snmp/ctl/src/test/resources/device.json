@@ -1,0 +1,15 @@
+{
+  "ip": "1.1.1.1",
+  "port": 1,
+  "username": "test",
+  "password": "test",
+  "version": 3,
+  "communityString": "sdnonos",
+  "securityLevel": "authPriv",
+  "securityName": "sdnonos",
+  "authProtocol": "SHA",
+  "authPassword": "sdn@1234",
+  "privacyProtocol": "AES",
+  "privacyPassword": "sdn@1234",
+  "contextName": "sdn-context"
+}

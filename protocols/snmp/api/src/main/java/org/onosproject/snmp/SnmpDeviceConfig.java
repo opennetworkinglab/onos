@@ -21,6 +21,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.Config;
+import org.snmp4j.mp.SnmpConstants;
 
 /**
  * Configuration to push devices to the SNMP provider.
@@ -36,6 +37,15 @@ public class SnmpDeviceConfig extends Config<DeviceId> {
     private static final String NOTIFICATION_PORT = "notificationPort";
     private static final String USERNAME = "username";
     private static final String PASSWORD = "password";
+    public static final String VERSION = "version";
+    public static final String SECURITY_NAME = "securityName";
+    public static final String SECURITY_LEVEL = "securityLevel";
+    public static final String AUTH_PROTOCOL = "authProtocol";
+    public static final String AUTH_PASSWORD = "authPassword";
+    public static final String PRIVACY_PROTOCOL = "privacyProtocol";
+    public static final String PRIVACY_PASSWORD = "privacyPassword";
+    public static final String CONTEXT_NAME = "contextName";
+
 
     @Override
     public boolean isValid() {
@@ -107,6 +117,77 @@ public class SnmpDeviceConfig extends Config<DeviceId> {
         return get(PASSWORD, "");
     }
 
+    /**
+     * Gets the version of the SNMP device.
+     *
+     * @return snmp version
+     */
+    public int version() {
+        return get(VERSION, SnmpConstants.version2c);
+    }
+
+    /**
+     * Gets the securityName of the SNMPv3 device.
+     *
+     * @return securityName
+     */
+    public String securityName() {
+        return get(SECURITY_NAME, "");
+    }
+
+    /**
+     * Gets the securityLevel of the SNMPv3 device.
+     *
+     * @return securityLevel
+     */
+    public String securityLevel() {
+        return get(SECURITY_LEVEL, "");
+    }
+
+    /**
+     * Gets the authProtocol of the SNMPv3 device.
+     *
+     * @return authProtocol
+     */
+    public String authProtocol() {
+        return get(AUTH_PROTOCOL, "");
+    }
+
+    /**
+     * Gets the authPassword of the SNMPv3 device.
+     *
+     * @return authPassword
+     */
+    public String authPassword() {
+        return get(AUTH_PASSWORD, "");
+    }
+
+    /**
+     * Gets the privacyProtocol of the SNMPv3 device.
+     *
+     * @return privacyProtocol
+     */
+    public String privacyProtocol() {
+        return get(PRIVACY_PROTOCOL, "");
+    }
+
+    /**
+     * Gets the privacyPassword of the SNMPv3 device.
+     *
+     * @return privacyPassword
+     */
+    public String privacyPassword() {
+        return get(PRIVACY_PASSWORD, "");
+    }
+
+    /**
+     * Gets the context name of the SNMPv3 device.
+     *
+     * @return context name
+     */
+    public String contextName() {
+        return get(CONTEXT_NAME, "");
+    }
 
     private Pair<String, Integer> extractIpPort() {
         String info = subject.uri().getSchemeSpecificPart();
