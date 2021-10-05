@@ -21,6 +21,7 @@ import org.onosproject.snmp.SnmpDeviceConfig;
 import org.slf4j.Logger;
 import org.snmp4j.Snmp;
 import org.snmp4j.TransportMapping;
+import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.GenericAddress;
 import org.snmp4j.transport.DefaultTcpTransportMapping;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
@@ -52,6 +53,7 @@ public class DefaultSnmpDevice implements SnmpDevice {
     private boolean reachable = false;
     private final String protocol;
     private final String notificationProtocol;
+    private final int version;
 
     private Snmp session;
 
@@ -65,6 +67,7 @@ public class DefaultSnmpDevice implements SnmpDevice {
         this.username = username;
         this.community = community;
         this.deviceId = createDeviceId();
+        this.version = SnmpConstants.version2c;
         initializeSession();
     }
 
@@ -78,6 +81,7 @@ public class DefaultSnmpDevice implements SnmpDevice {
         this.username = snmpDeviceConfig.username();
         this.community = snmpDeviceConfig.password();
         this.deviceId = createDeviceId();
+        this.version = snmpDeviceConfig.version();
         initializeSession();
     }
 
@@ -143,6 +147,11 @@ public class DefaultSnmpDevice implements SnmpDevice {
     @Override
     public String getCommunity() {
         return community;
+    }
+
+    @Override
+    public int getVersion() {
+        return version;
     }
 
     @Override

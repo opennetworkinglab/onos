@@ -1,4 +1,4 @@
-COMPILE_DEPS = CORE_DEPS + [
+COMPILE_DEPS = CORE_DEPS + JACKSON + [
     "@org_apache_servicemix_bundles_snmp4j//jar",
     "@snmp_core//jar",
     "@mibs_net_snmp//jar",
