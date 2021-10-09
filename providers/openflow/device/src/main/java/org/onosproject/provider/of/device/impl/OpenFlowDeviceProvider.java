@@ -797,6 +797,10 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                     .set(AnnotationKeys.CHANNEL_ID, sw.channelId())
                     .set(AnnotationKeys.MANAGEMENT_ADDRESS, sw.channelId().split(":")[0]);
 
+            if (sw.datapathDescription() != null && !sw.datapathDescription().isEmpty()) {
+                annotationsBuilder.set(AnnotationKeys.DATAPATH_DESCRIPTION, sw.datapathDescription());
+            }
+
             // FIXME following ignores driver specified by name
             Driver driver = driverService.getDriver(sw.manufacturerDescription(),
                     sw.hardwareDescription(),
