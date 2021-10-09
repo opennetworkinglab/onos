@@ -266,6 +266,13 @@ public final class AnnotationKeys {
     public static final String TIER = "tier";
 
     /**
+     * Annotation key for the datapath description.
+     * Provides a human readable description of a given datapath. Used, for instance, when an Openflow
+     * switch connects to the controller, in the response to the OFPMP_DESC request
+     */
+    public static final String DATAPATH_DESCRIPTION = "datapathDescription";
+
+    /**
      * Returns the value annotated object for the specified annotation key.
      * The annotated value is expected to be String that can be parsed as double.
      * If parsing fails, the returned value will be {@value #DEFAULT_VALUE}.
