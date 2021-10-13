@@ -254,6 +254,8 @@ public class Controller {
                 log.warn("Interrupted while waiting to start");
                 Thread.currentThread().interrupt();
             }
+        } else {
+            initEventLoopGroup();
         }
     }
 
