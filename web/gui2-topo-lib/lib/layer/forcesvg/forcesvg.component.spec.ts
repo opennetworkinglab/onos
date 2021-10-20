@@ -30,7 +30,7 @@ import {DeviceNodeSvgComponent} from './visuals/devicenodesvg/devicenodesvg.comp
 import {SubRegionNodeSvgComponent} from './visuals/subregionnodesvg/subregionnodesvg.component';
 import {HostNodeSvgComponent} from './visuals/hostnodesvg/hostnodesvg.component';
 import {LinkSvgComponent} from './visuals/linksvg/linksvg.component';
-import {Device, Host, Link, LinkType, LinkHighlight, Region} from './models';
+import {Device, Host, Link, LinkType, LinkHighlight, Region, Node} from './models';
 import {ChangeDetectorRef, SimpleChange} from '@angular/core';
 import {TopologyService} from '../../topology.service';
 import {BadgeSvgComponent} from './visuals/badgesvg/badgesvg.component';
@@ -1413,6 +1413,122 @@ const topo2Highlights_base_data = `{
         "subregions": [],
         "links": [
             {
+                "id": "00:00:00:00:00:22/120~device:leaf4/[3/0](3)",
+                "epA": "00:00:00:00:00:22/120",
+                "epB": "device:leaf4",
+                "type": "UiEdgeLink",
+                "portB": "[3/0](3)",
+                "rollup": [
+                    {
+                        "id": "00:00:00:00:00:22/120~device:leaf4/[3/0](3)",
+                        "epA": "00:00:00:00:00:22/120",
+                        "epB": "device:leaf4",
+                        "type": "UiEdgeLink",
+                        "portB": "[3/0](3)"
+                    }
+                ]
+            },
+            {
+                "id": "00:00:00:00:00:1E/None~device:leaf4/[2/0](2)",
+                "epA": "00:00:00:00:00:1E/None",
+                "epB": "device:leaf4",
+                "type": "UiEdgeLink",
+                "portB": "[2/0](2)",
+                "rollup": [
+                    {
+                        "id": "00:00:00:00:00:1E/None~device:leaf4/[2/0](2)",
+                        "epA": "00:00:00:00:00:1E/None",
+                        "epB": "device:leaf4",
+                        "type": "UiEdgeLink",
+                        "portB": "[2/0](2)"
+                    }
+                ]
+            },
+            {
+                "id": "device:leaf4/[1/0](1)~device:spine1/[3/0](3)",
+                "epA": "device:leaf4/[1/0](1)",
+                "epB": "device:spine1/[3/0](3)",
+                "type": "UiDeviceLink",
+                "portA": "[1/0](1)",
+                "portB": "[3/0](3)",
+                "rollup": [
+                    {
+                        "id": "device:leaf4/[1/0](1)~device:spine1/[3/0](3)",
+                        "epA": "device:leaf4/[1/0](1)",
+                        "epB": "device:spine1/[3/0](3)",
+                        "type": "UiDeviceLink",
+                        "portA": "[1/0](1)",
+                        "portB": "[3/0](3)"
+                    }
+                ]
+            },
+            {
+                "id": "00:00:00:00:00:21/120~device:leaf3/[leaf3-eth3](3)",
+                "epA": "00:00:00:00:00:21/120",
+                "epB": "device:leaf3",
+                "type": "UiEdgeLink",
+                "portB": "[leaf3-eth3](3)",
+                "rollup": [
+                    {
+                        "id": "00:00:00:00:00:21/120~device:leaf3/[leaf3-eth3](3)",
+                        "epA": "00:00:00:00:00:21/120",
+                        "epB": "device:leaf3",
+                        "type": "UiEdgeLink",
+                        "portB": "[leaf3-eth3](3)"
+                    }
+                ]
+            },
+            {
+                "id": "00:00:00:00:00:1D/None~device:leaf3/[leaf3-eth2](2)",
+                "epA": "00:00:00:00:00:1D/None",
+                "epB": "device:leaf3",
+                "type": "UiEdgeLink",
+                "portB": "[leaf3-eth2](2)",
+                "rollup": [
+                    {
+                        "id": "00:00:00:00:00:1D/None~device:leaf3/[leaf3-eth2](2)",
+                        "epA": "00:00:00:00:00:1D/None",
+                        "epB": "device:leaf3",
+                        "type": "UiEdgeLink",
+                        "portB": "[leaf3-eth2](2)"
+                    }
+                ]
+            },
+            {
+                "id": "device:leaf3/[leaf3-eth1](1)~device:spine1/[spine1-eth3](3)",
+                "epA": "device:leaf3/[leaf3-eth1](1)",
+                "epB": "device:spine1/[spine1-eth3](3)",
+                "type": "UiDeviceLink",
+                "portA": "[leaf3-eth1](1)",
+                "portB": "[spine1-eth3](3)",
+                "rollup": [
+                    {
+                        "id": "device:leaf3/[leaf3-eth1](1)~device:spine1/[spine1-eth3](3)",
+                        "epA": "device:leaf3/[leaf3-eth1](1)",
+                        "epB": "device:spine1/[spine1-eth3](3)",
+                        "type": "UiDeviceLink",
+                        "portA": "[leaf3-eth1](1)",
+                        "portB": "[spine1-eth3](3)"
+                    }
+                ]
+            },
+            {
+                "id": "00:00:00:00:00:1F/120~device:leaf1/7",
+                "epA": "00:00:00:00:00:1F/120",
+                "epB": "device:leaf1",
+                "type": "UiEdgeLink",
+                "portB": "7",
+                "rollup": [
+                    {
+                        "id": "00:00:00:00:00:1F/120~device:leaf1/7",
+                        "epA": "00:00:00:00:00:1F/120",
+                        "epB": "device:leaf1",
+                        "type": "UiEdgeLink",
+                        "portB": "7"
+                    }
+                ]
+            },
+            {
                 "id": "device:leaf1/1~device:spine1/1",
                 "epA": "device:leaf1/1",
                 "epB": "device:spine1/1",
@@ -1570,6 +1686,52 @@ const topo2Highlights_base_data = `{
             [],
             [
                 {
+                    "id": "device:leaf4",
+                    "nodeType": "device",
+                    "type": "switch",
+                    "online": true,
+                    "master": "172.24.0.3",
+                    "layer": "def",
+                    "props": {
+                        "managementAddress": "grpc://pippo:50003?device_id=1",
+                        "protocol": "P4Runtime, gNMI, gNOI",
+                        "gridX": "400.0",
+                        "gridY": "400.0",
+                        "driver": "stratum-tofino",
+                        "name": "device:leaf4",
+                        "p4DeviceId": "1",
+                        "locType": "grid"
+                    },
+                    "location": {
+                        "locType": "grid",
+                        "latOrY": 400.0,
+                        "longOrX": 400.0
+                    }
+                },
+                {
+                    "id": "device:leaf3",
+                    "nodeType": "device",
+                    "type": "switch",
+                    "online": true,
+                    "master": "172.24.0.3",
+                    "layer": "def",
+                    "props": {
+                        "managementAddress": "grpc://mininet:50003?device_id=1",
+                        "protocol": "P4Runtime, gNMI, gNOI",
+                        "gridX": "400.0",
+                        "gridY": "400.0",
+                        "driver": "stratum-bmv2",
+                        "name": "device:leaf3",
+                        "p4DeviceId": "1",
+                        "locType": "grid"
+                    },
+                    "location": {
+                        "locType": "grid",
+                        "latOrY": 400.0,
+                        "longOrX": 400.0
+                    }
+                },
+                {
                     "id": "device:spine1",
                     "nodeType": "device",
                     "type": "switch",
@@ -1667,6 +1829,116 @@ const topo2Highlights_base_data = `{
             [],
             [],
             [
+                {
+                    "id": "00:00:00:00:00:22/120",
+                    "nodeType": "host",
+                    "layer": "def",
+                    "ips": [
+                        "2001:2:3::1"
+                    ],
+                    "props": {
+                        "gridX": "750.0",
+                        "gridY": "700.0",
+                        "latitude": null,
+                        "name": "h3",
+                        "locType": "grid",
+                        "longitude": null
+                    },
+                    "location": {
+                        "locType": "grid",
+                        "latOrY": 700.0,
+                        "longOrX": 750.0
+                    },
+                    "configured": false
+                },
+                {
+                    "id": "00:00:00:00:00:21/120",
+                    "nodeType": "host",
+                    "layer": "def",
+                    "ips": [
+                        "2001:2:3::1"
+                    ],
+                    "props": {
+                        "gridX": "750.0",
+                        "gridY": "700.0",
+                        "latitude": null,
+                        "name": "h3",
+                        "locType": "grid",
+                        "longitude": null
+                    },
+                    "location": {
+                        "locType": "grid",
+                        "latOrY": 700.0,
+                        "longOrX": 750.0
+                    },
+                    "configured": false
+                },
+                {
+                    "id": "00:00:00:00:00:1F/120",
+                    "nodeType": "host",
+                    "layer": "def",
+                    "ips": [
+                        "2001:2:3::1"
+                    ],
+                    "props": {
+                        "gridX": "750.0",
+                        "gridY": "700.0",
+                        "latitude": null,
+                        "name": "h3",
+                        "locType": "grid",
+                        "longitude": null
+                    },
+                    "location": {
+                        "locType": "grid",
+                        "latOrY": 700.0,
+                        "longOrX": 750.0
+                    },
+                    "configured": false
+                },
+                {
+                    "id": "00:00:00:00:00:1E/None",
+                    "nodeType": "host",
+                    "layer": "def",
+                    "ips": [
+                        "2001:2:3::1"
+                    ],
+                    "props": {
+                        "gridX": "750.0",
+                        "gridY": "700.0",
+                        "latitude": null,
+                        "name": "h3",
+                        "locType": "grid",
+                        "longitude": null
+                    },
+                    "location": {
+                        "locType": "grid",
+                        "latOrY": 700.0,
+                        "longOrX": 750.0
+                    },
+                    "configured": false
+                },
+                {
+                    "id": "00:00:00:00:00:1D/None",
+                    "nodeType": "host",
+                    "layer": "def",
+                    "ips": [
+                        "2001:2:3::1"
+                    ],
+                    "props": {
+                        "gridX": "750.0",
+                        "gridY": "700.0",
+                        "latitude": null,
+                        "name": "h3",
+                        "locType": "grid",
+                        "longitude": null
+                    },
+                    "location": {
+                        "locType": "grid",
+                        "latOrY": 700.0,
+                        "longOrX": 750.0
+                    },
+                    "configured": false
+                },
                 {
                     "id": "00:00:00:00:00:30/None",
                     "nodeType": "host",
@@ -1795,6 +2067,41 @@ const topo2Highlights_sample = `
     "hosts": [],
     "links": [
       {
+        "id": "00:00:00:00:00:22/120~device:leaf4/[3/0](3)",
+        "label": "964.91 Kbps",
+        "css": "secondary port-traffic-green"
+      },
+      {
+        "id": "00:00:00:00:00:1E/None~device:leaf4/[2/0](2)",
+        "label": "964.91 Kbps",
+        "css": "secondary port-traffic-green"
+      },
+      {
+        "id": "device:leaf4/[1/0](1)~device:spine1/[3/0](3)",
+        "label": "964.91 Kbps",
+        "css": "secondary port-traffic-green"
+      },
+      {
+        "id": "00:00:00:00:00:21/120~device:leaf3/[leaf3-eth3](3)",
+        "label": "964.91 Kbps",
+        "css": "secondary port-traffic-green"
+      },
+      {
+        "id": "00:00:00:00:00:1D/None~device:leaf3/[leaf3-eth2](2)",
+        "label": "964.91 Kbps",
+        "css": "secondary port-traffic-green"
+      },
+      {
+        "id": "device:leaf3/[leaf3-eth1](1)~device:spine1/[spine1-eth3](3)",
+        "label": "964.91 Kbps",
+        "css": "secondary port-traffic-green"
+      },
+      {
+        "id": "00:00:00:00:00:1F/120~device:leaf1/7",
+        "label": "964.91 Kbps",
+        "css": "secondary port-traffic-green"
+      },
+      {
         "id": "device:leaf2/2~device:spine2/2",
         "label": "964.91 Kbps",
         "css": "secondary port-traffic-green"
@@ -1825,6 +2132,16 @@ const topo2Highlights_sample = `
         "css": "secondary port-traffic-yellow"
       }
     ]
+  }
+}`;
+
+const topo2Highlights_sample2 = `
+{
+  "event": "topo2Highlights",
+  "payload": {
+    "devices": [],
+    "hosts": [],
+    "links": []
   }
 }`;
 
@@ -2071,6 +2388,23 @@ describe('ForceSvgComponent', () => {
         // Like epB of second example in sampleData file - endPtStr does not contain port number
         expect(ForceSvgComponent.extractNodeName('of:0000000000000206', '6'))
             .toEqual('of:0000000000000206');
+
+        // bmv2 case - no port in the endpoint
+        expect(ForceSvgComponent.extractNodeName('device:leaf1', '[leaf1-eth1](1)'))
+            .toEqual('device:leaf1');
+
+        // bmv2 case - port in the endpoint
+        expect(ForceSvgComponent.extractNodeName('device:leaf1/[leaf1-eth1](1)', '[leaf1-eth1](1)'))
+            .toEqual('device:leaf1');
+
+        // tofino case - no port in the endpoint
+        expect(ForceSvgComponent.extractNodeName('device:leaf1', '[1/0](1)'))
+            .toEqual('device:leaf1');
+
+        // tofino case - port in the endpoint
+        expect(ForceSvgComponent.extractNodeName('device:leaf1/[1/0](1)', '[1/0](1)'))
+            .toEqual('device:leaf1');
+
     });
 
     it('should handle openflow regionData change - sample Region', () => {
@@ -2100,9 +2434,23 @@ describe('ForceSvgComponent', () => {
         component.ngOnChanges(
             {'regionData' : new SimpleChange(<Region>{}, topo2BaseRegionData, true)});
 
-        expect(component.graph.links.length).toBe(9);
+        expect(component.graph.links.length).toBe(16);
+        expect(component.graph.nodes.length).toBe(16)
+        expect(linkHightlights.length).toBe(13);
 
-        expect(linkHightlights.length).toBe(6);
+        // sanitize deviceNameFromEp
+        component.graph.links.forEach((l: Link) => {
+            if (<LinkType><unknown>LinkType[l.type] === LinkType.UiEdgeLink) {
+                // edge link has only one epoint valid (the other is not deviceId)
+                const foundNode = component.graph.nodes.find((n: Node) => n.id === Link.deviceNameFromEp(l.epB));
+                expect(foundNode).toBeDefined();
+            } else {
+                var foundNode = component.graph.nodes.find((n: Node) => n.id === Link.deviceNameFromEp(l.epA));
+                expect(foundNode).toBeDefined();
+                foundNode = component.graph.nodes.find((n: Node) => n.id === Link.deviceNameFromEp(l.epB));
+                expect(foundNode).toBeDefined();
+            }
+        });
 
         // should be able to find all of the highlighted links in the original data set
         linkHightlights.forEach((lh: LinkHighlight) => {
