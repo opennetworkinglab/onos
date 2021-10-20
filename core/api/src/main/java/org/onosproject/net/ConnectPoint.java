@@ -178,14 +178,25 @@ public class ConnectPoint implements Comparable<ConnectPoint> {
          * - scheme:ip:port/path/cp
          *
          * The assumption is the last `/` will separate the device ID
-         * from the connection point number.
+         * from the connection point number. If the cp is a named port
+         * `/` can be included in the port name. We use `[` as heuristic
+         * to separate the device ID from the port number.
          */
         checkNotNull(string);
         int idx = string.lastIndexOf("/");
         checkArgument(idx != -1, NO_SEP_SPECIFIED);
 
-        String id = string.substring(0, idx);
-        String cp = string.substring(idx + 1);
+        String id = "";
+        String cp = "";
+        // deviceId/[ which means the id is 2 chars behind
+        int nameIdx = string.lastIndexOf("[");
+        if (nameIdx > 0) {
+            id = string.substring(0, nameIdx - 1);
+            cp = string.substring(nameIdx);
+        } else if (nameIdx < 0) {
+            id = string.substring(0, idx);
+            cp = string.substring(idx + 1);
+        }
         checkArgument(!cp.isEmpty(), SEP_NO_VALUE);
 
         return new ConnectPoint(DeviceId.deviceId(id), PortNumber.fromString(cp));

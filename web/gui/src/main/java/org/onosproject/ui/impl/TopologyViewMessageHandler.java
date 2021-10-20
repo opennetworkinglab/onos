@@ -81,7 +81,7 @@ import java.util.concurrent.ExecutorService;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_ADDED;
-import static org.onosproject.net.ConnectPoint.deviceConnectPoint;
+import static org.onosproject.net.ConnectPoint.fromString;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.HostId.hostId;
 import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_ADDED;
@@ -394,7 +394,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
                 if (isEdgeLink) {
                     HostId hid = hostId(srcId);
                     String cpstr = tgtId + SLASH + string(payload, TARGET_PORT);
-                    ConnectPoint cp = deviceConnectPoint(cpstr);
+                    ConnectPoint cp = fromString(cpstr);
 
                     pp = edgeLinkDetails(hid, cp);
                     overlayCache.currentOverlay().modifyEdgeLinkDetails(pp, hid, cp);
@@ -402,8 +402,8 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
                 } else {
                     String cpAstr = srcId + SLASH + string(payload, SOURCE_PORT);
                     String cpBstr = tgtId + SLASH + string(payload, TARGET_PORT);
-                    ConnectPoint cpA = deviceConnectPoint(cpAstr);
-                    ConnectPoint cpB = deviceConnectPoint(cpBstr);
+                    ConnectPoint cpA = fromString(cpAstr);
+                    ConnectPoint cpB = fromString(cpBstr);
 
                     pp = infraLinkDetails(cpA, cpB);
                     overlayCache.currentOverlay().modifyInfraLinkDetails(pp, cpA, cpB);
