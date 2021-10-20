@@ -377,7 +377,7 @@ public abstract class TopologyViewMessageHandlerBase extends TopoologyTrafficMes
     private ObjectNode hostConnect(HostLocation location) {
         return objectNode()
                 .put("device", location.deviceId().toString())
-                .put("port", location.port().toLong());
+                .put("port", location.port().toString());
     }
 
     // Encodes the specified list of labels a JSON array.
@@ -639,7 +639,7 @@ public abstract class TopologyViewMessageHandlerBase extends TopoologyTrafficMes
         pp.addProp(LPL_A_TYPE, lion.getSafe(LPL_A_TYPE), lion.getSafe(DEVICE))
                 .addProp(LPL_A_ID, lion.getSafe(LPL_A_ID), did.toString())
                 .addProp(LPL_A_FRIENDLY, lion.getSafe(LPL_A_FRIENDLY), friendlyDevice(did))
-                .addProp(LPL_A_PORT, lion.getSafe(LPL_A_PORT), cp.port().toLong())
+                .addProp(LPL_A_PORT, lion.getSafe(LPL_A_PORT), cp.port().toString())
                 .addSeparator();
     }
 
@@ -649,7 +649,7 @@ public abstract class TopologyViewMessageHandlerBase extends TopoologyTrafficMes
         pp.addProp(LPL_B_TYPE, lion.getSafe(LPL_B_TYPE), lion.getSafe(DEVICE))
                 .addProp(LPL_B_ID, lion.getSafe(LPL_B_ID), did.toString())
                 .addProp(LPL_B_FRIENDLY, lion.getSafe(LPL_B_FRIENDLY), friendlyDevice(did))
-                .addProp(LPL_B_PORT, lion.getSafe(LPL_B_PORT), cp.port().toLong())
+                .addProp(LPL_B_PORT, lion.getSafe(LPL_B_PORT), cp.port().toString())
                 .addSeparator();
     }
 

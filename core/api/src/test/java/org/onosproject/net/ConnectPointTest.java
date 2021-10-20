@@ -71,14 +71,47 @@ public class ConnectPointTest {
     }
 
     @Test
-    public void testParseFromString() {
+    public void testParseFromStringOF() {
+        String cp = "of:0011223344556677/1";
+
+        ConnectPoint connectPoint = ConnectPoint.fromString(cp);
+        assertEquals("of:0011223344556677", connectPoint.deviceId().toString());
+        assertEquals("1", connectPoint.port().toString());
+
+        expectStringParseException("[");
+        expectStringParseException("1/[");
+        expectStringParseException("1/[aasksk");
+        expectStringParseException("1/[alksas]");
+    }
+
+    @Test
+    public void testParseFromStringNetconf() {
         String cp = "netconf:127.0.0.1/[TYPE](1)";
 
         ConnectPoint connectPoint = ConnectPoint.fromString(cp);
         assertEquals("netconf:127.0.0.1", connectPoint.deviceId().toString());
         assertEquals("[TYPE](1)", connectPoint.port().toString());
         assertEquals(connectPoint, ConnectPoint.fromString(connectPoint.toString()));
+    }
 
+    @Test
+    public void testParseFromStringBmv2() {
+        String cp = "device:leaf1/[leaf1-eth4](1)";
+
+        ConnectPoint connectPoint = ConnectPoint.fromString(cp);
+        assertEquals("device:leaf1", connectPoint.deviceId().toString());
+        assertEquals("[leaf1-eth4](1)", connectPoint.port().toString());
+        assertEquals(connectPoint, ConnectPoint.fromString(connectPoint.toString()));
+    }
+
+    @Test
+    public void testParseFromStringStratum() {
+        String cp = "device:leaf1/[3/0](1)";
+
+        ConnectPoint connectPoint = ConnectPoint.fromString(cp);
+        assertEquals("device:leaf1", connectPoint.deviceId().toString());
+        assertEquals("[3/0](1)", connectPoint.port().toString());
+        assertEquals(connectPoint, ConnectPoint.fromString(connectPoint.toString()));
     }
 
     /**
@@ -89,6 +122,20 @@ public class ConnectPointTest {
     private static void expectDeviceParseException(String string) {
         try {
             ConnectPoint.deviceConnectPoint(string);
+            fail(String.format("Expected exception was not thrown for '%s'", string));
+        } catch (Exception e) {
+            assertTrue(true);
+        }
+    }
+
+    /**
+     * Parse a string connect point and expect an exception to be thrown.
+     *
+     * @param string string to parse
+     */
+    private static void expectStringParseException(String string) {
+        try {
+            ConnectPoint.fromString(string);
             fail(String.format("Expected exception was not thrown for '%s'", string));
         } catch (Exception e) {
             assertTrue(true);

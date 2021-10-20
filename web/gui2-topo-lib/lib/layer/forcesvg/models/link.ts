@@ -55,7 +55,12 @@ export class Link implements UiElement, d3.SimulationLinkDatum<Node> {
 
     public static deviceNameFromEp(ep: string): string {
         if (ep !== undefined && ep.lastIndexOf('/') > 0) {
-            return ep.substr(0, ep.lastIndexOf('/'));
+            // named port format is [name](number)
+            if (ep.includes('[')) {
+                return ep.substr(0, ep.lastIndexOf('[') - 1);
+            } else {
+                return ep.substr(0, ep.lastIndexOf('/'));
+            }
         }
         return ep;
     }
@@ -66,17 +71,47 @@ export class Link implements UiElement, d3.SimulationLinkDatum<Node> {
      * @param linkId The id of the link in either format
      */
     public static linkIdFromShowHighlights(linkId: string) {
-        if (linkId.includes('-')) {
-            const parts: string[] = linkId.split('-');
+        // Already in the right format
+        if (linkId.includes('~')) {
+            const parts: string[] = linkId.split('~');
+            // remove host part if needed
             const part0 = Link.removeHostPortNum(parts[0]);
             const part1 = Link.removeHostPortNum(parts[1]);
             return part0 + '~' + part1;
         }
+
+        // Custom traffic highlight
+        if (linkId.includes('-')) {
+            // "-" is used only as separator between the links
+            if (linkId.indexOf('-') === linkId.lastIndexOf('-')) {
+                const parts: string[] = linkId.split('-');
+                const part0 = Link.removeHostPortNum(parts[0]);
+                const part1 = Link.removeHostPortNum(parts[1]);
+                return part0 + '~' + part1;
+            } else if (linkId.includes(')')) {
+                // "-" is used in the port name
+                var index = linkId.indexOf(')');
+                // the format is [name](number) on both ends
+                if (linkId.charAt(index + 1) === '-') {
+                    const part0 = Link.removeHostPortNum(linkId.substr(0, index + 1));
+                    const part1 = Link.removeHostPortNum(linkId.substr(index + 2, linkId.length));
+                    return part0 + '~' + part1;
+                } else {
+                    index = linkId.indexOf('-');
+                    const part0 = Link.removeHostPortNum(linkId.substr(0, index));
+                    const part1 = Link.removeHostPortNum(linkId.substr(index + 1, linkId.length));
+                    return part0 + '~' + part1;
+                }
+            }
+        }
+
+        // unknown format
         return linkId;
     }
 
     private static removeHostPortNum(hostStr: string) {
-        if (hostStr.includes('/None/')) {
+        // Regex is for the tagged hosts
+        if (hostStr.includes('/None/') || hostStr.match('/[+-]?[0-9]+/')) {
             const subparts = hostStr.split('/');
             return subparts[0] + '/' + subparts[1];
         }

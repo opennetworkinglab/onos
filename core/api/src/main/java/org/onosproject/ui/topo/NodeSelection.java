@@ -36,7 +36,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.onosproject.net.ConnectPoint.deviceConnectPoint;
+import static org.onosproject.net.ConnectPoint.fromString;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.HostId.hostId;
 
@@ -301,8 +301,8 @@ public class NodeSelection {
                     continue;
                 }
 
-                cpSrc = deviceConnectPoint(connectPoints[0]);
-                cpDst = deviceConnectPoint(connectPoints[1]);
+                cpSrc = fromString(connectPoints[0]);
+                cpDst = fromString(connectPoints[1]);
                 link = linkService.getLink(cpSrc, cpDst);
 
                 if (link != null) {
