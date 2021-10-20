@@ -45,6 +45,7 @@ import org.onosproject.net.pi.runtime.PiActionProfileGroup;
 import org.onosproject.net.pi.runtime.PiActionProfileGroupId;
 import org.onosproject.net.pi.runtime.PiActionProfileMember;
 import org.onosproject.net.pi.runtime.PiActionProfileMemberId;
+import org.onosproject.p4runtime.api.P4RuntimeWriteClient;
 import org.onosproject.p4runtime.ctl.client.P4RuntimeClientImpl;
 import org.onosproject.p4runtime.ctl.controller.P4RuntimeControllerImpl;
 import p4.v1.P4RuntimeOuterClass.ActionProfileGroup;
@@ -165,6 +166,27 @@ public class P4RuntimeGroupTest {
     @After
     public void teardown() {
         client.shutdown();
+    }
+
+    @Test
+    public void testInvalidPiActionProfileMember() {
+        PiActionParam param = new PiActionParam(PORT_PARAM_ID, "invalidString");
+        PiAction piAction = PiAction.builder()
+                .withId(EGRESS_PORT_ACTION_ID)
+                .withParameter(param).build();
+        PiActionProfileMember actionProfileMember = PiActionProfileMember.builder()
+                .forActionProfile(ACT_PROF_ID)
+                .withAction(piAction)
+                .withId(PiActionProfileMemberId.of(BASE_MEM_ID + 1))
+                .build();
+        P4RuntimeWriteClient.WriteRequest writeRequest = client.write(P4_DEVICE_ID, PIPECONF);
+        writeRequest.insert(actionProfileMember);
+        P4RuntimeWriteClient.WriteResponse response = writeRequest.submitSync();
+
+        assertEquals(false, response.isSuccess());
+        assertEquals(1, response.all().size());
+        assertEquals("Wrong size for param 'port' of action 'set_egress_port', expected 2 bytes, but found 13",
+                response.all().iterator().next().explanation());
     }
 
     @Test
