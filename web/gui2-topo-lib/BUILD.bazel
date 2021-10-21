@@ -45,7 +45,6 @@ ts_library(
         # TODO re-enable this test
         exclude = [
             "lib/layer/backgroundsvg/backgroundsvg.component.spec.ts",
-            "lib/layer/forcesvg/forcesvg.component.spec.ts",
             "lib/layer/forcesvg/visuals/hostnodesvg/hostnodesvg.component.spec.ts",
         ],
     ),
@@ -147,6 +146,9 @@ genrule(
              && echo '});' >> $@""",
 )
 
+# These tests are not run as part of CI because they require a browser to be installed
+# Run them locally on your system if you are making a change to any of the TypeScript files
+# bazel test //web/gui2-topo-lib:test-not-coverage
 karma_web_test(
     name = "test-not-coverage",  # coverage is to avoid being picked up by 'ot' alias
     srcs = [
@@ -156,7 +158,7 @@ karma_web_test(
         "@npm//:node_modules/zone.js/dist/zone-testing-bundle.js",
         "@npm//:node_modules/reflect-metadata/Reflect.js",
     ],
-    config_file = "//web/gui2/src/main/webapp:karma.conf.js",
+    config_file = "//web/gui2/src/main/webapp:karma.conf.js",  # Edit this file to set the Browsers needed
     tags = ["native"],
     runtime_deps = [
         "//web/gui2/src/main/webapp:initialize_testbed",
