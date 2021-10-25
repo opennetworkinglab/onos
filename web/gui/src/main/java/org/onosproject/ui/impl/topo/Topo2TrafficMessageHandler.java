@@ -98,6 +98,12 @@ public class Topo2TrafficMessageHandler extends TopoologyTrafficMessageHandlerAb
     }
 
     @Override
+    public void destroy() {
+        super.destroy();
+        traffic2.stopMonitoring();
+    }
+
+    @Override
     protected Collection<RequestHandler> createRequestHandlers() {
         return ImmutableSet.of(
                 new Topo2AllTraffic(),
