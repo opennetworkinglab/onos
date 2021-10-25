@@ -188,6 +188,7 @@ public abstract class Tools {
      */
     public static <T> T nullIsNotFound(T item, String message) {
         if (item == null) {
+            log.error(message);
             throw new ItemNotFoundException(message);
         }
         return item;
@@ -205,6 +206,7 @@ public abstract class Tools {
      */
     public static <T> Set<T> emptyIsNotFound(Set<T> item, String message) {
         if (item == null || item.isEmpty()) {
+            log.error(message);
             throw new ItemNotFoundException(message);
         }
         return item;
@@ -222,6 +224,7 @@ public abstract class Tools {
      */
     public static <T> T nullIsIllegal(T item, String message) {
         if (item == null) {
+            log.error(message);
             throw new IllegalArgumentException(message);
         }
         return item;
