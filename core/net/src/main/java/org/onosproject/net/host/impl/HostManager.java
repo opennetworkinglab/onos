@@ -562,10 +562,16 @@ public class HostManager
         public void hostVanished(HostId hostId) {
             checkNotNull(hostId, HOST_ID_NULL);
             checkValidity();
+            // TODO SDFAB-718 rethink HostStore APIs to allow atomic operations
             Host host = store.getHost(hostId);
 
             if (!allowedToChange(hostId)) {
                 log.info("Request to remove {} is ignored due to provider mismatch", hostId);
+                return;
+            }
+
+            if (host == null) {
+                log.info("Request to remove {} is ignored due to host not present in the store", hostId);
                 return;
             }
 
