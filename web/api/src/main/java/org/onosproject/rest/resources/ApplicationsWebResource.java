@@ -39,7 +39,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Set;
+import org.slf4j.Logger;
 
+import static org.slf4j.LoggerFactory.getLogger;
 import static org.onlab.util.Tools.nullIsNotFound;
 import static org.onlab.util.Tools.readTreeFromStream;
 
@@ -48,6 +50,9 @@ import static org.onlab.util.Tools.readTreeFromStream;
  */
 @Path("applications")
 public class ApplicationsWebResource extends AbstractWebResource {
+
+    private static final Logger log = getLogger(ApplicationsWebResource.class);
+
 
     private static final String APP_ID_NOT_FOUND = "Application ID is not found";
     private static final String APP_NOT_FOUND = "Application is not found";
@@ -83,7 +88,7 @@ public class ApplicationsWebResource extends AbstractWebResource {
     @Path("{name}")
     public Response getApp(@PathParam("name") String name) {
         ApplicationAdminService service = get(ApplicationAdminService.class);
-        ApplicationId appId = nullIsNotFound(service.getId(name), APP_NOT_FOUND);
+        ApplicationId appId = nullIsNotFound(service.getId(name), APP_NOT_FOUND + ":" + name);
         return response(service, appId);
     }
 
@@ -97,10 +102,14 @@ public class ApplicationsWebResource extends AbstractWebResource {
     @Path("{name}/health")
     public Response health(@PathParam("name") String name) {
         ApplicationAdminService service = get(ApplicationAdminService.class);
-        ApplicationId appId = nullIsNotFound(service.getId(name), APP_NOT_FOUND);
+        ApplicationId appId = service.getId(name);
+        nullIsNotFound(appId, APP_ID_NOT_FOUND + ": " + name);
+
+        Application app = service.getApplication(appId);
+        nullIsNotFound(app, APP_NOT_FOUND + ": " + appId);
 
         ComponentsMonitorService componentsMonitorService = get(ComponentsMonitorService.class);
-        boolean ready = componentsMonitorService.isFullyStarted(service.getApplication(appId).features());
+        boolean ready = componentsMonitorService.isFullyStarted(app.features());
         return Response.ok(mapper().createObjectNode().put("message", ready ? APP_READY : APP_PENDING)).build();
     }
 
@@ -193,7 +202,7 @@ public class ApplicationsWebResource extends AbstractWebResource {
     @Path("{name}/active")
     public Response activateApp(@PathParam("name") String name) {
         ApplicationAdminService service = get(ApplicationAdminService.class);
-        ApplicationId appId = nullIsNotFound(service.getId(name), APP_NOT_FOUND);
+        ApplicationId appId = nullIsNotFound(service.getId(name), APP_NOT_FOUND + ": " + name);
         service.activate(appId);
         return response(service, appId);
     }
@@ -245,7 +254,7 @@ public class ApplicationsWebResource extends AbstractWebResource {
     @Path("{name}/bits")
     public Response getAppBits(@PathParam("name") String name) {
         ApplicationAdminService service = get(ApplicationAdminService.class);
-        ApplicationId appId = nullIsNotFound(service.getId(name), APP_ID_NOT_FOUND);
+        ApplicationId appId = nullIsNotFound(service.getId(name), APP_ID_NOT_FOUND + ": " + name);
         InputStream bits = service.getApplicationArchive(appId);
         return ok(bits).build();
     }
@@ -290,12 +299,13 @@ public class ApplicationsWebResource extends AbstractWebResource {
     }
 
     private Response response(ApplicationAdminService service, ApplicationId appId) {
-        Application app = nullIsNotFound(service.getApplication(appId), APP_NOT_FOUND);
+        Application app = nullIsNotFound(service.getApplication(appId),
+                                         APP_NOT_FOUND + ": " + appId);
         return ok(codec(Application.class).encode(app, this)).build();
     }
 
     private Response response(ApplicationId appId) {
-        ApplicationId checkedAppId = nullIsNotFound(appId, APP_ID_NOT_FOUND);
+        ApplicationId checkedAppId = nullIsNotFound(appId, APP_ID_NOT_FOUND + ": " + appId);
         return ok(codec(ApplicationId.class).encode(checkedAppId, this)).build();
     }
 }
