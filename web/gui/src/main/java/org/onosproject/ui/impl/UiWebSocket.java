@@ -22,6 +22,7 @@ import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketAdapter;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.ServiceNotFoundException;
+import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.ui.GlyphConstants;
@@ -438,9 +439,10 @@ public class UiWebSocket extends WebSocketAdapter implements UiConnection {
         ArrayNode instances = arrayNode();
 
         for (ControllerNode node : service.getNodes()) {
+            IpAddress nodeIp = node.ip();
             ObjectNode instance = objectNode()
                     .put(ID, node.id().toString())
-                    .put(IP, node.ip().toString())
+                    .put(IP, nodeIp != null ? nodeIp.toString() : node.host())
                     .put(GlyphConstants.UI_ATTACHED,
                          node.equals(service.getLocalNode()));
             instances.add(instance);

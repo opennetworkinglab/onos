@@ -261,10 +261,11 @@ public abstract class TopologyViewMessageHandlerBase extends TopoologyTrafficMes
     // Produces a cluster instance message to the client.
     protected ObjectNode instanceMessage(ClusterEvent event, String msgType) {
         ControllerNode node = event.subject();
+        IpAddress nodeIp = node.ip();
         int switchCount = services.mastership().getDevicesOf(node.id()).size();
         ObjectNode payload = objectNode()
                 .put("id", node.id().toString())
-                .put("ip", node.ip().toString())
+                .put("ip", nodeIp != null ? nodeIp.toString() : node.host())
                 .put("online", services.cluster().getState(node.id()).isActive())
                 .put("ready", services.cluster().getState(node.id()).isReady())
                 .put("uiAttached", node.equals(services.cluster().getLocalNode()))
@@ -272,7 +273,7 @@ public abstract class TopologyViewMessageHandlerBase extends TopoologyTrafficMes
 
         ArrayNode labels = arrayNode();
         labels.add(node.id().toString());
-        labels.add(node.ip().toString());
+        labels.add(nodeIp != null ? nodeIp.toString() : node.host());
 
         // Add labels, props and stuff the payload into envelope.
         payload.set("labels", labels);

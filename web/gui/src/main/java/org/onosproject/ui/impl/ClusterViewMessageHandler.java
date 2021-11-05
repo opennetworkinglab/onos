@@ -19,6 +19,7 @@ package org.onosproject.ui.impl;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
+import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
@@ -170,27 +171,31 @@ public class ClusterViewMessageHandler extends UiMessageHandler {
 
         @Override
         public void process(ObjectNode payload) {
+            ObjectNode rootNode = objectNode();
+            ObjectNode data = objectNode();
+            ArrayNode devices = arrayNode();
 
             String id = string(payload, ID);
             ClusterService cs = get(ClusterService.class);
             ControllerNode node = cs.getNode(new NodeId(id));
+            if (node != null) {
+                IpAddress nodeIp = node.ip();
+                List<Device> deviceList = populateDevices(node);
 
-            ObjectNode data = objectNode();
-            ArrayNode devices = arrayNode();
-            List<Device> deviceList = populateDevices(node);
+                data.put(ID, node.id().toString());
+                data.put(IP, nodeIp != null ? nodeIp.toString() : node.host());
 
-            data.put(ID, node.id().toString());
-            data.put(IP, node.ip().toString());
+                for (Device d : deviceList) {
+                    devices.add(deviceData(d));
+                }
 
-            for (Device d : deviceList) {
-                devices.add(deviceData(d));
+            } else {
+                data.put(ID, "NONE");
+                data.put(IP, "NONE");
             }
-
             data.set(DEVICES, devices);
 
             //TODO put more detail info to data
-
-            ObjectNode rootNode = objectNode();
             rootNode.set(DETAILS, data);
             sendMessage(CLUSTER_DETAILS_RESP, rootNode);
         }

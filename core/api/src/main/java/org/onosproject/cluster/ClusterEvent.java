@@ -55,6 +55,25 @@ public class ClusterEvent extends AbstractEvent<ClusterEvent.Type, ControllerNod
         INSTANCE_DEACTIVATED
     }
 
+    public enum InstanceType {
+        /**
+         * Signifies that the event refers to an ONOS instance.
+         */
+        ONOS,
+
+        /**
+         * Signifies that the event refers to an Atomix instance.
+         */
+        STORAGE,
+
+        /**
+         * Signifies that the event refers to an Unknown instance.
+         */
+        UNKNOWN
+    }
+
+    private final InstanceType instanceType;
+
     /**
      * Creates an event of a given type and for the specified instance and the
      * current time.
@@ -63,7 +82,7 @@ public class ClusterEvent extends AbstractEvent<ClusterEvent.Type, ControllerNod
      * @param instance cluster device subject
      */
     public ClusterEvent(Type type, ControllerNode instance) {
-        super(type, instance);
+        this(type, instance, InstanceType.UNKNOWN);
     }
 
     /**
@@ -74,13 +93,47 @@ public class ClusterEvent extends AbstractEvent<ClusterEvent.Type, ControllerNod
      * @param time     occurrence time
      */
     public ClusterEvent(Type type, ControllerNode instance, long time) {
-        super(type, instance, time);
+        this(type, instance, time, InstanceType.UNKNOWN);
     }
 
+    /**
+     * Creates an event of a given type and for the specified instance and the
+     * current time.
+     *
+     * @param type     cluster event type
+     * @param instance cluster device subject
+     * @param instanceType instance type
+     */
+    public ClusterEvent(Type type, ControllerNode instance, InstanceType instanceType) {
+        super(type, instance);
+        this.instanceType = instanceType;
+    }
+
+    /**
+     * Creates an event of a given type and for the specified device and time.
+     *
+     * @param type     device event type
+     * @param instance event device subject
+     * @param time     occurrence time
+     * @param instanceType instance type
+     */
+    public ClusterEvent(Type type, ControllerNode instance, long time, InstanceType instanceType) {
+        super(type, instance, time);
+        this.instanceType = instanceType;
+    }
+
+    /**
+     * Returns the instance type subject.
+     *
+     * @return instance type subject or UNKNOWN if the event is not instance type specific.
+     */
+    public InstanceType instanceType() {
+        return instanceType;
+    }
 
     @Override
     public int hashCode() {
-        return Objects.hash(type(), subject(), time());
+        return Objects.hash(type(), subject(), time(), instanceType());
     }
 
     @Override
@@ -92,7 +145,8 @@ public class ClusterEvent extends AbstractEvent<ClusterEvent.Type, ControllerNod
             final ClusterEvent other = (ClusterEvent) obj;
             return Objects.equals(this.type(), other.type()) &&
                     Objects.equals(this.subject(), other.subject()) &&
-                    Objects.equals(this.time(), other.time());
+                    Objects.equals(this.time(), other.time()) &&
+                    Objects.equals(this.instanceType(), other.instanceType());
         }
         return false;
     }
@@ -103,6 +157,7 @@ public class ClusterEvent extends AbstractEvent<ClusterEvent.Type, ControllerNod
                 .add("type", type())
                 .add("subject", subject())
                 .add("time", time())
+                .add("instanceType", instanceType())
                 .toString();
     }
 
