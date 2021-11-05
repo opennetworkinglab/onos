@@ -201,13 +201,7 @@ public class Topo2Jsonifier {
 
     private ObjectNode json(UiClusterMember member, boolean isUiAttached) {
         int switchCount = mastershipService.getDevicesOf(member.id()).size();
-        ControllerNode.State state = clusterService.getState(member.id());
-        return objectNode()
-                .put("id", member.id().toString())
-                .put("ip", member.ip().toString())
-                .put("online", state.isActive())
-                .put("ready", state.isReady())
-                .put("uiAttached", isUiAttached)
+        return jsonCommon(member).put("uiAttached", isUiAttached)
                 .put("switches", switchCount);
     }
 
@@ -637,14 +631,26 @@ public class Topo2Jsonifier {
     }
 
     private ObjectNode json(UiClusterMember member) {
+        return jsonCommon(member).put(GlyphConstants.UI_ATTACHED,
+                clusterService.getLocalNode().equals(member.backingNode()));
+    }
+
+    private ObjectNode jsonCommon(UiClusterMember member) {
         ControllerNode.State state = clusterService.getState(member.id());
+        ControllerNode node = member.backingNode();
+        if (node != null) {
+            IpAddress nodeIp = member.backingNode().ip();
+            return objectNode()
+                    .put("id", member.idAsString())
+                    .put("ip", nodeIp != null ? nodeIp.toString() : node.host())
+                    .put("online", state.isActive())
+                    .put("ready", state.isReady());
+        }
         return objectNode()
                 .put("id", member.idAsString())
-                .put("ip", member.ip().toString())
-                .put("online", state.isActive())
-                .put("ready", state.isReady())
-                .put(GlyphConstants.UI_ATTACHED,
-                     member.backingNode().equals(clusterService.getLocalNode()));
+                .put("ip", "NONE")
+                .put("online", false)
+                .put("ready", false);
     }
 
     private ObjectNode jsonClosedRegion(String ridStr, UiRegion region) {

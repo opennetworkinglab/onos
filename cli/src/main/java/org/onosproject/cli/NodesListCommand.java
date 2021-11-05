@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterAdminService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.core.Version;
@@ -70,9 +71,10 @@ public class NodesListCommand extends AbstractShellCommand {
         for (ControllerNode node : nodes) {
             ControllerNode.State nodeState = service.getState(node.id());
             Version nodeVersion = service.getVersion(node.id());
+            IpAddress nodeIp = node.ip();
             ObjectNode newNode = mapper.createObjectNode()
                     .put("id", node.id().toString())
-                    .put("ip", node.ip().toString())
+                    .put("ip", nodeIp != null ? nodeIp.toString() : node.host())
                     .put("tcpPort", node.tcpPort())
                     .put("self", node.equals(self));
             if (nodeState != null) {
