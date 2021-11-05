@@ -36,9 +36,10 @@ public final class ControllerNodeCodec extends JsonCodec<ControllerNode> {
     public ObjectNode encode(ControllerNode node, CodecContext context) {
         checkNotNull(node, "Controller node cannot be null");
         ClusterService service = context.getService(ClusterService.class);
+        IpAddress nodeIp = node.ip();
         return context.mapper().createObjectNode()
                 .put("id", node.id().toString())
-                .put("ip", node.ip().toString())
+                .put("ip", nodeIp != null ? nodeIp.toString() : node.host())
                 .put("tcpPort", node.tcpPort())
                 .put("status", service.getState(node.id()).toString())
                 .put("lastUpdate", Long.toString(service.getLastUpdatedInstant(node.id()).toEpochMilli()))
