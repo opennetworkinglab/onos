@@ -49,6 +49,7 @@ import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -282,7 +283,7 @@ public class NetworkAttachmentDefinitionWatcher {
                     KubevirtNetwork.Builder builder = DefaultKubevirtNetwork.builder();
 
                     JSONObject configJson = new JSONObject(networkConfig);
-                    String type = configJson.getString(TYPE);
+                    String type = configJson.getString(TYPE).toUpperCase(Locale.ROOT);
                     Integer mtu = configJson.getInt(MTU);
                     String gatewayIp = configJson.getString(GATEWAY_IP);
                     boolean defaultRoute = configJson.getBoolean(DEFAULT_ROUTE);
