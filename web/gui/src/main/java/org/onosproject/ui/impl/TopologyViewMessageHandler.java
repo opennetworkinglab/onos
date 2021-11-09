@@ -922,7 +922,11 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private class InternalClusterListener implements ClusterEventListener {
         @Override
         public void event(ClusterEvent event) {
-            msgSender.execute(() -> sendMessage(instanceMessage(event, null)));
+            msgSender.execute(() -> {
+                if (event.instanceType() == ClusterEvent.InstanceType.ONOS) {
+                    sendMessage(instanceMessage(event, null));
+                }
+            });
         }
     }
 

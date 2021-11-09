@@ -380,23 +380,25 @@ public final class UiSharedTopologyModel
         }
 
         private void handleEvent(ClusterEvent event) {
-            ControllerNode cnode = event.subject();
+            if (event.instanceType() == ClusterEvent.InstanceType.ONOS) {
+                ControllerNode cnode = event.subject();
 
-            switch (event.type()) {
+                switch (event.type()) {
 
-                case INSTANCE_ADDED:
-                case INSTANCE_ACTIVATED:
-                case INSTANCE_READY:
-                case INSTANCE_DEACTIVATED:
-                    cache.addOrUpdateClusterMember(cnode);
-                    break;
+                    case INSTANCE_ADDED:
+                    case INSTANCE_ACTIVATED:
+                    case INSTANCE_READY:
+                    case INSTANCE_DEACTIVATED:
+                        cache.addOrUpdateClusterMember(cnode);
+                        break;
 
-                case INSTANCE_REMOVED:
-                    cache.removeClusterMember(cnode);
-                    break;
+                    case INSTANCE_REMOVED:
+                        cache.removeClusterMember(cnode);
+                        break;
 
-                default:
-                    break;
+                    default:
+                        break;
+                }
             }
         }
     }

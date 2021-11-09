@@ -830,6 +830,11 @@ public class FpmManager implements FpmInfoService {
         @Override
         public void event(ClusterEvent event) {
             clusterEventExecutor.execute(() -> {
+                if (event.instanceType() == ClusterEvent.InstanceType.STORAGE) {
+                    log.debug("Skipping cluster event for {}", event.subject().id().id());
+                    return;
+                }
+
                 log.info("Receives ClusterEvent {} for {}", event.type(), event.subject().id());
                 switch (event.type()) {
                     case INSTANCE_READY:

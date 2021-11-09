@@ -152,6 +152,11 @@ public class RouteMonitor {
         @Override
         public void event(ClusterEvent event) {
             eventExecutor.execute(() -> {
+                if (event.instanceType() == ClusterEvent.InstanceType.STORAGE) {
+                    log.debug("Skipping cluster event for {}", event.subject().id().id());
+                    return;
+                }
+
                 switch (event.type()) {
                     case INSTANCE_DEACTIVATED:
                         NodeId id = event.subject().id();
