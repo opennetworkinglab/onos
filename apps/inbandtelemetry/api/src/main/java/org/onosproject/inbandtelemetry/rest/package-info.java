@@ -15,6 +15,6 @@
  */
 
 /**
- * Implementation REST for in-band-telemetry service.
+ * Implementation REST for INT service.
  */
-package org.onosproject.inbandtelemetry.api;
+package org.onosproject.inbandtelemetry.rest;

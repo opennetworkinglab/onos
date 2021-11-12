@@ -14,7 +14,18 @@
  * limitations under the License.
  */
 
+package org.onosproject.inbandtelemetry.rest;
+
+import org.onlab.rest.AbstractWebApplication;
+
+import java.util.Set;
+
 /**
- * Implementation REST for in-band-telemetry service.
+ * Inbandtelemetry web application.
  */
-package org.onosproject.inbandtelemetry.api;
+public class IntWebApplication extends AbstractWebApplication {
+    @Override
+    public Set<Class<?>> getClasses() {
+        return getClasses(IntWebResource.class);
+    }
+}
