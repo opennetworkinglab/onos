@@ -34,6 +34,7 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.TestApplicationId;
+import org.onosproject.codec.CodecService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.inbandtelemetry.api.IntIntent;
@@ -64,6 +65,7 @@ import org.onosproject.net.host.HostService;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.TestStorageService;
+import org.onosproject.codec.JsonCodec;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -132,6 +134,7 @@ public class SimpleIntManagerTest {
     private NetworkConfigRegistry networkConfigRegistry;
     private NetworkConfigService networkConfigService;
     private NetworkConfigListener networkConfigListener;
+    private CodecService codecService = new TestCodecService();
 
 
     @Before
@@ -154,7 +157,7 @@ public class SimpleIntManagerTest {
         manager.netcfgService = networkConfigService;
         manager.netcfgRegistry = networkConfigRegistry;
         manager.eventExecutor = MoreExecutors.newDirectExecutorService();
-
+        manager.codecService = codecService;
         expect(coreService.registerApplication(APP_NAME))
                 .andReturn(APP_ID).anyTimes();
         networkConfigRegistry.registerConfigFactory(anyObject());
@@ -425,5 +428,29 @@ public class SimpleIntManagerTest {
                 .withCollectorIp(COLLECTOR_IP)
                 .enabled(true)
                 .build();
+    }
+}
+
+/**
+ * Test Codec service.
+ */
+class TestCodecService implements CodecService {
+
+    @Override
+    public Set<Class<?>> getCodecs() {
+        return null;
+    }
+
+    @Override
+    public <T> JsonCodec<T> getCodec(Class<T> entityClass) {
+        return null;
+    }
+
+    @Override
+    public <T> void registerCodec(Class<T> entityClass, JsonCodec<T> codec) { }
+
+    @Override
+    public void unregisterCodec(Class<?> entityClass) {
+
     }
 }

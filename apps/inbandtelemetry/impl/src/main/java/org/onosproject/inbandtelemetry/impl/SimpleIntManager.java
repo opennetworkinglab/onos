@@ -19,8 +19,10 @@ import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Striped;
 import org.onlab.util.KryoNamespace;
 import org.onlab.util.SharedScheduledExecutors;
+import org.onosproject.codec.CodecService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.inbandtelemetry.rest.IntIntentCodec;
 import org.onosproject.net.behaviour.inbandtelemetry.IntReportConfig;
 import org.onosproject.net.behaviour.inbandtelemetry.IntMetadataType;
 import org.onosproject.net.behaviour.inbandtelemetry.IntDeviceConfig;
@@ -125,6 +127,9 @@ public class SimpleIntManager implements IntService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetworkConfigRegistry netcfgRegistry;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected CodecService codecService;
+
     private final Striped<Lock> deviceLocks = Striped.lock(10);
 
     private final ConcurrentMap<DeviceId, ScheduledFuture<?>> scheduledDeviceTasks = Maps.newConcurrentMap();
@@ -173,7 +178,7 @@ public class SimpleIntManager implements IntService {
                 .register(IntIntent.TelemetryMode.class)
                 .register(IntDeviceConfig.class)
                 .register(IntDeviceConfig.TelemetrySpec.class);
-
+        codecService.registerCodec(IntIntent.class, new IntIntentCodec());
         devicesToConfigure = storageService.<DeviceId, Long>consistentMapBuilder()
                 .withSerializer(Serializer.using(serializer.build()))
                 .withName("onos-int-devices-to-configure")
@@ -250,6 +255,7 @@ public class SimpleIntManager implements IntService {
         devicesToConfigure.removeListener(devicesToConfigureListener);
         devicesToConfigure.destroy();
         devicesToConfigure = null;
+        codecService.unregisterCodec(IntIntent.class);
         // Cancel tasks (if any).
         scheduledDeviceTasks.values().forEach(f -> {
             f.cancel(true);

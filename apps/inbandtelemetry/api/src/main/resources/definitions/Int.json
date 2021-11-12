@@ -1,0 +1,129 @@
+{
+  "type": "object",
+  "title": "INT Intents",
+
+  "required": [
+    "INT Intents"
+  ],
+  "properties": {
+    "intintent": {
+      "type": "array",
+      "xml": {
+        "name": "Ints",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "title": "int",
+        "required": [
+          "selector",
+          "metadataTypes",
+          "headerType",
+          "reportTypes",
+          "telemetryMode"
+        ],
+        "properties": {
+          "selector": {
+            "type": "object",
+            "title": "selector",
+            "required": [
+              "criteria"
+            ],
+            "properties": {
+              "criteria": {
+                "type": "array",
+                "xml": {
+                  "name": "criteria",
+                  "wrapped": true
+                },
+                "items": {
+                  "type": "object",
+                  "title": "criteria",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "description": "Ethernet field name",
+                      "example": "ETH_TYPE"
+                    },
+                    "ip": {
+                      "type": "string",
+                      "example": "10.1.1.0/24",
+                      "description": "IP source address"
+                    },
+                    "tcpPort": {
+                      "type": "integer",
+                      "format": "uint16",
+                      "example": 1,
+                      "description": "TCP source address"
+                    },
+                    "udpPort": {
+                      "type": "uint16",
+                      "format": "uint16",
+                      "example": 1,
+                      "description": "UDP source address"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "headerType": {
+            "type": "string",
+             "enum": [
+               "HOP_BY_HOP",
+               "DESTINATION"
+            ],
+            "example": "HOP_BY_HOP"
+          },
+          "telemetryMode": {
+            "type": "string",
+            "enum": [
+              "POSTCARD",
+              "INBAND_TELEMETRY"
+            ],
+            "example": "INBAND_TELEMETRY"
+          },
+          "metadataTypes": {
+            "type": "array",
+            "xml": {
+              "name": "metadataTypes",
+              "wrapped": true
+            },
+            "items": {
+              "type": "string",
+              "enum": [
+                "SWITCH_ID",
+                "L1_PORT_ID",
+                "HOP_LATENCY",
+                "QUEUE_OCCUPANCY",
+                "INGRESS_TIMESTAMP",
+                "EGRESS_TIMESTAMP",
+                "L2_PORT_ID",
+                "EGRESS_TX_UTIL"
+              ],
+              "example": "SWITCH_ID"
+            }
+          },
+          "reportTypes": {
+            "type": "array",
+            "xml": {
+              "name": "reportTypes",
+              "wrapped": true
+            },
+            "items": {
+              "type": "string",
+              "enum": [
+                "TRACKED_FLOW",
+                "DROPPED_PACKET",
+                "CONGESTED_QUEUE"
+              ],
+              "example": "TRACKED_FLOW"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+
