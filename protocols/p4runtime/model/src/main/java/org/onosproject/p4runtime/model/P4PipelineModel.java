@@ -48,6 +48,7 @@ final class P4PipelineModel implements PiPipelineModel {
     private final ImmutableMap<PiRegisterId, PiRegisterModel> registers;
     private final ImmutableMap<PiActionProfileId, PiActionProfileModel> actionProfiles;
     private final ImmutableMap<PiPacketOperationType, PiPacketOperationModel> packetOperations;
+    private final String architecture;
     private final int fingerprint;
 
     P4PipelineModel(
@@ -57,6 +58,7 @@ final class P4PipelineModel implements PiPipelineModel {
             ImmutableMap<PiRegisterId, PiRegisterModel> registers,
             ImmutableMap<PiActionProfileId, PiActionProfileModel> actionProfiles,
             ImmutableMap<PiPacketOperationType, PiPacketOperationModel> packetOperations,
+            String architecture,
             int fingerprint) {
         this.tables = tables;
         this.counters = counters;
@@ -65,6 +67,12 @@ final class P4PipelineModel implements PiPipelineModel {
         this.actionProfiles = actionProfiles;
         this.packetOperations = packetOperations;
         this.fingerprint = fingerprint;
+        this.architecture = architecture;
+    }
+
+    @Override
+    public Optional<String> architecture() {
+        return Optional.ofNullable(this.architecture);
     }
 
     @Override
@@ -160,6 +168,7 @@ final class P4PipelineModel implements PiPipelineModel {
                 .add("actionProfiles", actionProfiles.values())
                 .add("packetOperations", packetOperations.values())
                 .add("fingerprint", fingerprint)
+                .add("architecture", architecture)
                 .toString();
     }
 }
