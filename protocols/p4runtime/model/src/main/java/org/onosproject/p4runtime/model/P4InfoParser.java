@@ -155,6 +155,8 @@ public final class P4InfoParser {
         // Start by parsing and mapping instances to to their integer P4Info IDs.
         // Convenient to build the table model at the end.
 
+        final String architecture = parseArchitecture(p4info);
+
         // Counters.
         final Map<Integer, PiCounterModel> counterMap = Maps.newHashMap();
         counterMap.putAll(parseCounters(p4info));
@@ -263,9 +265,16 @@ public final class P4InfoParser {
                 registerImmMap,
                 actProfileImmMap,
                 ImmutableMap.copyOf(pktOpMap),
+                architecture,
                 fingerprint);
     }
 
+    private static String parseArchitecture(P4Info p4info) {
+        if (p4info.hasPkgInfo()) {
+            return p4info.getPkgInfo().getArch();
+        }
+        return null;
+    }
 
     private static Map<Integer, PiCounterModel> parseCounters(P4Info p4info)
             throws P4InfoParserException {

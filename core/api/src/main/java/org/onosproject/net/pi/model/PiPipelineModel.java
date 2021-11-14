@@ -28,6 +28,13 @@ import java.util.Optional;
 public interface PiPipelineModel {
 
     /**
+     * Returns the data plane target architecture supported by this pipeline model.
+     *
+     * @return optional architecture string.
+     */
+    Optional<String> architecture();
+
+    /**
      * Returns the table model associated with the given ID, if present.
      *
      * @param tableId table ID

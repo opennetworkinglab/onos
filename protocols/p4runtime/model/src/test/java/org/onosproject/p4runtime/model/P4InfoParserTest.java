@@ -59,6 +59,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.IsNull.notNullValue;
+import static org.hamcrest.core.IsNull.nullValue;
 
 /**
  * Test for P4Info Parser.
@@ -75,25 +76,48 @@ public class P4InfoParserTest {
     private static final int DEFAULT_MAX_GROUP_SIZE = 16;
 
     /**
+     * Tests the parsing of the architecture field.
+     * @throws Exception if the equality group objects does not match expected
+     */
+    @Test
+    public void testParseArchitecture() throws Exception {
+        // Generate two PiPipelineModels from the same p4Info file
+        PiPipelineModel model = P4InfoParser.parse(p4InfoUrl);
+        PiPipelineModel sameAsModel = P4InfoParser.parse(p4InfoUrl);
+
+        PiPipelineModel model3 = P4InfoParser.parse(p4InfoUrl2);
+
+        String architecture1 = model.architecture().orElse(null);
+        String architecture2 = sameAsModel.architecture().orElse(null);
+
+        assertThat("null value is returned if `arch` not present in P4Info",
+                   architecture1,
+                   is(nullValue()));
+        assertThat("null value is returned if `arch` not present in P4Info",
+                   architecture2,
+                   is(nullValue()));
+
+        String architecture3 = model3.architecture().orElse(null);
+        assertThat("test that `arch` field is correctly parsed",
+                   architecture3,
+                   is("v1model"));
+    }
+
+    /**
      * Tests parse method.
      * @throws Exception if equality group objects dose not match as expected
      */
     @Test
     public void testParse() throws Exception {
-        // Generate two PiPipelineModels from p4Info file
+        // Generate two PiPipelineModels from the same p4Info file
         PiPipelineModel model = P4InfoParser.parse(p4InfoUrl);
-        PiPipelineModel model2 = P4InfoParser.parse(p4InfoUrl);
+        PiPipelineModel sameAsModel = P4InfoParser.parse(p4InfoUrl);
 
         // Check equality
-        new EqualsTester().addEqualityGroup(model, model2).testEquals();
+        new EqualsTester().addEqualityGroup(model, sameAsModel).testEquals();
 
         // Generate a P4Info object from the file
-        final P4Info p4info;
-        try {
-            p4info = getP4InfoMessage(p4InfoUrl);
-        } catch (IOException e) {
-            throw new P4InfoParserException("Unable to parse protobuf " + p4InfoUrl.toString(), e);
-        }
+        final P4Info p4info = getP4InfoMessage(p4InfoUrl);
 
         List<Table> tableMsgs =  p4info.getTablesList();
         PiTableId table0Id = PiTableId.of(tableMsgs.get(0).getPreamble().getName());
@@ -102,8 +126,8 @@ public class P4InfoParserTest {
         //parse tables
         PiTableModel table0Model = model.table(table0Id).orElse(null);
         PiTableModel wcmpTableModel = model.table(wcmpTableId).orElse(null);
-        PiTableModel table0Model2 = model2.table(table0Id).orElse(null);
-        PiTableModel wcmpTableModel2 = model2.table(wcmpTableId).orElse(null);
+        PiTableModel table0Model2 = sameAsModel.table(table0Id).orElse(null);
+        PiTableModel wcmpTableModel2 = sameAsModel.table(wcmpTableId).orElse(null);
 
         new EqualsTester().addEqualityGroup(table0Model, table0Model2)
                 .addEqualityGroup(wcmpTableModel, wcmpTableModel2).testEquals();
@@ -211,7 +235,7 @@ public class P4InfoParserTest {
                                                                       true, DEFAULT_MAX_ACTION_PROFILE_SIZE,
                                                                       DEFAULT_MAX_GROUP_SIZE);
         PiActionProfileModel wcmpSelector = model.actionProfiles(actionProfileId).orElse(null);
-        PiActionProfileModel wcmpSelector2 = model2.actionProfiles(actionProfileId).orElse(null);
+        PiActionProfileModel wcmpSelector2 = sameAsModel.actionProfiles(actionProfileId).orElse(null);
 
         new EqualsTester().addEqualityGroup(wcmpSelector, wcmpSelector2, wcmpSelector3).testEquals();
 
@@ -232,13 +256,13 @@ public class P4InfoParserTest {
                 model.counter(PiCounterId.of("wcmp_control.wcmp_table_counter")).orElse(null);
 
         PiCounterModel ingressPortCounterModel2 =
-                model2.counter(PiCounterId.of("port_counters_ingress.ingress_port_counter")).orElse(null);
+                sameAsModel.counter(PiCounterId.of("port_counters_ingress.ingress_port_counter")).orElse(null);
         PiCounterModel egressPortCounterModel2 =
-                model2.counter(PiCounterId.of("port_counters_egress.egress_port_counter")).orElse(null);
+                sameAsModel.counter(PiCounterId.of("port_counters_egress.egress_port_counter")).orElse(null);
         PiCounterModel table0CounterModel2 =
-                model2.counter(PiCounterId.of("table0_control.table0_counter")).orElse(null);
+                sameAsModel.counter(PiCounterId.of("table0_control.table0_counter")).orElse(null);
         PiCounterModel wcmpTableCounterModel2 =
-                model2.counter(PiCounterId.of("wcmp_control.wcmp_table_counter")).orElse(null);
+                sameAsModel.counter(PiCounterId.of("wcmp_control.wcmp_table_counter")).orElse(null);
 
         new EqualsTester()
                 .addEqualityGroup(ingressPortCounterModel, ingressPortCounterModel2)
@@ -254,7 +278,7 @@ public class P4InfoParserTest {
 
         //Parse meters
         Collection<PiMeterModel> meterModel = model.meters();
-        Collection<PiMeterModel> meterModel2 = model2.meters();
+        Collection<PiMeterModel> meterModel2 = sameAsModel.meters();
 
         assertThat("model pased meter collaction should be empty", meterModel.isEmpty(), is(true));
         assertThat("model pased meter collaction should be empty", meterModel2.isEmpty(), is(true));
@@ -266,9 +290,9 @@ public class P4InfoParserTest {
                 model.packetOperationModel(PiPacketOperationType.PACKET_OUT).orElse(null);
 
         PiPacketOperationModel packetInOperationalModel2 =
-                model2.packetOperationModel(PiPacketOperationType.PACKET_IN).orElse(null);
+                sameAsModel.packetOperationModel(PiPacketOperationType.PACKET_IN).orElse(null);
         PiPacketOperationModel packetOutOperationalModel2 =
-                model2.packetOperationModel(PiPacketOperationType.PACKET_OUT).orElse(null);
+                sameAsModel.packetOperationModel(PiPacketOperationType.PACKET_OUT).orElse(null);
 
         new EqualsTester()
                 .addEqualityGroup(packetInOperationalModel, packetInOperationalModel2)
