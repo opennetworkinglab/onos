@@ -49,6 +49,11 @@ public class MockPiPipelineModel implements PiPipelineModel {
     }
 
     @Override
+    public Optional<String> architecture() {
+        return Optional.empty();
+    }
+
+    @Override
     public Optional<PiTableModel> table(PiTableId tableId) {
         return Optional.ofNullable(tableMap.getOrDefault(tableId, null));
     }
