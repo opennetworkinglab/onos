@@ -130,8 +130,12 @@ public abstract class Key implements Comparable<Key>, ResourceConsumer {
 
         @Override
         public int compareTo(Key o) {
-            StringKey sk = (StringKey) o;
-            return this.key.compareTo(sk.key);
+            if (o instanceof StringKey) {
+                StringKey sk = (StringKey) o;
+                return this.key.compareTo(sk.key);
+            } else {
+                return this.key.compareTo(o.toString());
+            }
         }
     }
 
@@ -176,9 +180,13 @@ public abstract class Key implements Comparable<Key>, ResourceConsumer {
 
         @Override
         public int compareTo(Key o) {
-            Long myKey = key;
-            Long otherKey = ((LongKey) o).key;
-            return myKey.compareTo(otherKey);
+            if (o instanceof LongKey) {
+                Long myKey = key;
+                Long otherKey = ((LongKey) o).key;
+                return myKey.compareTo(otherKey);
+            } else {
+                return this.toString().compareTo(o.toString());
+            }
         }
     }
 }
