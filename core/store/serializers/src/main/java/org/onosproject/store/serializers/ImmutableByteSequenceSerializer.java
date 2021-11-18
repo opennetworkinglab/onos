@@ -38,18 +38,24 @@ public class ImmutableByteSequenceSerializer extends Serializer<ImmutableByteSeq
     @Override
     public void write(Kryo kryo, Output output, ImmutableByteSequence object) {
         byte[] data = object.asArray();
+        output.writeBoolean(object.isAscii());
         output.writeInt(data.length);
         output.write(data);
     }
 
     @Override
     public ImmutableByteSequence read(Kryo kryo, Input input, Class<ImmutableByteSequence> type) {
+        boolean isAscii = input.readBoolean();
         int length = input.readInt();
         byte[] data = new byte[length];
         int bytesRead = input.read(data);
         if (bytesRead != length) {
             throw new IllegalStateException("Byte sequence serializer read expected " + length +
                     " but got " + bytesRead);
+        }
+
+        if (isAscii) {
+            return ImmutableByteSequence.copyFrom(new String(data));
         }
         return ImmutableByteSequence.copyFrom(data);
     }
