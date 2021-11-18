@@ -21,7 +21,10 @@ import org.onosproject.net.NetTestTools;
 import com.google.common.testing.EqualsTester;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.comparesEqualTo;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutableBaseClass;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
@@ -117,5 +120,75 @@ public class KeyTest {
                 .addEqualityGroup(longKey2, copyOfLongKey2)
                 .addEqualityGroup(longKey3)
                 .testEquals();
+    }
+
+    /**
+     * Tests compareTo for string based keys.
+     */
+    @Test
+    public void stringKeyCompare() {
+        Key stringKey1 = Key.of(KEY_1, NetTestTools.APP_ID);
+        Key copyOfStringKey1 = Key.of(KEY_1, NetTestTools.APP_ID);
+        Key stringKey2 = Key.of(KEY_2, NetTestTools.APP_ID);
+        Key copyOfStringKey2 = Key.of(KEY_2, NetTestTools.APP_ID);
+        Key stringKey3 = Key.of(KEY_3, NetTestTools.APP_ID);
+        Key copyOfStringKey3 = Key.of(KEY_3, NetTestTools.APP_ID);
+
+        assertThat(stringKey1, comparesEqualTo(copyOfStringKey1));
+        assertThat(stringKey1, lessThan(stringKey2));
+        assertThat(stringKey1, lessThan(stringKey3));
+
+        assertThat(stringKey2, greaterThan(stringKey1));
+        assertThat(stringKey2, comparesEqualTo(copyOfStringKey2));
+        assertThat(stringKey2, lessThan(stringKey3));
+
+        assertThat(stringKey3, greaterThan(stringKey1));
+        assertThat(stringKey3, greaterThan(stringKey2));
+        assertThat(stringKey3, comparesEqualTo(copyOfStringKey3));
+    }
+
+    /**
+     * Tests compareTo for long based keys.
+     */
+    @Test
+    public void longKeyCompare() {
+        Key longKey1 = Key.of(LONG_KEY_1, NetTestTools.APP_ID);
+        Key copyOfLongKey1 = Key.of(LONG_KEY_1, NetTestTools.APP_ID);
+        Key longKey2 = Key.of(LONG_KEY_2, NetTestTools.APP_ID);
+        Key copyOfLongKey2 = Key.of(LONG_KEY_2, NetTestTools.APP_ID);
+        Key longKey3 = Key.of(LONG_KEY_3, NetTestTools.APP_ID);
+        Key copyOfLongKey3 = Key.of(LONG_KEY_3, NetTestTools.APP_ID);
+
+        assertThat(longKey1, comparesEqualTo(copyOfLongKey1));
+        assertThat(longKey1, lessThan(longKey2));
+        assertThat(longKey1, lessThan(longKey3));
+
+        assertThat(longKey2, greaterThan(longKey1));
+        assertThat(longKey2, comparesEqualTo(copyOfLongKey2));
+        assertThat(longKey2, lessThan(longKey3));
+
+        assertThat(longKey3, greaterThan(longKey1));
+        assertThat(longKey3, greaterThan(longKey2));
+        assertThat(longKey3, comparesEqualTo(copyOfLongKey3));
+    }
+
+    /**
+     * Tests compareTo for string and long based keys.
+     */
+    @Test
+    public void stringAndLongKeyCompare() {
+        Key stringKey0 = Key.of("0" + KEY_1, NetTestTools.APP_ID);
+        Key longKey1 = Key.of(LONG_KEY_1, NetTestTools.APP_ID);
+        Key stringKey2 = Key.of(KEY_2, NetTestTools.APP_ID);
+
+
+        assertThat(stringKey0, lessThan(longKey1));
+        assertThat(stringKey0, lessThan(stringKey2));
+
+        assertThat(longKey1, greaterThan(stringKey0));
+        assertThat(longKey1, lessThan(stringKey2));
+
+        assertThat(stringKey2, greaterThan(stringKey0));
+        assertThat(stringKey2, greaterThan(longKey1));
     }
 }
