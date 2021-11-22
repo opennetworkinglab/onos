@@ -16,6 +16,7 @@
 
 package org.onosproject.net.behaviour.upf;
 
+import com.google.common.annotations.Beta;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 
@@ -26,7 +27,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * A UPF device interface, such as a S1U or UE IP address pool.
  */
-public final class UpfInterface {
+@Beta
+public final class UpfInterface implements UpfEntity {
     private final Ip4Prefix prefix;
     private final Type type;
 
@@ -134,7 +136,6 @@ public final class UpfInterface {
         return type == Type.CORE;
     }
 
-
     /**
      * Check if this UPF interface is for receiving buffered packets as they are released from the dbuf
      * buffering device.
@@ -152,6 +153,11 @@ public final class UpfInterface {
      */
     public Ip4Prefix getPrefix() {
         return this.prefix;
+    }
+
+    @Override
+    public UpfEntityType type() {
+        return UpfEntityType.INTERFACE;
     }
 
     public enum Type {

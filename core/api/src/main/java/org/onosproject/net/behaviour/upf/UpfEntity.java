@@ -14,7 +14,19 @@
  * limitations under the License.
  */
 
+package org.onosproject.net.behaviour.upf;
+
+import com.google.common.annotations.Beta;
+
 /**
- * UPF programmable behaviour implementation for fabric-v1model.
+ * Abstraction of a UPF entity used to interact with the UPF-programmable device.
  */
-package org.onosproject.pipelines.fabric.impl.behaviour.upf;
+@Beta
+public interface UpfEntity {
+    /**
+     * Returns the type of this entity.
+     *
+     * @return entity type
+     */
+    UpfEntityType type();
+}
