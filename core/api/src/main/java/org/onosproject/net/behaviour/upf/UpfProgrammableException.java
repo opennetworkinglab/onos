@@ -16,14 +16,20 @@
 
 package org.onosproject.net.behaviour.upf;
 
+import com.google.common.annotations.Beta;
+
+import java.util.Optional;
+
 /**
  * An exception indicating a an error happened in the UPF programmable behaviour.
  * Possible errors include the attempted insertion of a malformed flow rule, the
  * reading or writing of an out-of-bounds counter cell, the deletion of a non-existent
  * flow rule, and the attempted insertion of a flow rule into a full table.
  */
+@Beta
 public class UpfProgrammableException extends Exception {
     private final Type type;
+    private final UpfEntityType entityType;
 
     public enum Type {
         /**
@@ -31,13 +37,13 @@ public class UpfProgrammableException extends Exception {
          */
         UNKNOWN,
         /**
-         * The target table is at capacity.
+         * The target entity is at capacity.
          */
-        TABLE_EXHAUSTED,
+        ENTITY_EXHAUSTED,
         /**
-         * A provided counter cell index was out of range.
+         * A provided index was out of range.
          */
-        COUNTER_INDEX_OUT_OF_RANGE,
+        ENTITY_OUT_OF_RANGE,
         /**
          * The UpfProgrammable implementation doesn't support the operation.
          */
@@ -52,6 +58,7 @@ public class UpfProgrammableException extends Exception {
     public UpfProgrammableException(String message) {
         super(message);
         this.type = Type.UNKNOWN;
+        this.entityType = null;
     }
 
     /**
@@ -63,6 +70,20 @@ public class UpfProgrammableException extends Exception {
     public UpfProgrammableException(String message, Type type) {
         super(message);
         this.type = type;
+        this.entityType = null;
+    }
+
+    /**
+     * Creates a new exception for the given message, type and entity type.
+     *
+     * @param message    exception message
+     * @param type       exception type
+     * @param entityType entity type
+     */
+    public UpfProgrammableException(String message, Type type, UpfEntityType entityType) {
+        super(message);
+        this.type = type;
+        this.entityType = entityType;
     }
 
     /**
@@ -72,5 +93,14 @@ public class UpfProgrammableException extends Exception {
      */
     public Type getType() {
         return type;
+    }
+
+    /**
+     * Get the type of the entity that generated the exception.
+     *
+     * @return entity type
+     */
+    public Optional<UpfEntityType> getEntityType() {
+        return Optional.ofNullable(entityType);
     }
 }

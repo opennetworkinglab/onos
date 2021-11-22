@@ -17,21 +17,26 @@
 package org.onosproject.net.behaviour.upf;
 
 
+import com.google.common.annotations.Beta;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * A structure for compactly passing PDR counter values for a given counter ID.
- * Contains four counts: Ingress Packets, Ingress Bytes, Egress Packets, Egress Bytes
+ * A structure for compactly passing UPF counter values for a given counter ID.
+ * Contains four counts: Ingress Packets, Ingress Bytes, Egress Packets, Egress Bytes.
+ * UpfCounter can be used ONLY on {@code apply} and {@code readAll} calls in the
+ * {@link UpfDevice} interface.
  */
-public final class PdrStats {
+@Beta
+public final class UpfCounter implements UpfEntity {
     private final int cellId;
     private final long ingressPkts;
     private final long ingressBytes;
     private final long egressPkts;
     private final long egressBytes;
 
-    private PdrStats(int cellId, long ingressPkts, long ingressBytes,
-                     long egressPkts, long egressBytes) {
+    private UpfCounter(int cellId, long ingressPkts, long ingressBytes,
+                       long egressPkts, long egressBytes) {
         this.cellId = cellId;
         this.ingressPkts = ingressPkts;
         this.ingressBytes = ingressBytes;
@@ -45,12 +50,12 @@ public final class PdrStats {
 
     @Override
     public String toString() {
-        return String.format("PDR-Stats:{ CellID: %d, Ingress:(%dpkts,%dbytes), Egress:(%dpkts,%dbytes) }",
+        return String.format("Stats:{ CellID: %d, Ingress:(%dpkts,%dbytes), Egress:(%dpkts,%dbytes) }",
                 cellId, ingressPkts, ingressBytes, egressPkts, egressBytes);
     }
 
     /**
-     * Get the cell ID (index) of the dataplane PDR counter that produced this set of stats.
+     * Get the cell ID (index) of the dataplane counter that produced this set of stats.
      *
      * @return counter cell ID
      */
@@ -94,6 +99,11 @@ public final class PdrStats {
         return egressBytes;
     }
 
+    @Override
+    public UpfEntityType type() {
+        return UpfEntityType.COUNTER;
+    }
+
     public static class Builder {
         private Integer cellId;
         private long ingressPkts;
@@ -109,7 +119,7 @@ public final class PdrStats {
         }
 
         /**
-         * Set the Cell ID (index) of the datalane PDR counter that produced this set of stats.
+         * Set the Cell ID (index) of the datalane counter that produced this set of stats.
          *
          * @param cellId the counter cell ID
          * @return This builder
@@ -120,7 +130,7 @@ public final class PdrStats {
         }
 
         /**
-         * Set the number of packets and bytes that hit the PDR counter in the dataplane ingress pipeline.
+         * Set the number of packets and bytes that hit the counter in the dataplane ingress pipeline.
          *
          * @param ingressPkts  ingress packet count
          * @param ingressBytes egress packet count
@@ -133,7 +143,7 @@ public final class PdrStats {
         }
 
         /**
-         * Set the number of packets and bytes that hit the PDR counter in the dataplane egress pipeline.
+         * Set the number of packets and bytes that hit the counter in the dataplane egress pipeline.
          *
          * @param egressPkts  egress packet count
          * @param egressBytes egress byte count
@@ -145,9 +155,9 @@ public final class PdrStats {
             return this;
         }
 
-        public PdrStats build() {
+        public UpfCounter build() {
             checkNotNull(cellId, "CellID must be provided");
-            return new PdrStats(cellId, ingressPkts, ingressBytes, egressPkts, egressBytes);
+            return new UpfCounter(cellId, ingressPkts, ingressBytes, egressPkts, egressBytes);
         }
     }
 }
