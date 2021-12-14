@@ -63,6 +63,7 @@ import io.fabric8.kubernetes.api.model.PodAffinityTerm;
 import io.fabric8.kubernetes.api.model.PodAntiAffinity;
 import io.fabric8.kubernetes.api.model.PodCondition;
 import io.fabric8.kubernetes.api.model.PodIP;
+import io.fabric8.kubernetes.api.model.PodReadinessGate;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodStatus;
@@ -235,6 +236,7 @@ public class DistributedKubevirtPodStore
             .register(DownwardAPIVolumeFile.class)
             .register(ObjectFieldSelector.class)
             .register(FieldsV1.class)
+            .register(PodReadinessGate.class)
             .register(LinkedHashMap.class)
             .register(Collection.class)
             .build();
