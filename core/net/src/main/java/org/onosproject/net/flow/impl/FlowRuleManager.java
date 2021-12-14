@@ -522,11 +522,12 @@ public class FlowRuleManager
             log.debug("Flow {} is on switch but not in store.", flowRule);
         }
 
-        private boolean flowAdded(FlowEntry flowEntry) {
+        private boolean handleExistingFlow(FlowEntry flowEntry) {
             checkNotNull(flowEntry, FLOW_RULE_NULL);
             checkValidity();
-
-            if (checkRuleLiveness(flowEntry, store.getFlowEntry(flowEntry))) {
+            FlowEntry storedEntry = store.getFlowEntry(flowEntry);
+            if ((storedEntry != null && storedEntry.state() != FlowEntry.FlowEntryState.PENDING_REMOVE)
+                    && checkRuleLiveness(flowEntry, storedEntry)) {
                 FlowRuleEvent event = store.addOrUpdateFlowRule(flowEntry);
                 if (event == null) {
                     log.debug("No flow store event generated.");
@@ -607,7 +608,7 @@ public class FlowRuleManager
                     if (storedRule != null) {
                         if (storedRule.exactMatch(rule)) {
                             // we both have the rule, let's update some info then.
-                            done = flowAdded(rule);
+                            done = handleExistingFlow(rule);
                             if (!done) {
                                 // Mastership change can occur during this iteration
                                 master = mastershipService.getMasterFor(deviceId);
