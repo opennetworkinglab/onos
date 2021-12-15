@@ -445,6 +445,12 @@ public final class StreamClientImpl implements P4RuntimeStreamClient {
                     case ARBITRATION:
                         handleArbitrationUpdate(message.getArbitration());
                         return;
+                    case ERROR:
+                        P4RuntimeOuterClass.StreamError error = message.getError();
+                        log.warn("Receive stream error {} from {} Canonical Code: {} Message: {} Space: {} Code: {}",
+                                error.getDetailsCase(), deviceId, error.getCanonicalCode(), error.getMessage(),
+                                error.getSpace(), error.getCode());
+                        return;
                     default:
                         log.warn("Unrecognized StreamMessageResponse from {}: {}",
                                  deviceId, message.getUpdateCase());
