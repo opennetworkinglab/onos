@@ -38,6 +38,10 @@ perl -pi.old -e "s/maxFileSize=1MB/maxFileSize=10MB/g" \
 echo "felix.fileinstall.filter='\\*.jar'" >> \
     $KARAF_DIR/etc/org.apache.felix.fileinstall-deploy.cfg
 
+# Patch log4j to mitigate CVE-2021-44228
+# https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-44228
+zip -q -d  $KARAF_DIR/system/org/ops4j/pax/logging/pax-logging-log4j2/1.11.6/pax-logging-log4j2-1.11.6.jar org/apache/logging/log4j/core/lookup/JndiLookup.class
+
 # Patch-in proper Karaf version into the startup script
 perl -pi.bk -e 's/apache-karaf-\$KARAF_VERSION/$ENV{KARAF_DIR}/g' $SANDBOX/bin/onos-service
 
