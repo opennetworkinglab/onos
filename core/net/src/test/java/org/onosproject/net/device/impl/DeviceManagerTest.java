@@ -361,6 +361,11 @@ public class DeviceManagerTest {
             return local;
         }
 
+        @Override
+        public ControllerNode.State getState(NodeId nodeId) {
+            return ControllerNode.State.READY;
+        }
+
     }
 
     private class TestNetworkConfigService extends NetworkConfigServiceAdapter {
