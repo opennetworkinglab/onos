@@ -526,19 +526,28 @@ public class FlowRuleManager
             checkNotNull(flowEntry, FLOW_RULE_NULL);
             checkValidity();
             FlowEntry storedEntry = store.getFlowEntry(flowEntry);
-            if ((storedEntry != null && storedEntry.state() != FlowEntry.FlowEntryState.PENDING_REMOVE)
-                    && checkRuleLiveness(flowEntry, storedEntry)) {
-                FlowRuleEvent event = store.addOrUpdateFlowRule(flowEntry);
-                if (event == null) {
-                    log.debug("No flow store event generated.");
-                    return false;
+            if (storedEntry != null) {
+                // Flow rule is still valid, let's try to update the stats
+                if (storedEntry.state() != FlowEntry.FlowEntryState.PENDING_REMOVE &&
+                        checkRuleLiveness(flowEntry, storedEntry)) {
+                    FlowRuleEvent event = store.addOrUpdateFlowRule(flowEntry);
+                    /* Something went wrong or there is no master
+                       better check if it is the latter */
+                    if (event == null) {
+                        log.debug("No flow store event generated for addOrUpdate of {}", flowEntry);
+                        return false;
+                    } else {
+                        log.trace("Flow {} {}", flowEntry, event.type());
+                        post(event);
+                    }
                 } else {
-                    log.trace("Flow {} {}", flowEntry, event.type());
-                    post(event);
+                    log.debug("Removing {}", flowEntry);
+                    removeFlowRules(flowEntry);
                 }
             } else {
-                log.debug("Removing flow rules....");
-                removeFlowRules(flowEntry);
+                /* It was already removed or there is no master
+                   better check if it is the latter */
+                return false;
             }
             return true;
         }

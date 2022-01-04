@@ -380,7 +380,7 @@ public class ECFlowRuleStore
     public int getFlowRuleCount(DeviceId deviceId, FlowEntryState state) {
         NodeId master = mastershipService.getMasterFor(deviceId);
         if (master == null && deviceService.isAvailable(deviceId)) {
-            log.debug("Failed to getFlowRuleCount: No master for {}", deviceId);
+            log.warn("Failed to getFlowRuleCount: No master for {}", deviceId);
             return 0;
         }
 
@@ -405,7 +405,7 @@ public class ECFlowRuleStore
         NodeId master = mastershipService.getMasterFor(rule.deviceId());
 
         if (master == null && deviceService.isAvailable(rule.deviceId())) {
-            log.debug("Failed to getFlowEntry: No master for {}", rule.deviceId());
+            log.warn("Failed to getFlowEntry: No master for {}", rule.deviceId());
             return null;
         }
 
@@ -451,7 +451,7 @@ public class ECFlowRuleStore
         NodeId master = mastershipService.getMasterFor(deviceId);
 
         if (master == null) {
-            log.warn("No master for {} ", deviceId);
+            log.warn("Failed to storeBatch: No master for {}", deviceId);
 
             Set<FlowRule> allFailures = operation.getOperations()
                 .stream()
@@ -960,7 +960,7 @@ public class ECFlowRuleStore
         NodeId master = mastershipService.getMasterFor(deviceId);
 
         if (master == null && deviceService.isAvailable(deviceId)) {
-            log.debug("Failed to getTableStats: No master for {}", deviceId);
+            log.warn("Failed to getTableStats: No master for {}", deviceId);
             return Collections.emptyList();
         }
 
