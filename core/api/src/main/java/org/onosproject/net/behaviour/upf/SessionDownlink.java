@@ -75,7 +75,7 @@ public final class SessionDownlink implements UpfEntity {
 
     @Override
     public String toString() {
-        return "UESessionDL{" + matchString() + " -> " + actionString();
+        return "UESessionDL{" + matchString() + " -> " + actionString() + "}";
     }
 
     private String matchString() {
