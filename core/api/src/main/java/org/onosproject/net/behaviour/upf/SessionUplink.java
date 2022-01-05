@@ -72,7 +72,7 @@ public final class SessionUplink implements UpfEntity {
 
     @Override
     public String toString() {
-        return "UESessionUL{" + matchString() + " -> " + actionString();
+        return "UESessionUL{" + matchString() + " -> " + actionString() + "}";
     }
 
     private String matchString() {
