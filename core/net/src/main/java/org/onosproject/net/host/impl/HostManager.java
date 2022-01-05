@@ -193,7 +193,7 @@ public class HostManager
         eventDispatcher.addSink(HostEvent.class, listenerRegistry);
         cfgService.registerProperties(getClass());
         networkConfigService.addListener(networkConfigListener);
-        monitor = new HostMonitor(packetService, this, interfaceService, edgePortService);
+        monitor = new HostMonitor(packetService, this, interfaceService, edgePortService, deviceService);
         monitor.setProbeRate(probeRate);
         monitor.start();
         cfgService.registerProperties(getClass());

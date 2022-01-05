@@ -25,6 +25,8 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.packet.ndp.NeighborSolicitation;
 import org.onlab.util.SharedScheduledExecutors;
+import org.onosproject.net.Port;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Host;
@@ -63,6 +65,7 @@ public class HostMonitor implements Runnable {
     private HostManager hostManager;
     private InterfaceService interfaceService;
     private EdgePortService edgePortService;
+    private DeviceService deviceService;
 
     private final Set<IpAddress> monitoredAddresses;
 
@@ -78,19 +81,21 @@ public class HostMonitor implements Runnable {
      * Creates a new host monitor.
      *
      * @param packetService packet service used to send packets on the data plane
-     * @param hostManager host manager used to look up host information and
-     * probe existing hosts
+     * @param hostManager host manager used to look up host information and probe existing hosts
      * @param interfaceService interface service for interface information
      * @param edgePortService  edge port service
+     * @param deviceService device service
      */
     public HostMonitor(PacketService packetService, HostManager hostManager,
                        InterfaceService interfaceService,
-                       EdgePortService edgePortService) {
+                       EdgePortService edgePortService,
+                       DeviceService deviceService) {
 
         this.packetService = packetService;
         this.hostManager = hostManager;
         this.interfaceService = interfaceService;
         this.edgePortService = edgePortService;
+        this.deviceService = deviceService;
 
         monitoredAddresses = Collections.newSetFromMap(new ConcurrentHashMap<>());
         hostProviders = new ConcurrentHashMap<>();
@@ -188,8 +193,17 @@ public class HostMonitor implements Runnable {
      */
     private void sendRequest(IpAddress targetIp) {
         interfaceService.getMatchingInterfaces(targetIp).forEach(intf -> {
+            Port port = deviceService.getPort(intf.connectPoint());
+            if (port == null) {
+                log.debug("Aborting probing non-existent port: {}", intf);
+                return;
+            }
+            if (!port.isEnabled()) {
+                log.debug("Aborting probing disabled port: {}", intf);
+                return;
+            }
             if (!edgePortService.isEdgePoint(intf.connectPoint())) {
-                log.warn("Aborting attempt to send probe out non-edge port: {}", intf);
+                log.warn("Aborting probing non-edge port: {}", intf);
                 return;
             }
 
