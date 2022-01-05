@@ -1,0 +1,50 @@
+#!/bin/bash
+# Copyright 2020-present Open Networking Foundation.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+set -eu -o pipefail
+
+if [ $# != 2 ]; then
+   echo Usage: push-karaf version directory
+   exit 1
+fi
+
+PLUGIN_VERSION=$1
+DIRECTORY=$2
+SONATYPE_USER=${SONATYPE_USER:-""}
+SONATYPE_PASSWORD=${SONATYPE_PASSWORD:-""}
+
+if [ "$SONATYPE_USER" == "" -o "$SONATYPE_PASSWORD" == "" ]; then
+   echo SONATYPE_USER and SONATYPE_PASSWORD must be set
+   exit 1
+fi
+
+PLUGIN_FILE="$DIRECTORY/apache-karaf-${PLUGIN_VERSION}.tar.gz"
+BASE_ARTIFACT_NAME="apache-karaf"
+
+UPLOAD_BASE="https://oss.sonatype.org/service/local/staging/deploy/maven2/org/onosproject/apache-karaf-offline/$PLUGIN_VERSION"
+
+# Make the signature file
+gpg --armor --detach-sig $PLUGIN_FILE
+
+# Make the MD5 checksum file
+md5 -q $PLUGIN_FILE >$PLUGIN_FILE.md5
+
+# Make the SHA1 checksum file
+( shasum $PLUGIN_FILE | cut -d' ' -f1 ) > $PLUGIN_FILE.sha1
+
+curl -v -u "$SONATYPE_USER:$SONATYPE_PASSWORD" --upload-file $PLUGIN_FILE $UPLOAD_BASE/$BASE_ARTIFACT_NAME-$PLUGIN_VERSION.tar.gz
+curl -v -u "$SONATYPE_USER:$SONATYPE_PASSWORD" --upload-file $PLUGIN_FILE.asc $UPLOAD_BASE/$BASE_ARTIFACT_NAME-$PLUGIN_VERSION.tar.gz.asc
+curl -v -u "$SONATYPE_USER:$SONATYPE_PASSWORD" --upload-file $PLUGIN_FILE.md5 $UPLOAD_BASE/$BASE_ARTIFACT_NAME-$PLUGIN_VERSION.tar.gz.md5
+curl -v -u "$SONATYPE_USER:$SONATYPE_PASSWORD" --upload-file $PLUGIN_FILE.sha1 $UPLOAD_BASE/$BASE_ARTIFACT_NAME-$PLUGIN_VERSION.tar.gz.sha1
