@@ -13,7 +13,7 @@ KARAF_PATCHES=$5
 LOG4J2_EXTRA=$6
 SANDBOX=${7:-.}
 
-KARAF_VERSION="4.2.9"
+KARAF_VERSION="4.2.14"
 ONOS_SECURITY_MODE="false"
 
 PREFIX="onos-$ONOS_VERSION"
@@ -37,10 +37,6 @@ perl -pi.old -e "s/maxFileSize=1MB/maxFileSize=10MB/g" \
 # Patch the fileinstall to avoid NPE when filter is null
 echo "felix.fileinstall.filter='\\*.jar'" >> \
     $KARAF_DIR/etc/org.apache.felix.fileinstall-deploy.cfg
-
-# Patch log4j to mitigate CVE-2021-44228
-# https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-44228
-zip -q -d  $KARAF_DIR/system/org/ops4j/pax/logging/pax-logging-log4j2/1.11.6/pax-logging-log4j2-1.11.6.jar org/apache/logging/log4j/core/lookup/JndiLookup.class
 
 # Patch-in proper Karaf version into the startup script
 perl -pi.bk -e 's/apache-karaf-\$KARAF_VERSION/$ENV{KARAF_DIR}/g' $SANDBOX/bin/onos-service
