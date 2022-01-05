@@ -126,7 +126,7 @@ public class HostMonitorTest {
         expectLastCall().times(2);
         replay(hostProvider);
 
-        hostMonitor = new HostMonitor(null, hostManager, null, edgePortService);
+        hostMonitor = new HostMonitor(null, hostManager, null, edgePortService, null);
 
         hostMonitor.registerHostProvider(hostProvider);
         hostMonitor.addMonitoringFor(hostIp);
@@ -151,6 +151,7 @@ public class HostMonitorTest {
 
         Port port = createMock(Port.class);
         expect(port.number()).andReturn(portNum).anyTimes();
+        expect(port.isEnabled()).andReturn(true).anyTimes();
         replay(port);
 
         TestDeviceService deviceService = new TestDeviceService();
@@ -173,7 +174,7 @@ public class HostMonitorTest {
 
 
         // Run the test
-        hostMonitor = new HostMonitor(packetService, hostManager, interfaceService, edgePortService);
+        hostMonitor = new HostMonitor(packetService, hostManager, interfaceService, edgePortService, deviceService);
 
         hostMonitor.addMonitoringFor(TARGET_IPV4_ADDR);
         hostMonitor.run();
@@ -220,6 +221,7 @@ public class HostMonitorTest {
 
         Port port = createMock(Port.class);
         expect(port.number()).andReturn(portNum).anyTimes();
+        expect(port.isEnabled()).andReturn(true).anyTimes();
         replay(port);
 
         TestDeviceService deviceService = new TestDeviceService();
@@ -242,7 +244,7 @@ public class HostMonitorTest {
 
 
         // Run the test
-        hostMonitor = new HostMonitor(packetService, hostManager, interfaceService, edgePortService);
+        hostMonitor = new HostMonitor(packetService, hostManager, interfaceService, edgePortService, deviceService);
 
         hostMonitor.addMonitoringFor(TARGET_IPV6_ADDR);
         hostMonitor.run();
@@ -291,6 +293,7 @@ public class HostMonitorTest {
 
         Port port = createMock(Port.class);
         expect(port.number()).andReturn(portNum).anyTimes();
+        expect(port.isEnabled()).andReturn(true).anyTimes();
         replay(port);
 
         TestDeviceService deviceService = new TestDeviceService();
@@ -313,7 +316,7 @@ public class HostMonitorTest {
 
 
         // Run the test
-        hostMonitor = new HostMonitor(packetService, hostManager, interfaceService, edgePortService);
+        hostMonitor = new HostMonitor(packetService, hostManager, interfaceService, edgePortService, deviceService);
 
         hostMonitor.addMonitoringFor(TARGET_IPV4_ADDR);
         hostMonitor.run();
@@ -361,6 +364,7 @@ public class HostMonitorTest {
 
         Port port = createMock(Port.class);
         expect(port.number()).andReturn(portNum).anyTimes();
+        expect(port.isEnabled()).andReturn(true).anyTimes();
         replay(port);
 
         TestDeviceService deviceService = new TestDeviceService();
@@ -383,7 +387,7 @@ public class HostMonitorTest {
 
 
         // Run the test
-        hostMonitor = new HostMonitor(packetService, hostManager, interfaceService, edgePortService);
+        hostMonitor = new HostMonitor(packetService, hostManager, interfaceService, edgePortService, deviceService);
 
         hostMonitor.addMonitoringFor(TARGET_IPV6_ADDR);
         hostMonitor.run();
@@ -450,6 +454,13 @@ public class HostMonitorTest {
                 ports.add(p);
             }
             return ports;
+        }
+
+        @Override
+        public Port getPort(ConnectPoint cp) {
+            return devicePorts.get(cp.deviceId()).stream()
+                    .filter(p -> p.number().equals(cp.port()))
+                    .findAny().orElse(null);
         }
     }
 }
