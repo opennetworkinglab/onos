@@ -117,7 +117,7 @@ public final class UpfTerminationUplink implements UpfEntity {
 
     @Override
     public String toString() {
-        return "TerminationDL{" + matchString() + "->" + actionString() + "}";
+        return "TerminationUL{" + matchString() + "->" + actionString() + "}";
     }
 
     private String matchString() {
