@@ -1,7 +1,6 @@
 #!/bin/bash
 
-KARAF_RELEASE_VERSION="4.2.9"
-KARAF_BASE_PACKAGE_VERSION="4.2.9"
+KARAF_BASE_PACKAGE_VERSION="$KARAF_RELEASE_VERSION"
 KARAF_TARFILE_NAME="apache-karaf-${KARAF_RELEASE_VERSION}.tar"
 ADDED_BOOT_FEATURES="kar/${KARAF_RELEASE_VERSION},webconsole/${KARAF_RELEASE_VERSION},scr/${KARAF_RELEASE_VERSION},war/${KARAF_RELEASE_VERSION}"
 
@@ -9,12 +8,13 @@ ADDED_BOOT_FEATURES="kar/${KARAF_RELEASE_VERSION},webconsole/${KARAF_RELEASE_VER
 rm -f /tmp/${KARAF_TARFILE_NAME}
 curl -o /tmp/${KARAF_TARFILE_NAME}.gz https://repo1.maven.org/maven2/org/onosproject/apache-karaf-offline/${KARAF_BASE_PACKAGE_VERSION}/apache-karaf-${KARAF_BASE_PACKAGE_VERSION}.tar.gz
 
-# get a small cell
 source ${ONOS_ROOT}/tools/dev/bash_profile
-cell borrow 60 1+0
 scp /tmp/${KARAF_TARFILE_NAME}.gz sdn@[${OC1}]:/tmp/${KARAF_TARFILE_NAME}.gz
 
 ssh sdn@${OC1} "
+
+    # clear out the existing maven cache
+    rm -rf ~/.m2/repository
 
     # unroll the base karaf
     rm -rf karaf
@@ -53,9 +53,7 @@ ssh sdn@${OC1} "
 
 # fetch the new offline karaf tar ball
 BUILD_NUMBER="${KARAF_RELEASE_VERSION}-offline-$(date +'%Y%m%d')"
-scp sdn@[${OC1}]:karaf-offline.tar.gz /tmp/${BUILD_NUMBER}.tar.gz
-
-cell return
+scp sdn@[${OC1}]:karaf-offline.tar.gz ./apache-karaf-${BUILD_NUMBER}.tar.gz
 
 
 
