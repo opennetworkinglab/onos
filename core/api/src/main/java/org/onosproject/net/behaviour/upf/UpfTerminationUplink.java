@@ -26,20 +26,22 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * A structure representing the UE Termination in the uplink direction on the
  * UPF-programmable device.
- * Provides means to configure the traffic behavior (e.g. set Traffic Class).
+ * Provide means to configure the traffic behavior (e.g. set Traffic Class).
  */
 @Beta
 public final class UpfTerminationUplink implements UpfEntity {
     // Match Keys
     private final Ip4Address ueSessionId; // UE Session ID, use UE IP address to uniquely identify a session.
+    private final byte applicationId; // Application ID defaults to DEFAULT_APP_ID
     // Action parameters
     private final Integer ctrId;  // Counter ID unique to this UPF Termination Rule
     private final Byte trafficClass;
     private final boolean dropping;
 
-    private UpfTerminationUplink(Ip4Address ueSessionId, Integer ctrId, Byte trafficClass,
+    private UpfTerminationUplink(Ip4Address ueSessionId, byte applicationId, Integer ctrId, Byte trafficClass,
                                  boolean dropping) {
         this.ueSessionId = ueSessionId;
+        this.applicationId = applicationId;
         this.ctrId = ctrId;
         this.trafficClass = trafficClass;
         this.dropping = dropping;
@@ -65,13 +67,14 @@ public final class UpfTerminationUplink implements UpfEntity {
         // Safe comparisons between potentially null objects
         return this.dropping == that.dropping &&
                 Objects.equals(this.ueSessionId, that.ueSessionId) &&
+                Objects.equals(this.applicationId, that.applicationId) &&
                 Objects.equals(this.ctrId, that.ctrId) &&
                 Objects.equals(this.trafficClass, that.trafficClass);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ueSessionId, ctrId, trafficClass, dropping);
+        return Objects.hash(ueSessionId, applicationId, ctrId, trafficClass, dropping);
     }
 
     /**
@@ -81,6 +84,15 @@ public final class UpfTerminationUplink implements UpfEntity {
      */
     public Ip4Address ueSessionId() {
         return ueSessionId;
+    }
+
+    /**
+     * Get the application ID associated with UPF Termination rule.
+     *
+     * @return Application ID
+     */
+    public byte applicationId() {
+        return applicationId;
     }
 
     /**
@@ -117,19 +129,27 @@ public final class UpfTerminationUplink implements UpfEntity {
 
     @Override
     public String toString() {
-        return "TerminationUL{" + matchString() + "->" + actionString() + "}";
+        return "TerminationUL{" + matchString() + " -> " + actionString() + "}";
     }
 
     private String matchString() {
-        return "Match(ue_addr=" + this.ueSessionId() + ")";
+        return "Match(ue_addr=" + this.ueSessionId() + ", app_id=" + this.applicationId() + ")";
     }
 
     private String actionString() {
-        return "(CTR_ID=" + this.counterId() + ", TC=" + this.trafficClass() + ")";
+        String fwd = "FWD";
+        if (this.needsDropping()) {
+            fwd = "DROP";
+        }
+        return "(" + fwd +
+                ", CTR_ID=" + this.counterId() +
+                ", TC=" + this.trafficClass() +
+                ")";
     }
 
     public static class Builder {
         private Ip4Address ueSessionId = null;
+        private Byte applicationId = null;
         private Integer ctrId = null;
         private Byte trafficClass = null;
         private boolean dropping = false;
@@ -146,6 +166,17 @@ public final class UpfTerminationUplink implements UpfEntity {
          */
         public Builder withUeSessionId(Ip4Address ueSessionId) {
             this.ueSessionId = ueSessionId;
+            return this;
+        }
+
+        /**
+         * Set the ID of the application.
+         *
+         * @param applicationId Application ID
+         * @return This builder object
+         */
+        public Builder withApplicationId(byte applicationId) {
+            this.applicationId = applicationId;
             return this;
         }
 
@@ -174,7 +205,7 @@ public final class UpfTerminationUplink implements UpfEntity {
         /**
          * Sets whether to drop uplink UPF termination traffic or not.
          *
-         * @param dropping True if request to buffer, false otherwise
+         * @param dropping True if request to drop, false otherwise
          * @return This builder object
          */
         public Builder needsDropping(boolean dropping) {
@@ -185,11 +216,15 @@ public final class UpfTerminationUplink implements UpfEntity {
         public UpfTerminationUplink build() {
             // Match fields must be provided
             checkNotNull(ueSessionId, "UE session ID must be provided");
-
+            if (applicationId == null) {
+                applicationId = DEFAULT_APP_ID;
+            }
             checkNotNull(ctrId, "Counter ID must be provided");
             // TODO: should we verify that when dropping no other fields are provided
             return new UpfTerminationUplink(
-                    this.ueSessionId, this.ctrId, this.trafficClass, this.dropping);
+                    this.ueSessionId, this.applicationId, this.ctrId,
+                    this.trafficClass, this.dropping
+            );
         }
 
     }

@@ -29,7 +29,8 @@ public enum UpfEntityType {
     SESSION_DOWNLINK("session_downlink"),
     SESSION_UPLINK("session_downlink"),
     TUNNEL_PEER("tunnel_peer"),
-    COUNTER("counter");
+    COUNTER("counter"),
+    APPLICATION("application");
 
     private final String humanReadableName;
 
