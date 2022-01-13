@@ -24,6 +24,11 @@ import com.google.common.annotations.Beta;
 @Beta
 public interface UpfEntity {
     /**
+     * Default Application ID, to be used if application filtering is performed.
+     */
+    byte DEFAULT_APP_ID = 0;
+
+    /**
      * Returns the type of this entity.
      *
      * @return entity type
