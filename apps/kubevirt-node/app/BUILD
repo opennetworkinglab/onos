@@ -16,6 +16,7 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + CLI + REST + [
     "@k8s_model_certificates//jar",
     "@k8s_model_coordination//jar",
     "@k8s_model_discovery//jar",
+    "@k8s_model_flowcontrol//jar",
     "@k8s_model_metrics//jar",
     "@k8s_model_scheduling//jar",
     "@k8s_model_storageclass//jar",
