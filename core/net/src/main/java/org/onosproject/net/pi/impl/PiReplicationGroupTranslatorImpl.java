@@ -156,7 +156,7 @@ final class PiReplicationGroupTranslatorImpl {
                     "missing interpreter, cannot map logical port " + logicalPort.toString());
         }
         final PiPipelineInterpreter interpreter = device.as(PiPipelineInterpreter.class);
-        Optional<Integer> mappedPort = interpreter.mapLogicalPortNumber(logicalPort);
+        Optional<Long> mappedPort = interpreter.mapLogicalPort(logicalPort);
         if (!mappedPort.isPresent()) {
             throw new PiTranslationException(
                     "interpreter cannot map logical port " + logicalPort.toString());

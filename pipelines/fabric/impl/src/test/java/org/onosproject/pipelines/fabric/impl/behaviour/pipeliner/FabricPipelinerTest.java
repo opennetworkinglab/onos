@@ -56,7 +56,7 @@ public class FabricPipelinerTest {
     private static final ApplicationId APP_ID = TestApplicationId.create("FabricPipelinerTest");
     private static final DeviceId DEVICE_ID = DeviceId.deviceId("device:1");
     private static final int DEFAULT_FLOW_PRIORITY = 100;
-    private static final int CPU_PORT = 320;
+    private static final long CPU_PORT = 320;
     private static final byte FWD_IPV4_ROUTING = 2;
     private static final int DEFAULT_VLAN = 4094;
     public static final byte[] ONE = new byte[]{1};

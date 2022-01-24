@@ -148,7 +148,7 @@ public class FabricPipeliner extends AbstractFabricHandlerBehavior
 
     protected void initializePipeline() {
         // Set up rules for packet-out forwarding. We support only IPv4 routing.
-        final int cpuPort = capabilities.cpuPort().get();
+        final long cpuPort = capabilities.cpuPort().get();
         flowRuleService.applyFlowRules(
                 ingressVlanRule(cpuPort, false, DEFAULT_VLAN),
                 fwdClassifierRule(cpuPort, null, Ethernet.TYPE_IPV4, FWD_IPV4_ROUTING,
@@ -390,7 +390,7 @@ public class FabricPipeliner extends AbstractFabricHandlerBehavior
                 .build();
     }
 
-    public FlowRule fwdClassifierRule(int port, Short ethType, short ipEthType, byte fwdType, int priority) {
+    public FlowRule fwdClassifierRule(long port, Short ethType, short ipEthType, byte fwdType, int priority) {
         final TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder()
                 .matchInPort(PortNumber.portNumber(port))
                 .matchPi(PiCriterion.builder()
