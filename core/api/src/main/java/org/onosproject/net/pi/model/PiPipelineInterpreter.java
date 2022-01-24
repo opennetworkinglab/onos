@@ -106,9 +106,23 @@ public interface PiPipelineInterpreter extends HandlerBehaviour {
      *
      * @param port port number
      * @return optional integer
+     * @deprecated in ONOS 3.0 using {@link #mapLogicalPort} instead
      */
+    @Deprecated
     default Optional<Integer> mapLogicalPortNumber(PortNumber port) {
         return Optional.empty();
+    }
+
+    /**
+     * Maps the given logical port number to the data plane port ID (long)
+     * identifying the same port for this pipeconf, if such mapping is
+     * possible.
+     *
+     * @param port port number
+     * @return optional long
+     */
+    default Optional<Long> mapLogicalPort(PortNumber port) {
+        return mapLogicalPortNumber(port).map(integer -> (long) integer);
     }
 
     /**
