@@ -49,7 +49,7 @@ public class FabricCapabilities {
                 .table(FabricConstants.FABRIC_INGRESS_NEXT_HASHED).isPresent();
     }
 
-    public Optional<Integer> cpuPort() {
+    public Optional<Long> cpuPort() {
         // This is probably brittle, but needed to dynamically get the CPU port
         // for different platforms.
         if (!pipeconf.extension(CPU_PORT_TXT).isPresent()) {
@@ -67,7 +67,7 @@ public class FabricCapabilities {
                 return Optional.empty();
             }
             try {
-                return Optional.of(Integer.parseInt(str));
+                return Optional.of(Long.parseLong(str));
             } catch (NumberFormatException e) {
                 log.error("Invalid CPU port for {}: {}", pipeconf.id(), str);
                 return Optional.empty();
