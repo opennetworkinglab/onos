@@ -308,7 +308,7 @@ public class FabricInterpreter extends AbstractFabricHandlerBehavior
     }
 
     @Override
-    public Optional<Integer> mapLogicalPortNumber(PortNumber port) {
+    public Optional<Long> mapLogicalPort(PortNumber port) {
         if (!port.equals(CONTROLLER)) {
             return Optional.empty();
         }
