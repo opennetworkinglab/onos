@@ -19,6 +19,8 @@ package org.onosproject.net.behaviour.upf;
 
 import com.google.common.annotations.Beta;
 
+import java.util.Objects;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -50,8 +52,44 @@ public final class UpfCounter implements UpfEntity {
 
     @Override
     public String toString() {
-        return String.format("Stats:{ CellID: %d, Ingress:(%dpkts,%dbytes), Egress:(%dpkts,%dbytes) }",
+        return String.format("UpfStats(cell_id=%d, ingress=(%dpkts,%dbytes), egress=(%dpkts,%dbytes))",
                 cellId, ingressPkts, ingressBytes, egressPkts, egressBytes);
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (object == this) {
+            return true;
+        }
+        if (object == null) {
+            return false;
+        }
+        if (getClass() != object.getClass()) {
+            return false;
+        }
+        UpfCounter that = (UpfCounter) object;
+        return this.cellId == that.cellId;
+    }
+
+    /**
+     * Returns whether this UpfCounter is exactly equal to the given UpfCounter,
+     * including their packets and bytes values.
+     *
+     * @param that other {@link UpfCounter} instance to compare
+     * @return true if exactly equals, false otherwise
+     */
+    public boolean exactlyEquals(UpfCounter that) {
+        return this.equals(that) &&
+                this.ingressPkts == that.ingressPkts &&
+                this.ingressBytes == that.ingressBytes &&
+                this.egressPkts == that.egressPkts &&
+                this.egressBytes == that.egressBytes;
+    }
+
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(cellId);
     }
 
     /**

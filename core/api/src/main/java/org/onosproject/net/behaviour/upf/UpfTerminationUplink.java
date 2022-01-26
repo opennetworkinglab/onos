@@ -129,7 +129,7 @@ public final class UpfTerminationUplink implements UpfEntity {
 
     @Override
     public String toString() {
-        return "TerminationUL{" + matchString() + " -> " + actionString() + "}";
+        return "UpfTerminationUL(" + matchString() + " -> " + actionString() + ")";
     }
 
     private String matchString() {
@@ -141,9 +141,9 @@ public final class UpfTerminationUplink implements UpfEntity {
         if (this.needsDropping()) {
             fwd = "DROP";
         }
-        return "(" + fwd +
-                ", CTR_ID=" + this.counterId() +
-                ", TC=" + this.trafficClass() +
+        return "Action(" + fwd +
+                ", ctr_id=" + this.counterId() +
+                ", tc=" + this.trafficClass() +
                 ")";
     }
 

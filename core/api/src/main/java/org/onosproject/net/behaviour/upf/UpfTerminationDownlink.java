@@ -153,7 +153,7 @@ public final class UpfTerminationDownlink implements UpfEntity {
 
     @Override
     public String toString() {
-        return "TerminationDL{" + matchString() + " -> " + actionString() + "}";
+        return "UpfTerminationDL(" + matchString() + " -> " + actionString() + ")";
     }
 
     private String matchString() {
@@ -165,11 +165,11 @@ public final class UpfTerminationDownlink implements UpfEntity {
         if (this.needsDropping()) {
             fwd = "DROP";
         }
-        return "(" + fwd +
-                ", TEID=" + this.teid() +
-                ", CTR_ID=" + this.counterId() +
-                ", QFI=" + this.qfi() +
-                ", TC=" + this.trafficClass() +
+        return "Action(" + fwd +
+                ", teid=" + this.teid() +
+                ", ctr_id=" + this.counterId() +
+                ", qfi=" + this.qfi() +
+                ", tc=" + this.trafficClass() +
                 ")";
     }
 
