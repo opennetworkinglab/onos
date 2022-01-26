@@ -15,6 +15,8 @@
  */
 package org.onosproject.net.meter;
 
+import com.google.common.base.Objects;
+
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -94,6 +96,26 @@ public final class DefaultBand implements Band, BandEntry {
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultBand that = (DefaultBand) o;
+        return rate == that.rate &&
+                type == that.type &&
+                Objects.equal(burstSize, that.burstSize) &&
+                Objects.equal(prec, that.prec);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(type, rate, burstSize, prec);
     }
 
     public static final class Builder implements Band.Builder {

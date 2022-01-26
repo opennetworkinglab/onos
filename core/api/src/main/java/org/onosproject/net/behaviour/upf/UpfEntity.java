@@ -29,6 +29,16 @@ public interface UpfEntity {
     byte DEFAULT_APP_ID = 0;
 
     /**
+     * Default session index, to be used if no session metering is performed.
+     */
+    int DEFAULT_SESSION_INDEX = 0;
+
+    /**
+     * Default app index, to be used if no app metering is performed.
+     */
+    int DEFAULT_APP_INDEX = 0;
+
+    /**
      * Returns the type of this entity.
      *
      * @return entity type
