@@ -35,16 +35,19 @@ public final class UpfApplication implements UpfEntity {
     private final Ip4Prefix ipPrefix;
     private final Range<Short> l4PortRange;
     private final Byte ipProto;
+    // TODO: move to SliceId object when slice APIs will be promoted to ONOS core.
+    private final int sliceId;
     // Action parameter
     private final byte appId;
 
     private final int priority;
 
     private UpfApplication(Ip4Prefix ipPrefix, Range<Short> l4PortRange,
-                           Byte ipProto, byte appId, int priority) {
+                           Byte ipProto, int sliceId, byte appId, int priority) {
         this.ipPrefix = ipPrefix;
         this.l4PortRange = l4PortRange;
         this.ipProto = ipProto;
+        this.sliceId = sliceId;
         this.appId = appId;
         this.priority = priority;
     }
@@ -70,18 +73,19 @@ public final class UpfApplication implements UpfEntity {
         return Objects.equals(this.ipPrefix, that.ipPrefix) &&
                 Objects.equals(this.l4PortRange, that.l4PortRange) &&
                 Objects.equals(this.ipProto, that.ipProto) &&
+                this.sliceId == that.sliceId &&
                 this.appId == that.appId &&
                 this.priority == that.priority;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ipPrefix, l4PortRange, ipProto, appId, priority);
+        return Objects.hash(ipPrefix, l4PortRange, ipProto, sliceId, appId, priority);
     }
 
     @Override
     public String toString() {
-        return "UpfApplication{priority=" + this.priority + ", " + matchString() + " -> " + actionString() + "}";
+        return "UpfApplication(priority=" + this.priority + ", " + matchString() + " -> " + actionString() + ")";
     }
 
     private String matchString() {
@@ -101,12 +105,14 @@ public final class UpfApplication implements UpfEntity {
                     .append(this.ipProto)
                     .append(", ");
         }
-        matchStrBuilder.delete(matchStrBuilder.length() - 2, matchStrBuilder.length());
-        return matchStrBuilder.append(")").toString();
+        matchStrBuilder.append("slice_id=")
+                .append(this.sliceId)
+                .append(")");
+        return matchStrBuilder.toString();
     }
 
     private String actionString() {
-        return "(app_id=" + this.appId + ")";
+        return "Action(app_id=" + this.appId + ")";
     }
 
     /**
@@ -134,6 +140,15 @@ public final class UpfApplication implements UpfEntity {
      */
     public Optional<Byte> ipProto() {
         return Optional.ofNullable(ipProto);
+    }
+
+    /**
+     * Gets the slice ID of this UPF application rule.
+     *
+     * @return Slice ID
+     */
+    public int sliceId() {
+        return this.sliceId;
     }
 
     /**
@@ -167,6 +182,7 @@ public final class UpfApplication implements UpfEntity {
         private Ip4Prefix ipPrefix = null;
         private Range<Short> l4PortRange = null;
         private Byte ipProto = null;
+        private Integer sliceId = null;
         // Action parameters
         private Byte appId = null;
 
@@ -212,6 +228,17 @@ public final class UpfApplication implements UpfEntity {
         }
 
         /**
+         * Set the slice ID of the UPF application rule.
+         *
+         * @param sliceId the slice ID
+         * @return This builder object
+         */
+        public Builder withSliceId(int sliceId) {
+            this.sliceId = sliceId;
+            return this;
+        }
+
+        /**
          * Set the application ID of the UPF application rule.
          *
          * @param appId Application ID
@@ -237,9 +264,10 @@ public final class UpfApplication implements UpfEntity {
             checkArgument(ipPrefix != null || l4PortRange != null ||
                                   ipProto != null,
                           "At least one match field is required");
+            checkNotNull(sliceId, "Slice ID must be provided");
             checkNotNull(appId, "Application ID must be provided");
             checkNotNull(priority, "Priority must be provided");
-            return new UpfApplication(ipPrefix, l4PortRange, ipProto, appId, priority);
+            return new UpfApplication(ipPrefix, l4PortRange, ipProto, sliceId, appId, priority);
         }
     }
 }

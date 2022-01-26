@@ -25,10 +25,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * A structure representing the UE Session on the UPF-programmable device.
- * Provides means to set up the UE Session in the downlink direction.
+ * Provide means to set up the UPF UE Session in the downlink direction.
  */
 @Beta
-public final class SessionDownlink implements UpfEntity {
+public final class UpfSessionDownlink implements UpfEntity {
     // Match Keys
     private final Ip4Address ueAddress;
     // Action parameters
@@ -36,10 +36,10 @@ public final class SessionDownlink implements UpfEntity {
     private final boolean buffering;
     private final boolean dropping;
 
-    private SessionDownlink(Ip4Address ipv4Address,
-                            Byte tunPeerId,
-                            boolean buffering,
-                            boolean drop) {
+    private UpfSessionDownlink(Ip4Address ipv4Address,
+                               Byte tunPeerId,
+                               boolean buffering,
+                               boolean drop) {
         this.ueAddress = ipv4Address;
         this.tunPeerId = tunPeerId;
         this.buffering = buffering;
@@ -50,6 +50,7 @@ public final class SessionDownlink implements UpfEntity {
         return new Builder();
     }
 
+    @Override
     public boolean equals(Object object) {
         if (object == this) {
             return true;
@@ -61,7 +62,7 @@ public final class SessionDownlink implements UpfEntity {
             return false;
         }
 
-        SessionDownlink that = (SessionDownlink) object;
+        UpfSessionDownlink that = (UpfSessionDownlink) object;
 
         return this.buffering == that.buffering &&
                 this.dropping == that.dropping &&
@@ -69,13 +70,14 @@ public final class SessionDownlink implements UpfEntity {
                 Objects.equals(tunPeerId, that.tunPeerId);
     }
 
+    @Override
     public int hashCode() {
         return java.util.Objects.hash(ueAddress, tunPeerId, buffering, dropping);
     }
 
     @Override
     public String toString() {
-        return "UESessionDL{" + matchString() + " -> " + actionString() + "}";
+        return "UpfSessionDL(" + matchString() + " -> " + actionString() + ")";
     }
 
     private String matchString() {
@@ -83,7 +85,7 @@ public final class SessionDownlink implements UpfEntity {
     }
 
     private String actionString() {
-        StringBuilder actionStrBuilder = new StringBuilder("(");
+        StringBuilder actionStrBuilder = new StringBuilder("Action(");
         if (this.needsBuffering() && this.needsDropping()) {
             actionStrBuilder.append("BUFF+DROP, ");
         } else if (this.needsBuffering()) {
@@ -98,25 +100,25 @@ public final class SessionDownlink implements UpfEntity {
     }
 
     /**
-     * True if this UE Session needs buffering of the downlink traffic.
+     * True if this UPF UE Session needs buffering of the downlink traffic.
      *
-     * @return true if the UE Session needs buffering.
+     * @return true if the UPF UE Session needs buffering.
      */
     public boolean needsBuffering() {
         return buffering;
     }
 
     /**
-     * True if this UE Session needs dropping of the downlink traffic.
+     * True if this UPF UE Session needs dropping of the downlink traffic.
      *
-     * @return true if the UE Session needs dropping.
+     * @return true if the UPF UE Session needs dropping.
      */
     public boolean needsDropping() {
         return dropping;
     }
 
     /**
-     * Get the UE IP address of this downlink UE session.
+     * Get the UE IP address of this downlink UPF UE session.
      *
      * @return UE IP address
      */
@@ -125,7 +127,7 @@ public final class SessionDownlink implements UpfEntity {
     }
 
     /**
-     * Get the GTP tunnel peer ID that is set by this UE Session rule.
+     * Get the GTP tunnel peer ID that is set by this UPF UE Session rule.
      *
      * @return GTP tunnel peer ID
      */
@@ -149,7 +151,7 @@ public final class SessionDownlink implements UpfEntity {
         }
 
         /**
-         * Set the UE IP address that this downlink UE session rule matches on.
+         * Set the UE IP address that this downlink UPF UE session rule matches on.
          *
          * @param ueAddress UE IP address
          * @return This builder object
@@ -160,7 +162,7 @@ public final class SessionDownlink implements UpfEntity {
         }
 
         /**
-         * Set the GTP tunnel peer ID that is set by this UE Session rule.
+         * Set the GTP tunnel peer ID that is set by this UPF UE Session rule.
          *
          * @param tunnelPeerId GTP tunnel peer ID
          * @return This builder object
@@ -171,7 +173,7 @@ public final class SessionDownlink implements UpfEntity {
         }
 
         /**
-         * Sets whether to buffer downlink UE session traffic or not.
+         * Set whether to buffer downlink UPF UE session traffic or not.
          *
          * @param buffer True if request to buffer, false otherwise
          * @return This builder object
@@ -182,7 +184,7 @@ public final class SessionDownlink implements UpfEntity {
         }
 
         /**
-         * Sets whether to drop downlink UE session traffic or not.
+         * Set whether to drop downlink UPF UE session traffic or not.
          *
          * @param drop True if request to buffer, false otherwise
          * @return This builder object
@@ -192,10 +194,10 @@ public final class SessionDownlink implements UpfEntity {
             return this;
         }
 
-        public SessionDownlink build() {
+        public UpfSessionDownlink build() {
             // Match fields are required
             checkNotNull(ueAddress, "UE address must be provided");
-            return new SessionDownlink(ueAddress, tunPeerId, buffer, drop);
+            return new UpfSessionDownlink(ueAddress, tunPeerId, buffer, drop);
         }
     }
 }
