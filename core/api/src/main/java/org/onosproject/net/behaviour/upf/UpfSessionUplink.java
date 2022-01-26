@@ -25,10 +25,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * A structure representing the UE Session on the UPF-programmable device.
- * Provides means to set up the UE Session in the uplink direction.
+ * Provide means to set up the UPF UE Session in the uplink direction.
  */
 @Beta
-public final class SessionUplink implements UpfEntity {
+public final class UpfSessionUplink implements UpfEntity {
     // Match Keys
     private final Ip4Address tunDestAddr; // The tunnel destination address (N3/S1U IPv4 address)
     private final Integer teid;  // The Tunnel Endpoint ID that this UeSession matches on
@@ -36,9 +36,9 @@ public final class SessionUplink implements UpfEntity {
     // Action parameters
     private final boolean dropping; // Used to convey dropping information
 
-    private SessionUplink(Ip4Address tunDestAddr,
-                          Integer teid,
-                          boolean drop) {
+    private UpfSessionUplink(Ip4Address tunDestAddr,
+                             Integer teid,
+                             boolean drop) {
         this.tunDestAddr = tunDestAddr;
         this.teid = teid;
         this.dropping = drop;
@@ -48,6 +48,7 @@ public final class SessionUplink implements UpfEntity {
         return new Builder();
     }
 
+    @Override
     public boolean equals(Object object) {
         if (object == this) {
             return true;
@@ -59,28 +60,29 @@ public final class SessionUplink implements UpfEntity {
             return false;
         }
 
-        SessionUplink that = (SessionUplink) object;
+        UpfSessionUplink that = (UpfSessionUplink) object;
 
         return this.dropping == that.dropping &&
                 Objects.equals(tunDestAddr, that.tunDestAddr) &&
                 Objects.equals(teid, that.teid);
     }
 
+    @Override
     public int hashCode() {
         return Objects.hash(tunDestAddr, teid, dropping);
     }
 
     @Override
     public String toString() {
-        return "UESessionUL{" + matchString() + " -> " + actionString() + "}";
+        return "UpfSessionUL(" + matchString() + " -> " + actionString() + ")";
     }
 
     private String matchString() {
-        return "Match(tun_dst_addr=" + this.tunDstAddr() + ", TEID=" + this.teid() + ")";
+        return "Match(tun_dst_addr=" + this.tunDstAddr() + ", teid=" + this.teid() + ")";
     }
 
     private String actionString() {
-        StringBuilder actionStrBuilder = new StringBuilder("(");
+        StringBuilder actionStrBuilder = new StringBuilder("Action(");
         if (this.needsDropping()) {
             actionStrBuilder.append("DROP");
 
@@ -91,7 +93,7 @@ public final class SessionUplink implements UpfEntity {
     }
 
     /**
-     * True if this UE Session needs dropping of the uplink traffic.
+     * True if this UPF UE Session needs dropping of the uplink traffic.
      *
      * @return true if the UE Session needs dropping.
      */
@@ -100,7 +102,7 @@ public final class SessionUplink implements UpfEntity {
     }
 
     /**
-     * Get the tunnel destination IP address in the uplink UE session (N3/S1U IP address).
+     * Get the tunnel destination IP address in the uplink UPF UE session (N3/S1U IP address).
      *
      * @return UE IP address
      */
@@ -109,7 +111,7 @@ public final class SessionUplink implements UpfEntity {
     }
 
     /**
-     * Get the identifier of the GTP tunnel that this UE Session rule matches on.
+     * Get the identifier of the GTP tunnel that this UPF UE Session rule matches on.
      *
      * @return GTP tunnel ID
      */
@@ -132,7 +134,7 @@ public final class SessionUplink implements UpfEntity {
         }
 
         /**
-         * Set the tunnel destination IP address (N3/S1U address) that this UE Session rule matches on.
+         * Set the tunnel destination IP address (N3/S1U address) that this UPF UE Session rule matches on.
          *
          * @param tunDstAddr The tunnel destination IP address
          * @return This builder object
@@ -143,7 +145,7 @@ public final class SessionUplink implements UpfEntity {
         }
 
         /**
-         * Set the identifier of the GTP tunnel that this UE Session rule matches on.
+         * Set the identifier of the GTP tunnel that this UPF UE Session rule matches on.
          *
          * @param teid GTP tunnel ID
          * @return This builder object
@@ -155,7 +157,7 @@ public final class SessionUplink implements UpfEntity {
 
 
         /**
-         * Sets whether to drop uplink UE session traffic or not.
+         * Sets whether to drop uplink UPF UE session traffic or not.
          *
          * @param drop True if request to buffer, false otherwise
          * @return This builder object
@@ -165,11 +167,11 @@ public final class SessionUplink implements UpfEntity {
             return this;
         }
 
-        public SessionUplink build() {
+        public UpfSessionUplink build() {
             // Match keys are required.
             checkNotNull(tunDstAddr, "Tunnel destination must be provided");
             checkNotNull(teid, "TEID must be provided");
-            return new SessionUplink(tunDstAddr, teid, drop);
+            return new UpfSessionUplink(tunDstAddr, teid, drop);
         }
     }
 }

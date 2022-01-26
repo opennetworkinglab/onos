@@ -24,13 +24,13 @@ import java.util.Objects;
 import static com.google.common.base.Preconditions.checkArgument;
 
 /**
- * A structure representing a GTP tunnel peer.
+ * A structure representing a UPF GTP tunnel peer.
  * The GTP Tunnel Peer is used by UPF to identify a second end of a GTP tunnel.
  * The source and destination tunnel IPv4 addresses, and source UDP port are set
  * based on the information from this structure.
  */
 @Beta
-public final class GtpTunnelPeer implements UpfEntity {
+public final class UpfGtpTunnelPeer implements UpfEntity {
     // Match keys
     private final byte tunPeerId;
     // Action parameters
@@ -38,20 +38,20 @@ public final class GtpTunnelPeer implements UpfEntity {
     private final Ip4Address dst;  // The destination address of the unidirectional tunnel
     private final short srcPort;   // Tunnel source port, default 2152
 
-    private GtpTunnelPeer(byte tunPeerId, Ip4Address src, Ip4Address dst, short srcPort) {
+    private UpfGtpTunnelPeer(byte tunPeerId, Ip4Address src, Ip4Address dst, short srcPort) {
         this.tunPeerId = tunPeerId;
         this.src = src;
         this.dst = dst;
         this.srcPort = srcPort;
     }
 
-    public static GtpTunnelPeer.Builder builder() {
-        return new GtpTunnelPeer.Builder();
+    public static UpfGtpTunnelPeer.Builder builder() {
+        return new UpfGtpTunnelPeer.Builder();
     }
 
     @Override
     public String toString() {
-        return String.format("GTP-Tunnel-Peer(%s -> src:%s, dst:%s srcPort:%s)",
+        return String.format("UpfGtpTunnelPeer(tunn_peer_id=%s -> src=%s, dst=%s src_port=%s)",
                              tunPeerId, src.toString(), dst.toString(), srcPort);
     }
 
@@ -68,20 +68,20 @@ public final class GtpTunnelPeer implements UpfEntity {
             return false;
         }
 
-        GtpTunnelPeer that = (GtpTunnelPeer) object;
-        return (this.tunPeerId == that.tunPeerId &&
+        UpfGtpTunnelPeer that = (UpfGtpTunnelPeer) object;
+        return this.tunPeerId == that.tunPeerId &&
                 this.src.equals(that.src) &&
                 this.dst.equals(that.dst) &&
-                (this.srcPort == that.srcPort));
+                this.srcPort == that.srcPort;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(src, dst, srcPort);
+        return Objects.hash(tunPeerId, src, dst, srcPort);
     }
 
     /**
-     * Get the ID of the GTP tunnel peer.
+     * Get the ID of the UPF GTP tunnel peer.
      *
      * @return GTP tunnel peer ID
      */
@@ -90,7 +90,7 @@ public final class GtpTunnelPeer implements UpfEntity {
     }
 
     /**
-     * Get the source IP address of this unidirectional GTP tunnel.
+     * Get the source IP address of this unidirectional UPF GTP tunnel.
      *
      * @return tunnel source IP
      */
@@ -99,7 +99,7 @@ public final class GtpTunnelPeer implements UpfEntity {
     }
 
     /**
-     * Get the destination address of this unidirectional GTP tunnel.
+     * Get the destination address of this unidirectional UPF GTP tunnel.
      *
      * @return tunnel destination IP
      */
@@ -108,7 +108,7 @@ public final class GtpTunnelPeer implements UpfEntity {
     }
 
     /**
-     * Get the source L4 port of this unidirectional GTP tunnel.
+     * Get the source L4 port of this unidirectional UPF GTP tunnel.
      *
      * @return tunnel source port
      */
@@ -132,54 +132,54 @@ public final class GtpTunnelPeer implements UpfEntity {
         }
 
         /**
-         * Set the ID of the GTP Tunnel peer.
+         * Set the ID of the UPF GTP Tunnel peer.
          *
          * @param tunPeerId GTP tunnel peer ID
          * @return This builder object
          */
-        public GtpTunnelPeer.Builder withTunnelPeerId(byte tunPeerId) {
+        public UpfGtpTunnelPeer.Builder withTunnelPeerId(byte tunPeerId) {
             this.tunPeerId = tunPeerId;
             return this;
         }
 
         /**
-         * Set the source IP address of the unidirectional GTP tunnel.
+         * Set the source IP address of the unidirectional UPF GTP tunnel.
          *
          * @param src GTP tunnel source IP
          * @return This builder object
          */
-        public GtpTunnelPeer.Builder withSrcAddr(Ip4Address src) {
+        public UpfGtpTunnelPeer.Builder withSrcAddr(Ip4Address src) {
             this.src = src;
             return this;
         }
 
         /**
-         * Set the destination IP address of the unidirectional GTP tunnel.
+         * Set the destination IP address of the unidirectional UPF GTP tunnel.
          *
          * @param dst GTP tunnel destination IP
          * @return This builder object
          */
-        public GtpTunnelPeer.Builder withDstAddr(Ip4Address dst) {
+        public UpfGtpTunnelPeer.Builder withDstAddr(Ip4Address dst) {
             this.dst = dst;
             return this;
         }
 
         /**
-         * Set the source port of this unidirectional GTP tunnel.
+         * Set the source port of this unidirectional UPF GTP tunnel.
          *
          * @param srcPort tunnel source port
          * @return this builder object
          */
-        public GtpTunnelPeer.Builder withSrcPort(short srcPort) {
+        public UpfGtpTunnelPeer.Builder withSrcPort(short srcPort) {
             this.srcPort = srcPort;
             return this;
         }
 
-        public GtpTunnelPeer build() {
+        public UpfGtpTunnelPeer build() {
             checkArgument(tunPeerId != null, "Tunnel Peer ID must be provided");
             checkArgument(src != null, "Tunnel source address cannot be null");
             checkArgument(dst != null, "Tunnel destination address cannot be null");
-            return new GtpTunnelPeer(this.tunPeerId, this.src, this.dst, srcPort);
+            return new UpfGtpTunnelPeer(this.tunPeerId, this.src, this.dst, srcPort);
         }
 
     }

@@ -39,7 +39,7 @@ public enum UpfEntityType {
     }
 
     /**
-     * Returns a human readable representation of this UPF entity type (useful
+     * Returns a human-readable representation of this UPF entity type (useful
      * for logging).
      *
      * @return string
