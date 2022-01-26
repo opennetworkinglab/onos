@@ -35,12 +35,15 @@ public final class UpfSessionUplink implements UpfEntity {
 
     // Action parameters
     private final boolean dropping; // Used to convey dropping information
+    private final int sessionMeterIdx;
 
     private UpfSessionUplink(Ip4Address tunDestAddr,
                              Integer teid,
+                             int sessionMeterIdx,
                              boolean drop) {
         this.tunDestAddr = tunDestAddr;
         this.teid = teid;
+        this.sessionMeterIdx = sessionMeterIdx;
         this.dropping = drop;
     }
 
@@ -63,13 +66,14 @@ public final class UpfSessionUplink implements UpfEntity {
         UpfSessionUplink that = (UpfSessionUplink) object;
 
         return this.dropping == that.dropping &&
+                this.sessionMeterIdx == that.sessionMeterIdx &&
                 Objects.equals(tunDestAddr, that.tunDestAddr) &&
                 Objects.equals(teid, that.teid);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(tunDestAddr, teid, dropping);
+        return Objects.hash(tunDestAddr, teid, sessionMeterIdx, dropping);
     }
 
     @Override
@@ -89,7 +93,9 @@ public final class UpfSessionUplink implements UpfEntity {
         } else {
             actionStrBuilder.append("FWD");
         }
-        return actionStrBuilder.append(")").toString();
+        return actionStrBuilder
+                .append(", session_meter_idx=").append(this.sessionMeterIdx())
+                .append(")").toString();
     }
 
     /**
@@ -119,6 +125,15 @@ public final class UpfSessionUplink implements UpfEntity {
         return teid;
     }
 
+    /**
+     * Get the session meter index that is set by this UPF UE Session rule.
+     *
+     * @return Session meter index
+     */
+    public int sessionMeterIdx() {
+        return this.sessionMeterIdx;
+    }
+
     @Override
     public UpfEntityType type() {
         return UpfEntityType.SESSION_UPLINK;
@@ -127,6 +142,7 @@ public final class UpfSessionUplink implements UpfEntity {
     public static class Builder {
         private Ip4Address tunDstAddr = null;
         private Integer teid = null;
+        public int sessionMeterIdx = DEFAULT_SESSION_INDEX;
         private boolean drop = false;
 
         public Builder() {
@@ -134,7 +150,7 @@ public final class UpfSessionUplink implements UpfEntity {
         }
 
         /**
-         * Set the tunnel destination IP address (N3/S1U address) that this UPF UE Session rule matches on.
+         * Sets the tunnel destination IP address (N3/S1U address) that this UPF UE Session rule matches on.
          *
          * @param tunDstAddr The tunnel destination IP address
          * @return This builder object
@@ -145,7 +161,7 @@ public final class UpfSessionUplink implements UpfEntity {
         }
 
         /**
-         * Set the identifier of the GTP tunnel that this UPF UE Session rule matches on.
+         * Sets the identifier of the GTP tunnel that this UPF UE Session rule matches on.
          *
          * @param teid GTP tunnel ID
          * @return This builder object
@@ -167,11 +183,23 @@ public final class UpfSessionUplink implements UpfEntity {
             return this;
         }
 
+        /**
+         * Sets the meter index associated with this UE session.
+         * If not set, default to {@link UpfEntity#DEFAULT_SESSION_INDEX}.
+         *
+         * @param sessionMeterIdx Session meter index
+         * @return This builder object
+         */
+        public Builder withSessionMeterIdx(int sessionMeterIdx) {
+            this.sessionMeterIdx = sessionMeterIdx;
+            return this;
+        }
+
         public UpfSessionUplink build() {
             // Match keys are required.
             checkNotNull(tunDstAddr, "Tunnel destination must be provided");
             checkNotNull(teid, "TEID must be provided");
-            return new UpfSessionUplink(tunDstAddr, teid, drop);
+            return new UpfSessionUplink(tunDstAddr, teid, sessionMeterIdx, drop);
         }
     }
 }

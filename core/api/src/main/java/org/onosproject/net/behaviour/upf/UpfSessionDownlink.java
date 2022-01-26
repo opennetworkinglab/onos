@@ -33,14 +33,17 @@ public final class UpfSessionDownlink implements UpfEntity {
     private final Ip4Address ueAddress;
     // Action parameters
     private final Byte tunPeerId;
+    private final int sessionMeterIdx;
     private final boolean buffering;
     private final boolean dropping;
 
     private UpfSessionDownlink(Ip4Address ipv4Address,
                                Byte tunPeerId,
+                               int sessionMeterIdx,
                                boolean buffering,
                                boolean drop) {
         this.ueAddress = ipv4Address;
+        this.sessionMeterIdx = sessionMeterIdx;
         this.tunPeerId = tunPeerId;
         this.buffering = buffering;
         this.dropping = drop;
@@ -66,13 +69,14 @@ public final class UpfSessionDownlink implements UpfEntity {
 
         return this.buffering == that.buffering &&
                 this.dropping == that.dropping &&
+                this.sessionMeterIdx == that.sessionMeterIdx &&
                 Objects.equals(ueAddress, that.ueAddress) &&
                 Objects.equals(tunPeerId, that.tunPeerId);
     }
 
     @Override
     public int hashCode() {
-        return java.util.Objects.hash(ueAddress, tunPeerId, buffering, dropping);
+        return java.util.Objects.hash(ueAddress, sessionMeterIdx, tunPeerId, buffering, dropping);
     }
 
     @Override
@@ -95,7 +99,8 @@ public final class UpfSessionDownlink implements UpfEntity {
         } else {
             actionStrBuilder.append("FWD, ");
         }
-       return actionStrBuilder.append(" tun_peer=").append(this.tunPeerId()).append(")")
+       return actionStrBuilder.append(" tun_peer=").append(this.tunPeerId())
+               .append(", session_meter_idx=").append(this.sessionMeterIdx()).append(")")
                .toString();
     }
 
@@ -135,6 +140,15 @@ public final class UpfSessionDownlink implements UpfEntity {
         return tunPeerId;
     }
 
+    /**
+     * Get the session meter index that is set by this UPF UE Session rule.
+     *
+     * @return Session meter index
+     */
+    public int sessionMeterIdx() {
+        return this.sessionMeterIdx;
+    }
+
     @Override
     public UpfEntityType type() {
         return UpfEntityType.SESSION_DOWNLINK;
@@ -143,6 +157,7 @@ public final class UpfSessionDownlink implements UpfEntity {
     public static class Builder {
         private Ip4Address ueAddress = null;
         private Byte tunPeerId = null;
+        private int sessionMeterIdx = DEFAULT_SESSION_INDEX;
         private boolean buffer = false;
         private boolean drop = false;
 
@@ -151,7 +166,7 @@ public final class UpfSessionDownlink implements UpfEntity {
         }
 
         /**
-         * Set the UE IP address that this downlink UPF UE session rule matches on.
+         * Sets the UE IP address that this downlink UPF UE session rule matches on.
          *
          * @param ueAddress UE IP address
          * @return This builder object
@@ -162,7 +177,7 @@ public final class UpfSessionDownlink implements UpfEntity {
         }
 
         /**
-         * Set the GTP tunnel peer ID that is set by this UPF UE Session rule.
+         * Sets the GTP tunnel peer ID that is set by this UPF UE Session rule.
          *
          * @param tunnelPeerId GTP tunnel peer ID
          * @return This builder object
@@ -173,7 +188,7 @@ public final class UpfSessionDownlink implements UpfEntity {
         }
 
         /**
-         * Set whether to buffer downlink UPF UE session traffic or not.
+         * Sets whether to buffer downlink UPF UE session traffic or not.
          *
          * @param buffer True if request to buffer, false otherwise
          * @return This builder object
@@ -184,7 +199,7 @@ public final class UpfSessionDownlink implements UpfEntity {
         }
 
         /**
-         * Set whether to drop downlink UPF UE session traffic or not.
+         * Sets whether to drop downlink UPF UE session traffic or not.
          *
          * @param drop True if request to buffer, false otherwise
          * @return This builder object
@@ -194,10 +209,22 @@ public final class UpfSessionDownlink implements UpfEntity {
             return this;
         }
 
+        /**
+         * Sets the meter index associated with this UE session.
+         * If not set, default to {@link UpfEntity#DEFAULT_SESSION_INDEX}.
+         *
+         * @param sessionMeterIdx Session meter index
+         * @return This builder object
+         */
+        public Builder withSessionMeterIdx(int sessionMeterIdx) {
+            this.sessionMeterIdx = sessionMeterIdx;
+            return this;
+        }
+
         public UpfSessionDownlink build() {
             // Match fields are required
             checkNotNull(ueAddress, "UE address must be provided");
-            return new UpfSessionDownlink(ueAddress, tunPeerId, buffer, drop);
+            return new UpfSessionDownlink(ueAddress, tunPeerId, sessionMeterIdx, buffer, drop);
         }
     }
 }

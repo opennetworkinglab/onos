@@ -36,14 +36,17 @@ public final class UpfTerminationUplink implements UpfEntity {
     // Action parameters
     private final Integer ctrId;  // Counter ID unique to this UPF Termination Rule
     private final Byte trafficClass;
+    private final int appMeterIdx;
     private final boolean dropping;
 
-    private UpfTerminationUplink(Ip4Address ueSessionId, byte applicationId, Integer ctrId, Byte trafficClass,
-                                 boolean dropping) {
+    private UpfTerminationUplink(Ip4Address ueSessionId, byte applicationId,
+                                 Integer ctrId, Byte trafficClass,
+                                 int appMeterIdx, boolean dropping) {
         this.ueSessionId = ueSessionId;
         this.applicationId = applicationId;
         this.ctrId = ctrId;
         this.trafficClass = trafficClass;
+        this.appMeterIdx = appMeterIdx;
         this.dropping = dropping;
     }
 
@@ -69,12 +72,13 @@ public final class UpfTerminationUplink implements UpfEntity {
                 Objects.equals(this.ueSessionId, that.ueSessionId) &&
                 Objects.equals(this.applicationId, that.applicationId) &&
                 Objects.equals(this.ctrId, that.ctrId) &&
+                this.appMeterIdx == that.appMeterIdx &&
                 Objects.equals(this.trafficClass, that.trafficClass);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ueSessionId, applicationId, ctrId, trafficClass, dropping);
+        return Objects.hash(ueSessionId, applicationId, ctrId, trafficClass, appMeterIdx, dropping);
     }
 
     /**
@@ -122,6 +126,15 @@ public final class UpfTerminationUplink implements UpfEntity {
         return dropping;
     }
 
+    /**
+     * Get the app meter index set by this UPF Termination rule.
+     *
+     * @return App meter index
+     */
+    public int appMeterIdx() {
+        return appMeterIdx;
+    }
+
     @Override
     public UpfEntityType type() {
         return UpfEntityType.TERMINATION_UPLINK;
@@ -144,6 +157,7 @@ public final class UpfTerminationUplink implements UpfEntity {
         return "Action(" + fwd +
                 ", ctr_id=" + this.counterId() +
                 ", tc=" + this.trafficClass() +
+                ", app_meter_idx=" + this.appMeterIdx() +
                 ")";
     }
 
@@ -152,6 +166,7 @@ public final class UpfTerminationUplink implements UpfEntity {
         private Byte applicationId = null;
         private Integer ctrId = null;
         private Byte trafficClass = null;
+        private int appMeterIdx = DEFAULT_APP_INDEX;
         private boolean dropping = false;
 
         public Builder() {
@@ -171,6 +186,7 @@ public final class UpfTerminationUplink implements UpfEntity {
 
         /**
          * Set the ID of the application.
+         * If not set, default to {@link UpfEntity#DEFAULT_APP_ID}.
          *
          * @param applicationId Application ID
          * @return This builder object
@@ -213,6 +229,18 @@ public final class UpfTerminationUplink implements UpfEntity {
             return this;
         }
 
+        /**
+         * Sets the app meter index.
+         * If not set, default to {@link UpfEntity#DEFAULT_APP_INDEX}.
+         *
+         * @param appMeterIdx App meter index
+         * @return This builder object
+         */
+        public Builder withAppMeterIdx(int appMeterIdx) {
+            this.appMeterIdx = appMeterIdx;
+            return this;
+        }
+
         public UpfTerminationUplink build() {
             // Match fields must be provided
             checkNotNull(ueSessionId, "UE session ID must be provided");
@@ -223,7 +251,7 @@ public final class UpfTerminationUplink implements UpfEntity {
             // TODO: should we verify that when dropping no other fields are provided
             return new UpfTerminationUplink(
                     this.ueSessionId, this.applicationId, this.ctrId,
-                    this.trafficClass, this.dropping
+                    this.trafficClass, this.appMeterIdx, this.dropping
             );
         }
 
