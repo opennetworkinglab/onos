@@ -519,7 +519,11 @@ public class NetworkConfigLinksProvider
     private class InternalConfigListener implements NetworkConfigListener {
 
         private void addLink(LinkKey linkKey) {
+            DefaultLinkDescription linkDescription =
+                    new DefaultLinkDescription(linkKey.src(), linkKey.dst(),
+                            Link.Type.DIRECT);
             configuredLinks.add(linkKey);
+            providerService.linkDetected(linkDescription);
         }
 
         private void removeLink(LinkKey linkKey) {
