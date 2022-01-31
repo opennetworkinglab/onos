@@ -92,6 +92,7 @@ public class OpenConfigGnmiDeviceDescriptionDiscovery
 
         final Map<String, DefaultPortDescription.Builder> ports = Maps.newHashMap();
         final Map<String, DefaultAnnotations.Builder> annotations = Maps.newHashMap();
+        final Map<String, PortNumber> portIds = Maps.newHashMap();
 
         // Creates port descriptions with port name and port number
         response.getNotificationList()
@@ -106,7 +107,7 @@ public class OpenConfigGnmiDeviceDescriptionDiscovery
                         }
                         final DefaultPortDescription.Builder builder = ports.get(ifName);
                         final DefaultAnnotations.Builder annotationsBuilder = annotations.get(ifName);
-                        parseInterfaceInfo(update, ifName, builder, annotationsBuilder);
+                        parseInterfaceInfo(update, ifName, builder, annotationsBuilder, portIds);
                     });
                 });
 
@@ -117,9 +118,14 @@ public class OpenConfigGnmiDeviceDescriptionDiscovery
             if (!annotationsBuilder.build().keys().contains(LAST_CHANGE)) {
                 annotationsBuilder.set(LAST_CHANGE, String.valueOf(0));
             }
+            // Override port number if /interfaces/interface/state/id is available
+            if (portIds.containsKey(key)) {
+                value.withPortNumber(portIds.get(key));
+            }
             DefaultAnnotations annotation = annotations.get(key).build();
             portDescriptionList.add(value.annotations(annotation).build());
         });
+
         return portDescriptionList;
     }
 
@@ -144,15 +150,17 @@ public class OpenConfigGnmiDeviceDescriptionDiscovery
     private void parseInterfaceInfo(Update update,
                                     String ifName,
                                     DefaultPortDescription.Builder builder,
-                                    DefaultAnnotations.Builder annotationsBuilder) {
+                                    DefaultAnnotations.Builder annotationsBuilder,
+                                    Map<String, PortNumber> portIds) {
 
         final Path path = update.getPath();
         final List<PathElem> elems = path.getElemList();
         final Gnmi.TypedValue val = update.getVal();
         if (elems.size() == 4) {
-            // /interfaces/interface/state/ifindex
-            // /interfaces/interface/state/oper-status
-            // /interfaces/interface/state/last-change
+            /* /interfaces/interface/state/ifindex
+               /interfaces/interface/state/oper-status
+               /interfaces/interface/state/last-change
+               /interfaces/interface/state/id */
             final String pathElemName = elems.get(3).getName();
             switch (pathElemName) {
                 case "ifindex": // port number
@@ -163,6 +171,12 @@ public class OpenConfigGnmiDeviceDescriptionDiscovery
                     return;
                 case "last-change":
                     annotationsBuilder.set(LAST_CHANGE, String.valueOf(val.getUintVal()));
+                    return;
+                case "id":
+                    /* Temporary stored in portIds and eventually substituted
+                       when all updates have been processed. This is done because
+                       there is no guarantee about the order of the updates delivery */
+                    portIds.put(ifName, PortNumber.portNumber(val.getUintVal(), ifName));
                     return;
                 default:
                     break;
