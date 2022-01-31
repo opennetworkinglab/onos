@@ -61,24 +61,16 @@ public class ApplicationsListCommand extends AbstractShellCommand {
     @Option(name = "-n", aliases = "--name", description = "Sort by application ID name")
     private boolean sortByName = false;
 
-
-    @Option(name = "-r", aliases = "--regapps", description = "Get Registered Apps for Runtime Version")
-    private boolean getRegisteredApps = false;
-
     @Override
     protected void doExecute() {
         ApplicationService service = get(ApplicationService.class);
-        List<Application> apps;
-        if (getRegisteredApps) {
-            apps = newArrayList(service.getRegisteredApplications());
-        } else {
-            apps = newArrayList(service.getApplications());
-        }
+        List<Application> apps = newArrayList(service.getApplications());
         if (sortByName) {
             apps.sort(Comparator.comparing(app -> app.id().name()));
         } else {
             Collections.sort(apps, Comparators.APP_COMPARATOR);
         }
+
         if (outputJson()) {
             print("%s", json(service, apps));
         } else {
