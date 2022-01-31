@@ -91,7 +91,10 @@ public interface ApplicationService
      * Returns the set of all installed applications.
      *
      * @return set of apps putside the build/core environment
+     *
+     * @deprecated since onos-2.5
      */
+    @Deprecated
     default Set<Application> getRegisteredApplications() {
         return ImmutableSet.of();
     }
