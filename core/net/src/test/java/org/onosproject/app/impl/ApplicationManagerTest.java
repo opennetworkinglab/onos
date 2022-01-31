@@ -85,14 +85,6 @@ public class ApplicationManagerTest {
         assertEquals("incorrect features", FEATURES, app.features());
     }
 
-    @Test
-    public void testGetRegisteredApps() {
-        mgr.versionService = new TestVersionService();
-        Set<Application> apps = mgr.getRegisteredApplications();
-        System.out.println(apps);
-        assertFalse("SET contains less Apps than it should", apps.size() < 158);
-    }
-
     private static class TestVersionService extends VersionServiceAdapter {
 
         @Override
