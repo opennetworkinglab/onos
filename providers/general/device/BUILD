@@ -3,6 +3,7 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + [
     "//protocols/gnmi/api:onos-protocols-gnmi-api",
     "//deps:com_google_protobuf_protobuf_java",
     "//protocols/grpc/api:onos-protocols-grpc-api",
+    "//drivers/gnmi:onos-drivers-gnmi",
 ]
 
 osgi_jar_with_tests(
