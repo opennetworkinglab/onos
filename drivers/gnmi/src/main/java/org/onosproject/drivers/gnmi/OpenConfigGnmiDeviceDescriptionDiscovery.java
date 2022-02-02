@@ -61,6 +61,10 @@ public class OpenConfigGnmiDeviceDescriptionDiscovery
 
     private static final String UNKNOWN = "unknown";
 
+    // FIXME temporary solution will be removed when the
+    //  transition to p4rt translation is completed
+    public static boolean readPortId = false;
+
     public OpenConfigGnmiDeviceDescriptionDiscovery() {
         super(GnmiController.class);
     }
@@ -118,8 +122,9 @@ public class OpenConfigGnmiDeviceDescriptionDiscovery
             if (!annotationsBuilder.build().keys().contains(LAST_CHANGE)) {
                 annotationsBuilder.set(LAST_CHANGE, String.valueOf(0));
             }
-            // Override port number if /interfaces/interface/state/id is available
-            if (portIds.containsKey(key)) {
+            /* Override port number if read port-id is enabled
+               and /interfaces/interface/state/id is available */
+            if (readPortId && portIds.containsKey(key)) {
                 value.withPortNumber(portIds.get(key));
             }
             DefaultAnnotations annotation = annotations.get(key).build();
