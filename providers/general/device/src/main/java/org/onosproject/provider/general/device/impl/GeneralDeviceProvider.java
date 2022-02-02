@@ -27,6 +27,7 @@ import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.CoreService;
+import org.onosproject.drivers.gnmi.OpenConfigGnmiDeviceDescriptionDiscovery;
 import org.onosproject.gnmi.api.GnmiController;
 import org.onosproject.mastership.MastershipInfo;
 import org.onosproject.mastership.MastershipService;
@@ -97,6 +98,8 @@ import static java.util.concurrent.Executors.newFixedThreadPool;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.provider.general.device.impl.OsgiPropertyConstants.CHECKUP_INTERVAL;
 import static org.onosproject.provider.general.device.impl.OsgiPropertyConstants.CHECKUP_INTERVAL_DEFAULT;
+import static org.onosproject.provider.general.device.impl.OsgiPropertyConstants.READ_PORT_ID;
+import static org.onosproject.provider.general.device.impl.OsgiPropertyConstants.READ_PORT_ID_DEFAULT;
 import static org.onosproject.provider.general.device.impl.OsgiPropertyConstants.STATS_POLL_INTERVAL;
 import static org.onosproject.provider.general.device.impl.OsgiPropertyConstants.STATS_POLL_INTERVAL_DEFAULT;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -111,6 +114,7 @@ import static org.slf4j.LoggerFactory.getLogger;
         property = {
                 CHECKUP_INTERVAL + ":Integer=" + CHECKUP_INTERVAL_DEFAULT,
                 STATS_POLL_INTERVAL + ":Integer=" + STATS_POLL_INTERVAL_DEFAULT,
+                READ_PORT_ID + ":Boolean=" + READ_PORT_ID_DEFAULT,
         })
 public class GeneralDeviceProvider extends AbstractProvider
         implements DeviceProvider {
@@ -174,6 +178,11 @@ public class GeneralDeviceProvider extends AbstractProvider
      */
     private int statsPollInterval = STATS_POLL_INTERVAL_DEFAULT;
 
+    /**
+     * Configure read port-id for gnmi drivers; default is false.
+     */
+    private boolean readPortId = READ_PORT_ID_DEFAULT;
+
     private final Map<DeviceId, DeviceHandshaker> handshakersWithListeners = Maps.newConcurrentMap();
     private final Map<DeviceId, Long> lastCheckups = Maps.newConcurrentMap();
     private final InternalPipeconfWatchdogListener pipeconfWatchdogListener = new InternalPipeconfWatchdogListener();
@@ -233,6 +242,11 @@ public class GeneralDeviceProvider extends AbstractProvider
                 properties, STATS_POLL_INTERVAL, STATS_POLL_INTERVAL_DEFAULT);
         log.info("Configured. {} is configured to {} seconds",
                  STATS_POLL_INTERVAL, statsPollInterval);
+        final boolean oldReaPortId = readPortId;
+        String strReadPortId = Tools.get(properties, READ_PORT_ID);
+        readPortId = Boolean.parseBoolean(strReadPortId);
+        log.info("Configured. {} is configured to {}",
+                READ_PORT_ID, readPortId);
 
         if (oldCheckupInterval != checkupInterval) {
             startOrReschedulePeriodicCheckupTasks();
@@ -240,6 +254,12 @@ public class GeneralDeviceProvider extends AbstractProvider
 
         if (oldStatsPollFrequency != statsPollInterval) {
             statsPoller.reschedule(statsPollInterval);
+        }
+
+        if (oldReaPortId != readPortId) {
+            // FIXME temporary solution will be removed when the
+            //  transition to p4rt translation is completed
+            OpenConfigGnmiDeviceDescriptionDiscovery.readPortId = readPortId;
         }
     }
 

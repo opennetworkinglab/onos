@@ -29,4 +29,7 @@ public final class OsgiPropertyConstants {
     public static final String CHECKUP_INTERVAL = "checkupInterval";
     public static final int CHECKUP_INTERVAL_DEFAULT = 10;
 
+    public static final String READ_PORT_ID = "readPortId";
+    public static final boolean READ_PORT_ID_DEFAULT = false;
+
 }
