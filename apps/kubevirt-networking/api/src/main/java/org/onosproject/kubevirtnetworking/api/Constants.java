@@ -85,6 +85,7 @@ public final class Constants {
     // CLI item length
     public static final int CLI_ID_LENGTH = 30;
     public static final int CLI_NAME_LENGTH = 30;
+    public static final int CLI_LONG_NAME_LENGTH = 50;
     public static final int CLI_IP_ADDRESSES_LENGTH = 50;
     public static final int CLI_IP_ADDRESS_LENGTH = 25;
     public static final int CLI_IP_ADDRESS_AVAILABILITY = 15;

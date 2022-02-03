@@ -38,6 +38,8 @@ public class DefaultKubevirtFloatingIpTest {
     private static final IpAddress FLOATING_IP_2 = IpAddress.valueOf("20.20.20.20");
     private static final String POD_NAME_1 = "pod-1";
     private static final String POD_NAME_2 = "pod-2";
+    private static final String VM_NAME_1 = "vm-1";
+    private static final String VM_NAME_2 = "vm-2";
     private static final IpAddress FIXED_IP_1 = IpAddress.valueOf("30.30.30.30");
     private static final IpAddress FIXED_IP_2 = IpAddress.valueOf("40.40.40.40");
 
@@ -64,6 +66,7 @@ public class DefaultKubevirtFloatingIpTest {
                 .networkName(NETWORK_NAME_1)
                 .floatingIp(FLOATING_IP_1)
                 .podName(POD_NAME_1)
+                .vmName(VM_NAME_1)
                 .fixedIp(FIXED_IP_1)
                 .build();
 
@@ -73,6 +76,7 @@ public class DefaultKubevirtFloatingIpTest {
                 .networkName(NETWORK_NAME_1)
                 .floatingIp(FLOATING_IP_1)
                 .podName(POD_NAME_1)
+                .vmName(VM_NAME_1)
                 .fixedIp(FIXED_IP_1)
                 .build();
 
@@ -82,6 +86,7 @@ public class DefaultKubevirtFloatingIpTest {
                 .networkName(NETWORK_NAME_2)
                 .floatingIp(FLOATING_IP_2)
                 .podName(POD_NAME_2)
+                .vmName(VM_NAME_2)
                 .fixedIp(FIXED_IP_2)
                 .build();
     }
@@ -108,6 +113,7 @@ public class DefaultKubevirtFloatingIpTest {
         assertEquals(NETWORK_NAME_1, fip.networkName());
         assertEquals(FLOATING_IP_1, fip.floatingIp());
         assertEquals(POD_NAME_1, fip.podName());
+        assertEquals(VM_NAME_1, fip.vmName());
         assertEquals(FIXED_IP_1, fip.fixedIp());
     }
 }

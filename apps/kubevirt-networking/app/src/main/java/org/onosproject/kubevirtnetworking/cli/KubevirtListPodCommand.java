@@ -33,9 +33,9 @@ import java.util.Comparator;
 import java.util.List;
 
 import static org.onosproject.kubevirtnetworking.api.Constants.CLI_IP_ADDRESS_LENGTH;
+import static org.onosproject.kubevirtnetworking.api.Constants.CLI_LONG_NAME_LENGTH;
 import static org.onosproject.kubevirtnetworking.api.Constants.CLI_MARGIN_LENGTH;
 import static org.onosproject.kubevirtnetworking.api.Constants.CLI_NAMESPACE_LENGTH;
-import static org.onosproject.kubevirtnetworking.api.Constants.CLI_NAME_LENGTH;
 import static org.onosproject.kubevirtnetworking.api.Constants.CLI_STATUS_LENGTH;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.genFormatString;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.prettyJson;
@@ -53,7 +53,7 @@ public class KubevirtListPodCommand extends AbstractShellCommand {
         List<Pod> pods = Lists.newArrayList(service.pods());
         pods.sort(Comparator.comparing(p -> p.getMetadata().getName()));
 
-        String format = genFormatString(ImmutableList.of(CLI_NAME_LENGTH,
+        String format = genFormatString(ImmutableList.of(CLI_LONG_NAME_LENGTH,
                 CLI_NAMESPACE_LENGTH, CLI_STATUS_LENGTH, CLI_IP_ADDRESS_LENGTH));
 
         if (outputJson()) {
@@ -69,7 +69,7 @@ public class KubevirtListPodCommand extends AbstractShellCommand {
 
                 print(format,
                         StringUtils.substring(pod.getMetadata().getName(),
-                                0, CLI_NAME_LENGTH - CLI_MARGIN_LENGTH),
+                                0, CLI_LONG_NAME_LENGTH - CLI_MARGIN_LENGTH),
                         StringUtils.substring(pod.getMetadata().getNamespace(),
                                 0, CLI_NAMESPACE_LENGTH - CLI_MARGIN_LENGTH),
                         pod.getStatus().getPhase(),

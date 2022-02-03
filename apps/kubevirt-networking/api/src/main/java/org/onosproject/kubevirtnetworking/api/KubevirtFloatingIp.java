@@ -58,6 +58,13 @@ public interface KubevirtFloatingIp {
     IpAddress fixedIp();
 
     /**
+     * Returns the name of VM where this floating IP is associated with.
+     *
+     * @return VM name
+     */
+    String vmName();
+
+    /**
      * Returns the name of POD where this floating IP is associated with.
      *
      * @return POD name
@@ -79,6 +86,14 @@ public interface KubevirtFloatingIp {
      * @return kubevirt floating IP
      */
     KubevirtFloatingIp updatePodName(String name);
+
+    /**
+     * Updates the kubevirt floating IP with the supplied VM name.
+     *
+     * @param name VM name
+     * @return kubevirt floating IP
+     */
+    KubevirtFloatingIp updateVmName(String name);
 
     interface Builder {
         /**
@@ -127,6 +142,14 @@ public interface KubevirtFloatingIp {
          * @return floating IP builder
          */
         Builder fixedIp(IpAddress ip);
+
+        /**
+         * Returns kubevirt floating IP builder with supplied VM name.
+         *
+         * @param name VM name
+         * @return floating IP builder
+         */
+        Builder vmName(String name);
 
         /**
          * Returns kubevirt floating IP builder with supplied POD name.

@@ -415,6 +415,9 @@ public class DistributedKubevirtRouterStore
             String oldPodName = event.oldValue().value().podName();
             String newPodName = event.newValue().value().podName();
 
+            String oldVmName = event.oldValue().value().vmName();
+            String newVmName = event.newValue().value().vmName();
+
             if (Strings.isNullOrEmpty(oldPodName) && !Strings.isNullOrEmpty(newPodName)) {
                 notifyDelegate(new KubevirtRouterEvent(
                         KUBEVIRT_FLOATING_IP_ASSOCIATED,
@@ -431,6 +434,24 @@ public class DistributedKubevirtRouterStore
                         event.oldValue().value(), oldPodName));
                 log.info(String.format(MSG_FLOATING_IP,
                         event.newValue().value().floatingIp(), MSG_DISASSOCIATED, oldPodName));
+            }
+
+            if (Strings.isNullOrEmpty(oldVmName) && !Strings.isNullOrEmpty(newVmName)) {
+                notifyDelegate(new KubevirtRouterEvent(
+                        KUBEVIRT_FLOATING_IP_ASSOCIATED,
+                        router,
+                        event.newValue().value(), newVmName));
+                log.info(String.format(MSG_FLOATING_IP,
+                        event.newValue().value().floatingIp(), MSG_ASSOCIATED, newVmName));
+            }
+
+            if (!Strings.isNullOrEmpty(oldVmName) && Strings.isNullOrEmpty(newVmName)) {
+                notifyDelegate(new KubevirtRouterEvent(
+                        KUBEVIRT_FLOATING_IP_DISASSOCIATED,
+                        router,
+                        event.oldValue().value(), oldVmName));
+                log.info(String.format(MSG_FLOATING_IP,
+                        event.newValue().value().floatingIp(), MSG_DISASSOCIATED, oldVmName));
             }
 
             IpAddress oldFixedIp = event.oldValue().value().fixedIp();
