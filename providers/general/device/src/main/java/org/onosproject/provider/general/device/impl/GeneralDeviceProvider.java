@@ -421,6 +421,22 @@ public class GeneralDeviceProvider extends AbstractProvider
         submitTask(deviceId, TaskType.CONNECTION_TEARDOWN);
     }
 
+    @Override
+    public CompletableFuture<Boolean> probeReachability(DeviceId deviceId) {
+        final DeviceHandshaker handshaker = getBehaviour(
+                deviceId, DeviceHandshaker.class);
+        if (handshaker == null) {
+            return CompletableFuture.completedFuture(false);
+        }
+        return handshaker.probeReachability();
+    }
+
+    private boolean probeReachabilitySync(DeviceId deviceId) {
+        // Wait 3/4 of the checkup interval
+        return Tools.futureGetOrElse(probeReachability(deviceId), (checkupInterval * 3000 / 4),
+                TimeUnit.MILLISECONDS, Boolean.FALSE);
+    }
+
     /**
      * Listener for configuration events.
      */
@@ -741,16 +757,12 @@ public class GeneralDeviceProvider extends AbstractProvider
         // If here, device should be registered in the core.
         assertDeviceRegistered(deviceId);
 
-        if (!handshaker.isReachable()) {
+        if (!handshaker.isReachable() || !probeReachabilitySync(deviceId)) {
             // Device appears to be offline.
             markOfflineIfNeeded(deviceId);
-            // While we expect the protocol layer to implement some sort of
+            // We expect the protocol layer to implement some sort of
             // connection backoff mechanism and to signal availability via
-            // CHANNEL_OPEN events, we stimulate some channel activity now.
-            // Trigger probe over the network and forget about it (not waiting
-            // for future to complete). If channel is ready, we expect to come
-            // back here via a CHANNEL_OPEN event.
-            handshaker.probeReachability();
+            // CHANNEL_OPEN events.
             return;
         }
 
