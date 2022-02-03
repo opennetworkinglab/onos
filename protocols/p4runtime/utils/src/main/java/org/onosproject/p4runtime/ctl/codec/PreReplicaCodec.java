@@ -16,6 +16,7 @@
 
 package org.onosproject.p4runtime.ctl.codec;
 
+import com.google.common.primitives.UnsignedInteger;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.runtime.PiPreReplica;
@@ -37,8 +38,9 @@ public class PreReplicaCodec extends AbstractCodec<PiPreReplica,
             throws CodecException, P4InfoBrowser.NotFoundException {
         final int p4PortId;
         try {
-            p4PortId = Math.toIntExact(replica.egressPort().toLong());
-        } catch (ArithmeticException e) {
+            UnsignedInteger egressPort = UnsignedInteger.valueOf(replica.egressPort().toLong());
+            p4PortId = egressPort.intValue();
+        } catch (IllegalArgumentException e) {
             throw new CodecException(format(
                     "Cannot cast 64 bit port value '%s' to 32 bit",
                     replica.egressPort()));
