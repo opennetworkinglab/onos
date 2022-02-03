@@ -513,6 +513,7 @@ public class DeviceManager
             final DeviceId deviceId = device.id();
             MastershipRole myRole = mastershipService.getLocalRole(deviceId);
             log.trace("Checking device {}. Current role is {}", deviceId, myRole);
+            log.info("Device local status is {}", localStatus(deviceId));
             if (!isReachable(deviceId)) {
                 if (myRole != NONE) {
                     // Verify if the device is fully disconnected from the cluster
@@ -1079,6 +1080,7 @@ public class DeviceManager
         }
 
         final boolean isReachable = isReachable(did);
+        log.info("Device local status is {}", localStatus(did));
         if (!isReachable) {
             // device is not connected to this node, nevertheless we should get a role
             if (mastershipService.getLocalRole(did) == NONE) {
