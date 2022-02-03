@@ -20,6 +20,8 @@ import org.onosproject.net.MastershipRole;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.provider.Provider;
 
+import java.util.concurrent.CompletableFuture;
+
 /**
  * Abstraction of a device information provider.
  */
@@ -105,6 +107,22 @@ public interface DeviceProvider extends Provider {
      */
     default void triggerDisconnect(DeviceId deviceId) {
         throw new UnsupportedOperationException(id() + " does not implement this feature");
+    }
+
+    /**
+     * Probe the reachability of the device from the provider perspective.
+     * <p>
+     * Implementations are encouraged to provide an async implementation.
+     * With the respect of triggerProbe, this method returns whether or
+     * not was possible to send a message to the device from this instance.
+     * Instead, isReachable asses only the capability to send a message from
+     * this node but does not imply sending a message to the device.
+     *
+     * @param deviceId device identifier
+     * @return completable future eventually true if reachable, false otherwise
+     */
+    default CompletableFuture<Boolean> probeReachability(DeviceId deviceId) {
+        return CompletableFuture.completedFuture(isReachable(deviceId));
     }
 
 }
