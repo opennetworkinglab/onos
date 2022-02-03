@@ -4,5 +4,6 @@
   "networkName": "flat-1",
   "floatingIp": "10.10.10.10",
   "podName": "pod-1",
+  "vmName": "vm-1",
   "fixedIp": "20.20.20.20"
 }

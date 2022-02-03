@@ -158,7 +158,7 @@ public class KubevirtFloatingIpHandler {
                                           KubevirtNode electedGw,
                                           boolean install) {
 
-        KubevirtPort kubevirtPort = getKubevirtPort(floatingIp);
+        KubevirtPort kubevirtPort = getKubevirtPortByFloatingIp(floatingIp);
         if (kubevirtPort == null) {
             return;
         }
@@ -209,10 +209,11 @@ public class KubevirtFloatingIpHandler {
                 install);
     }
 
-    private KubevirtPort getKubevirtPort(KubevirtFloatingIp floatingIp) {
+    private KubevirtPort getKubevirtPortByFloatingIp(KubevirtFloatingIp floatingIp) {
 
         return kubevirtPortService.ports().stream()
                 .filter(port -> port.ipAddress().equals(floatingIp.fixedIp()))
+                .filter(port -> port.vmName().equals(floatingIp.vmName()))
                 .findAny().orElse(null);
     }
 
@@ -239,7 +240,6 @@ public class KubevirtFloatingIpHandler {
                 .matchEthDst(routerMacAddress)
                 .matchIPSrc(IpPrefix.valueOf(floatingIp.fixedIp(), 32))
                 .build();
-
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .setEthDst(peerMacAddress)
@@ -336,7 +336,7 @@ public class KubevirtFloatingIpHandler {
             return;
         }
 
-        KubevirtPort kubevirtPort = getKubevirtPort(floatingIp);
+        KubevirtPort kubevirtPort = getKubevirtPortByFloatingIp(floatingIp);
         if (kubevirtPort == null) {
             return;
         }

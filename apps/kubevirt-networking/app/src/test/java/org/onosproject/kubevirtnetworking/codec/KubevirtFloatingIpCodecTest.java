@@ -74,6 +74,7 @@ public final class KubevirtFloatingIpCodecTest {
                 .networkName("flat-1")
                 .floatingIp(IpAddress.valueOf("10.10.10.10"))
                 .podName("pod-1")
+                .vmName("vm-1")
                 .fixedIp(IpAddress.valueOf("20.20.20.20"))
                 .build();
 
@@ -90,6 +91,7 @@ public final class KubevirtFloatingIpCodecTest {
         assertEquals("flat-1", floatingIp.networkName());
         assertEquals("10.10.10.10", floatingIp.floatingIp().toString());
         assertEquals("pod-1", floatingIp.podName());
+        assertEquals("vm-1", floatingIp.vmName());
         assertEquals("20.20.20.20", floatingIp.fixedIp().toString());
     }
 

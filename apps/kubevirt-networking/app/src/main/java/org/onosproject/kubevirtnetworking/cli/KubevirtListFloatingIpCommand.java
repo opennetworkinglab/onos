@@ -50,22 +50,25 @@ public class KubevirtListFloatingIpCommand extends AbstractShellCommand {
         fips.sort(Comparator.comparing(KubevirtFloatingIp::networkName));
 
         String format = genFormatString(ImmutableList.of(CLI_NAME_LENGTH,
-                CLI_IP_ADDRESS_LENGTH, CLI_NAME_LENGTH, CLI_IP_ADDRESS_LENGTH));
+                CLI_IP_ADDRESS_LENGTH, CLI_NAME_LENGTH, CLI_NAME_LENGTH, CLI_IP_ADDRESS_LENGTH));
 
         if (outputJson()) {
             print("%s", json(fips));
         } else {
-            print(format, "Network Name", "Floating IP", "POD Name", "Fixed IP");
+            print(format, "Network Name", "Floating IP", "POD Name", "VM Name", "Fixed IP");
             for (KubevirtFloatingIp fip : fips) {
 
                 String fixedIp = fip.fixedIp() == null ? "N/A" : fip.fixedIp().toString();
                 String podName = fip.podName() == null ? "N/A" : fip.podName();
+                String vmName = fip.vmName() == null ? "N/A" : fip.vmName();
 
                 print(format, StringUtils.substring(fip.networkName(), 0,
                         CLI_NAME_LENGTH - CLI_MARGIN_LENGTH),
                         StringUtils.substring(fip.floatingIp().toString(), 0,
                                 CLI_IP_ADDRESS_LENGTH - CLI_MARGIN_LENGTH),
                         StringUtils.substring(podName, 0,
+                                CLI_NAME_LENGTH - CLI_MARGIN_LENGTH),
+                        StringUtils.substring(vmName, 0,
                                 CLI_NAME_LENGTH - CLI_MARGIN_LENGTH),
                         StringUtils.substring(fixedIp, 0,
                                 CLI_IP_ADDRESS_LENGTH - CLI_MARGIN_LENGTH)

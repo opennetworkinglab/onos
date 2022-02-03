@@ -38,6 +38,7 @@ public final class KubevirtFloatingIpCodec extends JsonCodec<KubevirtFloatingIp>
     private static final String ID = "id";
     private static final String ROUTER_NAME = "routerName";
     private static final String POD_NAME = "podName";
+    private static final String VM_NAME = "vmName";
     private static final String NETWORK_NAME = "networkName";
     private static final String FLOATING_IP = "floatingIp";
     private static final String FIXED_IP = "fixedIp";
@@ -56,6 +57,10 @@ public final class KubevirtFloatingIpCodec extends JsonCodec<KubevirtFloatingIp>
 
         if (fip.podName() != null) {
             result.put(POD_NAME, fip.podName());
+        }
+
+        if (fip.vmName() != null) {
+            result.put(VM_NAME, fip.vmName());
         }
 
         if (fip.fixedIp() != null) {
@@ -88,6 +93,11 @@ public final class KubevirtFloatingIpCodec extends JsonCodec<KubevirtFloatingIp>
         JsonNode podName = json.get(POD_NAME);
         if (podName != null) {
             builder.podName(podName.asText());
+        }
+
+        JsonNode vmName = json.get(VM_NAME);
+        if (vmName != null) {
+            builder.vmName(vmName.asText());
         }
 
         JsonNode fixedIp = json.get(FIXED_IP);

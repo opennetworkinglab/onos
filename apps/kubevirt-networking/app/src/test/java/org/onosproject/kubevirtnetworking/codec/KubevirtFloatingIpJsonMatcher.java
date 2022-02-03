@@ -30,6 +30,7 @@ public final class KubevirtFloatingIpJsonMatcher extends TypeSafeDiagnosingMatch
     private static final String ROUTER_NAME = "routerName";
     private static final String NETWORK_NAME = "networkName";
     private static final String POD_NAME = "podName";
+    private static final String VM_NAME = "vmName";
     private static final String FLOATING_IP = "floatingIp";
     private static final String FIXED_IP = "fixedIp";
 
@@ -80,6 +81,15 @@ public final class KubevirtFloatingIpJsonMatcher extends TypeSafeDiagnosingMatch
                 return false;
             }
         }
+
+        JsonNode jsonVmName = jsonNode.get(VM_NAME);
+        if (jsonVmName != null) {
+            if (!floatingIp.vmName().equals(jsonVmName.asText())) {
+                description.appendText("VM name was " + jsonVmName);
+                return false;
+            }
+        }
+
 
         // check fixed IP
         JsonNode jsonFixedIp = jsonNode.get(FIXED_IP);
