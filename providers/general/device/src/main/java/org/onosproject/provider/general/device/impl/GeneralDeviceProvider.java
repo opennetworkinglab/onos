@@ -797,14 +797,24 @@ public class GeneralDeviceProvider extends AbstractProvider
         }
 
         final MastershipRole deviceRole = handshaker.getRole();
+        // FIXME: we should be checking the mastership term as well.
         if (expectedRole != deviceRole) {
-            // FIXME: we should be checking the mastership term as well.
-            log.debug("Detected role mismatch for {}, core expects {}, " +
-                             "but device reports {}, waiting for mastership " +
-                             "service  to fix this...",
-                     deviceId, expectedRole, deviceRole);
-            // Gentle nudge to fix things...
-            providerService.receivedRoleReply(deviceId, deviceRole);
+            // Let's be greedy, if the role is NONE likely is due to the lazy channel
+            if (deviceRole == MastershipRole.NONE) {
+                log.warn("Detected role mismatch for {}, core expects {}, " +
+                                "but device reports {}, reassert the role... ",
+                        deviceId, expectedRole, deviceRole);
+                /* If we are experience a severe issue, eventually
+                   the DeviceManager will move the mastership */
+                roleChanged(deviceId, expectedRole);
+            } else {
+                log.debug("Detected role mismatch for {}, core expects {}, " +
+                                "but device reports {}, waiting for mastership " +
+                                "service  to fix this...",
+                        deviceId, expectedRole, deviceRole);
+                // Gentle nudge to fix things...
+                providerService.receivedRoleReply(deviceId, deviceRole);
+            }
             return;
         }
 
