@@ -77,10 +77,10 @@ PROTOCOL_MAP = {
 }
 
 PROTOCOL_APP_MAP = {
-    "//protocols/grpc:onos-protocols-grpc-oar": ["stratum", "tost", "sona"],
-    "//protocols/gnmi:onos-protocols-gnmi-oar": ["stratum", "tost", "sona"],
-    "//protocols/gnoi:onos-protocols-gnoi-oar": ["stratum", "tost"],
-    "//protocols/p4runtime:onos-protocols-p4runtime-oar": ["stratum", "tost"],
+    "//protocols/grpc:onos-protocols-grpc-oar": ["stratum", "sdfabric", "sona"],
+    "//protocols/gnmi:onos-protocols-gnmi-oar": ["stratum", "sdfabric", "sona"],
+    "//protocols/gnoi:onos-protocols-gnoi-oar": ["stratum", "sdfabric"],
+    "//protocols/p4runtime:onos-protocols-p4runtime-oar": ["stratum", "sdfabric"],
     "//protocols/restconf/server:onos-protocols-restconf-server-oar": [],
     "//protocols/xmpp/core:onos-protocols-xmpp-core-oar": [],
     "//protocols/xmpp/pubsub:onos-protocols-xmpp-pubsub-oar": [],
@@ -103,12 +103,12 @@ PROVIDER_MAP = {
 }
 
 PROVIDER_APP_MAP = {
-    "//providers/general:onos-providers-general-oar": ["stratum", "tost", "sona"],
-    "//providers/host:onos-providers-host-oar": ["seba", "stratum", "tost", "sona"],
-    "//providers/hostprobing:onos-providers-hostprobing-oar": ["seba", "stratum", "tost", "sona"],
+    "//providers/general:onos-providers-general-oar": ["stratum", "sdfabric", "sona"],
+    "//providers/host:onos-providers-host-oar": ["seba", "stratum", "sdfabric", "sona"],
+    "//providers/hostprobing:onos-providers-hostprobing-oar": ["seba", "stratum", "sdfabric", "sona"],
     "//providers/link:onos-providers-link-oar": ["stratum"],
-    "//providers/lldp:onos-providers-lldp-oar": ["seba", "stratum", "tost", "sona"],
-    "//providers/netcfghost:onos-providers-netcfghost-oar": ["seba", "stratum", "tost", "sona"],
+    "//providers/lldp:onos-providers-lldp-oar": ["seba", "stratum", "sdfabric", "sona"],
+    "//providers/netcfghost:onos-providers-netcfghost-oar": ["seba", "stratum", "sdfabric", "sona"],
     "//providers/netcfglinks:onos-providers-netcfglinks-oar": ["stratum"],
     "//providers/netconf:onos-providers-netconf-oar": [],
     "//providers/null:onos-providers-null-oar": [],
@@ -118,7 +118,7 @@ PROVIDER_APP_MAP = {
     "//providers/ovsdb:onos-providers-ovsdb-oar": ["sona"],
     "//providers/ovsdb/host:onos-providers-ovsdb-host-oar": ["sona"],
     "//providers/ovsdb/base:onos-providers-ovsdb-base-oar": ["sona"],
-    "//providers/p4runtime:onos-providers-p4runtime-oar": ["stratum", "tost"],
+    "//providers/p4runtime:onos-providers-p4runtime-oar": ["stratum", "sdfabric"],
     "//providers/rest:onos-providers-rest-oar": [],
     "//providers/snmp:onos-providers-snmp-oar": [],
     "//providers/lisp:onos-providers-lisp-oar": [],
@@ -131,10 +131,10 @@ PROVIDER_APP_MAP = {
 #
 
 DRIVER_MAP = {
-    "//drivers/default:onos-drivers-default-oar": ["minimal", "seba", "stratum", "tost", "sona"],
+    "//drivers/default:onos-drivers-default-oar": ["minimal", "seba", "stratum", "sdfabric", "sona"],
     "//drivers/arista:onos-drivers-arista-oar": [],
-    "//drivers/bmv2:onos-drivers-bmv2-oar": ["stratum", "tost"],
-    "//drivers/barefoot:onos-drivers-barefoot-oar": ["stratum", "tost"],
+    "//drivers/bmv2:onos-drivers-bmv2-oar": ["stratum", "sdfabric"],
+    "//drivers/barefoot:onos-drivers-barefoot-oar": ["stratum", "sdfabric"],
     "//drivers/ciena/waveserver:onos-drivers-ciena-waveserver-oar": [],
     "//drivers/ciena/c5162:onos-drivers-ciena-c5162-oar": [],
     "//drivers/ciena/c5170:onos-drivers-ciena-c5170-oar": [],
@@ -145,8 +145,8 @@ DRIVER_MAP = {
     "//drivers/czechlight:onos-drivers-czechlight-oar": [],
     "//drivers/flowspec:onos-drivers-flowspec-oar": [],
     "//drivers/fujitsu:onos-drivers-fujitsu-oar": [],
-    "//drivers/gnmi:onos-drivers-gnmi-oar": ["stratum", "tost", "sona"],
-    "//drivers/gnoi:onos-drivers-gnoi-oar": ["stratum", "tost"],
+    "//drivers/gnmi:onos-drivers-gnmi-oar": ["stratum", "sdfabric", "sona"],
+    "//drivers/gnoi:onos-drivers-gnoi-oar": ["stratum", "sdfabric"],
     "//drivers/hp:onos-drivers-hp-oar": [],
     "//drivers/juniper:onos-drivers-juniper-oar": [],
     "//drivers/lisp:onos-drivers-lisp-oar": [],
@@ -157,11 +157,11 @@ DRIVER_MAP = {
     "//drivers/oplink:onos-drivers-oplink-oar": [],
     "//drivers/optical:onos-drivers-optical-oar": [],
     "//drivers/ovsdb:onos-drivers-ovsdb-oar": ["sona"],
-    "//drivers/p4runtime:onos-drivers-p4runtime-oar": ["stratum", "tost"],
+    "//drivers/p4runtime:onos-drivers-p4runtime-oar": ["stratum", "sdfabric"],
     "//drivers/polatis/netconf:onos-drivers-polatis-netconf-oar": [],
     "//drivers/polatis/openflow:onos-drivers-polatis-openflow-oar": [],
     "//drivers/server:onos-drivers-server-oar": [],
-    "//drivers/stratum:onos-drivers-stratum-oar": ["stratum", "tost"],
+    "//drivers/stratum:onos-drivers-stratum-oar": ["stratum", "sdfabric"],
     "//drivers/stratum-odtn:onos-drivers-stratum-odtn-oar": [],
     "//drivers/zte:onos-drivers-zte-oar": [],
 }
@@ -195,7 +195,7 @@ APP_MAP = {
     "//apps/cord-support:onos-apps-cord-support-oar": [],
     "//apps/cpman/app:onos-apps-cpman-app-oar": [],
     "//apps/dhcp:onos-apps-dhcp-oar": [],
-    "//apps/dhcprelay:onos-apps-dhcprelay-oar": ["tost"],
+    "//apps/dhcprelay:onos-apps-dhcprelay-oar": ["sdfabric"],
     "//apps/drivermatrix:onos-apps-drivermatrix-oar": [],
     "//apps/events:onos-apps-events-oar": [],
     "//apps/faultmanagement:onos-apps-faultmanagement-oar": [],
@@ -205,7 +205,7 @@ APP_MAP = {
     "//apps/gangliametrics:onos-apps-gangliametrics-oar": [],
     "//apps/graphitemetrics:onos-apps-graphitemetrics-oar": [],
     "//apps/imr:onos-apps-imr-oar": [],
-    "//apps/inbandtelemetry:onos-apps-inbandtelemetry-oar": ["tost"],
+    "//apps/inbandtelemetry:onos-apps-inbandtelemetry-oar": ["sdfabric"],
     "//apps/influxdbmetrics:onos-apps-influxdbmetrics-oar": [],
     "//apps/intentsync:onos-apps-intentsync-oar": [],
     "//apps/k8s-networking:onos-apps-k8s-networking-oar": ["sona"],
@@ -216,10 +216,10 @@ APP_MAP = {
     "//apps/layout:onos-apps-layout-oar": [],
     "//apps/linkprops:onos-apps-linkprops-oar": [],
     "//apps/mappingmanagement:onos-apps-mappingmanagement-oar": [],
-    "//apps/mcast:onos-apps-mcast-oar": ["seba", "tost"],
+    "//apps/mcast:onos-apps-mcast-oar": ["seba", "sdfabric"],
     "//apps/metrics:onos-apps-metrics-oar": [],
     "//apps/mfwd:onos-apps-mfwd-oar": [],
-    "//apps/mlb:onos-apps-mlb-oar": ["tost"],
+    "//apps/mlb:onos-apps-mlb-oar": ["sdfabric"],
     "//apps/mobility:onos-apps-mobility-oar": [],
     "//apps/network-troubleshoot:onos-apps-network-troubleshoot-oar": [],
     "//apps/newoptical:onos-apps-newoptical-oar": [],
@@ -245,18 +245,18 @@ APP_MAP = {
     "//apps/packet-throttle:onos-apps-packet-throttle-oar": [],
     "//apps/pathpainter:onos-apps-pathpainter-oar": [],
     "//apps/pim:onos-apps-pim-oar": [],
-    "//apps/portloadbalancer:onos-apps-portloadbalancer-oar": ["seba", "tost"],
+    "//apps/portloadbalancer:onos-apps-portloadbalancer-oar": ["seba", "sdfabric"],
     "//apps/powermanagement:onos-apps-powermanagement-oar": [],
     "//apps/proxyarp:onos-apps-proxyarp-oar": [],
     "//apps/rabbitmq:onos-apps-rabbitmq-oar": [],
     "//apps/reactive-routing:onos-apps-reactive-routing-oar": [],
     "//apps/restconf:onos-apps-restconf-oar": [],
     "//apps/roadm:onos-apps-roadm-oar": [],
-    "//apps/route-service:onos-apps-route-service-oar": ["seba", "tost"],
-    "//apps/routeradvertisement:onos-apps-routeradvertisement-oar": ["tost"],
+    "//apps/route-service:onos-apps-route-service-oar": ["seba", "sdfabric"],
+    "//apps/routeradvertisement:onos-apps-routeradvertisement-oar": ["sdfabric"],
     "//apps/routing/cpr:onos-apps-routing-cpr-oar": [],
     "//apps/routing/fibinstaller:onos-apps-routing-fibinstaller-oar": [],
-    "//apps/routing/fpm:onos-apps-routing-fpm-oar": ["tost"],
+    "//apps/routing/fpm:onos-apps-routing-fpm-oar": ["sdfabric"],
     "//apps/scalablegateway:onos-apps-scalablegateway-oar": [],
     "//apps/sdnip:onos-apps-sdnip-oar": [],
     "//apps/simplefabric:onos-apps-simplefabric-oar": [],
@@ -281,8 +281,8 @@ APP_MAP = {
     "//apps/workflow:onos-apps-workflow-oar": [],
     "//apps/yang-gui:onos-apps-yang-gui-oar": [],
     "//apps/yang:onos-apps-yang-oar": [],
-    "//web/gui:onos-web-gui-oar": ["sona", "tost"],
-    "//web/gui2:onos-web-gui2-oar": ["stratum", "tost"],
+    "//web/gui:onos-web-gui-oar": ["sona", "sdfabric"],
+    "//web/gui2:onos-web-gui2-oar": ["stratum", "sdfabric"],
 }
 
 #
@@ -290,8 +290,8 @@ APP_MAP = {
 #
 
 PIPELINE_MAP = {
-    "//pipelines/basic:onos-pipelines-basic-oar": ["stratum", "tost"],
-    "//pipelines/fabric:onos-pipelines-fabric-oar": ["stratum", "tost"],
+    "//pipelines/basic:onos-pipelines-basic-oar": ["stratum", "sdfabric"],
+    "//pipelines/fabric:onos-pipelines-fabric-oar": ["stratum", "sdfabric"],
 }
 
 MODELS_MAP = {
