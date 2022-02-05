@@ -20,7 +20,7 @@ profiles([
     "minimal",
     "seba",
     "stratum",
-    "tost",
+    "sdfabric",
     "sona",
 ])
 
@@ -35,7 +35,7 @@ filegroup(
         ":minimal_profile": extensions("minimal") + apps("minimal"),
         ":seba_profile": extensions("seba") + apps("seba"),
         ":stratum_profile": extensions("stratum") + apps("stratum"),
-        ":tost_profile": extensions("tost") + apps("tost"),
+        ":sdfabric_profile": extensions("sdfabric") + apps("sdfabric"),
         ":sona_profile": extensions("sona") + apps("sona"),
         "//conditions:default": extensions() + apps(),
     }),
@@ -77,7 +77,7 @@ genrule(
         ":minimal_profile": apps("minimal"),
         ":seba_profile": apps("seba"),
         ":stratum_profile": apps("stratum"),
-        ":tost_profile": apps("tost"),
+        ":sdfabric_profile": apps("sdfabric"),
         ":sona_profile": apps("sona"),
         "//conditions:default": apps(),
     }),
