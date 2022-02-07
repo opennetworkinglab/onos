@@ -58,6 +58,7 @@ public class OpenConfigGnmiDeviceDescriptionDiscovery
             .getLogger(OpenConfigGnmiDeviceDescriptionDiscovery.class);
 
     private static final String LAST_CHANGE = "last-change";
+    private static final String SDK_PORT = "sdk-port";
 
     private static final String UNKNOWN = "unknown";
 
@@ -170,6 +171,7 @@ public class OpenConfigGnmiDeviceDescriptionDiscovery
             switch (pathElemName) {
                 case "ifindex": // port number
                     builder.withPortNumber(PortNumber.portNumber(val.getUintVal(), ifName));
+                    annotationsBuilder.set(SDK_PORT, String.valueOf(val.getUintVal()));
                     return;
                 case "oper-status":
                     builder.isEnabled(parseOperStatus(val.getStringVal()));
