@@ -357,12 +357,14 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
         if (scope.equals(MeterScope.globalScope())) {
             return Collections2.transform(
                     Collections2.filter(ImmutableSet.copyOf(metersMap.values()),
-                            (MeterData m) -> m.meter().meterCellId().type() == INDEX),
+                            (MeterData m) -> m.meter().meterCellId().type() == INDEX &&
+                                    m.meter().deviceId().equals(deviceId)),
                     MeterData::meter);
         }
         return Collections2.transform(
                 Collections2.filter(ImmutableSet.copyOf(metersMap.values()),
                         (MeterData m) -> m.meter().meterCellId().type() == PIPELINE_INDEPENDENT &&
+                                m.meter().deviceId().equals(deviceId) &&
                                 ((PiMeterCellId) m.meter().meterCellId()).meterId().id().equals(scope.id())),
                 MeterData::meter);
     }
