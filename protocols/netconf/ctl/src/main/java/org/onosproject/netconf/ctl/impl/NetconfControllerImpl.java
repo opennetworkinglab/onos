@@ -815,6 +815,9 @@ public class NetconfControllerImpl implements NetconfController {
                         if (device != null) {
                             device.getSession().checkAndReestablish();
                             log.info("Connection with device {} was reestablished", did);
+                            for (NetconfDeviceListener l : netconfDeviceListeners) {
+                                l.netconfConnectionReestablished(did);
+                            }
                         } else {
                             log.warn("The device {} is not in the system", did);
                         }
