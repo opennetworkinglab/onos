@@ -37,4 +37,12 @@ public interface NetconfDeviceListener {
      */
 
     void deviceRemoved(DeviceId deviceId);
+
+    /**
+     * Notifies that netconf connection with device is reestablished.
+     *
+     * @param deviceId the device with which netconf connection is reestablished
+     */
+    default void netconfConnectionReestablished(DeviceId deviceId) {
+    }
 }
