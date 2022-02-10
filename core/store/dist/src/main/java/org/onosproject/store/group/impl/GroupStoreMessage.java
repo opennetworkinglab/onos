@@ -194,4 +194,19 @@ public final class GroupStoreMessage {
     public Type type() {
         return type;
     }
+
+    @Override
+    public String toString() {
+        if (type == Type.ADD) {
+            return "groupId=0x" + Integer.toHexString(groupDesc.givenGroupId());
+        } else if (type == Type.DELETE) {
+            return "appCookie= " + appCookie;
+        } else if (type == Type.UPDATE) {
+            return "appCookie= " + newAppCookie;
+        } else if (type == Type.FAILOVER) {
+            return "groupId=0x" + Integer.toHexString(groupDesc.givenGroupId());
+        } else {
+            return super.toString();
+        }
+    }
 }
