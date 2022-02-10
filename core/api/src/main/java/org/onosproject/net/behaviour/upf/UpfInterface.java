@@ -25,7 +25,7 @@ import java.util.Objects;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * A UPF device interface, such as a S1U or UE IP address pool.
+ * A UPF device interface, such as a N3, or UE IP address pool (N6).
  */
 @Beta
 public final class UpfInterface implements UpfEntity {
@@ -72,12 +72,13 @@ public final class UpfInterface implements UpfEntity {
     }
 
     /**
-     * Create a core-facing UPF Interface from the given address, which will be treated as a /32 prefix.
-     * @param address the address of the new core-facing interface
-     * @param sliceId the slice if of the new interface
+     * Create access-facing UPF Interface (N3) from the given address, which will be treated as a /32 prefix.
+     *
+     * @param address the address of the new access-facing interface (N3 interface)
+     * @param sliceId the slice id of the new interface
      * @return a new UPF interface
      */
-    public static UpfInterface createS1uFrom(Ip4Address address, int sliceId) {
+    public static UpfInterface createN3From(Ip4Address address, int sliceId) {
         return builder()
                 .setAccess()
                 .setPrefix(Ip4Prefix.valueOf(address, 32))
@@ -86,10 +87,10 @@ public final class UpfInterface implements UpfEntity {
     }
 
     /**
-     * Create a core-facing UPF Interface from the given IP prefix.
+     * Create a core-facing UPF Interface (N6) from the given IP prefix.
      *
-     * @param prefix the prefix of the new core-facing interface
-     * @param sliceId the slice if of the new interface
+     * @param prefix the prefix of the new core-facing interface (N6 interface)
+     * @param sliceId the slice id of the new interface
      * @return a new UPF interface
      */
     public static UpfInterface createUePoolFrom(Ip4Prefix prefix, int sliceId) {
@@ -104,7 +105,7 @@ public final class UpfInterface implements UpfEntity {
      * Create a dbuf-receiving UPF interface from the given IP address.
      *
      * @param address the address of the dbuf-receiving interface
-     * @param sliceId the slice if of the new interface
+     * @param sliceId the slice id of the new interface
      * @return a new UPF interface
      */
     public static UpfInterface createDbufReceiverFrom(Ip4Address address, int sliceId) {
@@ -135,7 +136,7 @@ public final class UpfInterface implements UpfEntity {
 
     /**
      * Check if this UPF interface is for packets traveling from UEs.
-     * This will be true for S1U interface table entries.
+     * This will be true for N3 interface table entries.
      *
      * @return true if interface receives from access
      */
@@ -185,13 +186,13 @@ public final class UpfInterface implements UpfEntity {
 
         /**
          * Interface that receives GTP encapsulated packets.
-         * This is the type of the S1U interface.
+         * This is the type of the N3 interface.
          */
         ACCESS,
 
         /**
          * Interface that receives unencapsulated packets from the core of the network.
-         * This is the type of UE IP address pool interfaces.
+         * This is the type of UE IP address pool interfaces (N6).
          */
         CORE,
 
@@ -244,7 +245,7 @@ public final class UpfInterface implements UpfEntity {
         }
 
         /**
-         * Make this an access-facing interface.
+         * Make this an access-facing interface (N3).
          *
          * @return this builder object
          */
@@ -254,7 +255,7 @@ public final class UpfInterface implements UpfEntity {
         }
 
         /**
-         * Make this a core-facing interface.
+         * Make this a core-facing interface (N6).
          *
          * @return this builder object
          */
