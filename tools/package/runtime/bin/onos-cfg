@@ -48,7 +48,7 @@ case $cmd in
         ${curl} -X GET ${URL} && echo;;
     post|delete)
         checkJson "$file"
-        $curl -X $cmd -H 'Content-Type:application/json' ${URL} -d@$file && echo;;
+        $curl -X $(echo ${cmd} | tr '[:lower:]' '[:upper:]') -H 'Content-Type:application/json' ${URL} -d@$file && echo;;
     *) usage && exit 1;;
 esac
 
