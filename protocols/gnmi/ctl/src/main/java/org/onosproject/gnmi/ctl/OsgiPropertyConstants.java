@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-present Open Networking Foundation
+ * Copyright 2022-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.provider.general.device.impl;
+package org.onosproject.gnmi.ctl;
 
 /**
  * Constants for default values of configurable properties.
@@ -23,10 +23,7 @@ public final class OsgiPropertyConstants {
 
     private OsgiPropertyConstants() {}
 
-    public static final String STATS_POLL_INTERVAL = "statsPollInterval";
-    public static final int STATS_POLL_INTERVAL_DEFAULT = 10;
-
-    public static final String CHECKUP_INTERVAL = "checkupInterval";
-    public static final int CHECKUP_INTERVAL_DEFAULT = 10;
+    public static final String READ_PORT_ID = "readPortId";
+    public static final boolean READ_PORT_ID_DEFAULT = false;
 
 }
