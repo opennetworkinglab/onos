@@ -6,6 +6,7 @@ COMPILE_DEPS = CORE_DEPS + KRYO + [
     "//core/store/serializers:onos-core-serializers",
     "//protocols/gnmi/stub:onos-protocols-gnmi-stub",
     "//protocols/gnmi/api:onos-protocols-gnmi-api",
+    "//protocols/gnmi/ctl:onos-protocols-gnmi-ctl",
     "//protocols/grpc/api:onos-protocols-grpc-api",
     "//protocols/grpc/utils:onos-protocols-grpc-utils",
 ]

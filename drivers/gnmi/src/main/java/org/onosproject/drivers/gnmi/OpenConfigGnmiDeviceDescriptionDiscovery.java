@@ -25,6 +25,7 @@ import gnmi.Gnmi.GetResponse;
 import org.onlab.packet.ChassisId;
 import org.onosproject.gnmi.api.GnmiClient;
 import org.onosproject.gnmi.api.GnmiController;
+import org.onosproject.gnmi.ctl.GnmiControllerImpl;
 import org.onosproject.grpc.utils.AbstractGrpcHandlerBehaviour;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
@@ -62,12 +63,20 @@ public class OpenConfigGnmiDeviceDescriptionDiscovery
 
     private static final String UNKNOWN = "unknown";
 
-    // FIXME temporary solution will be removed when the
-    //  transition to p4rt translation is completed
-    public static boolean readPortId = false;
+    private GnmiController gnmiController;
 
     public OpenConfigGnmiDeviceDescriptionDiscovery() {
         super(GnmiController.class);
+    }
+
+    @Override
+    protected boolean setupBehaviour(String opName) {
+        if (!super.setupBehaviour(opName)) {
+            return false;
+        }
+
+        gnmiController = handler().get(GnmiController.class);
+        return true;
     }
 
     @Override
@@ -125,7 +134,7 @@ public class OpenConfigGnmiDeviceDescriptionDiscovery
             }
             /* Override port number if read port-id is enabled
                and /interfaces/interface/state/id is available */
-            if (readPortId && portIds.containsKey(key)) {
+            if (readPortId() && portIds.containsKey(key)) {
                 value.withPortNumber(portIds.get(key));
             }
             DefaultAnnotations annotation = annotations.get(key).build();
@@ -133,6 +142,13 @@ public class OpenConfigGnmiDeviceDescriptionDiscovery
         });
 
         return portDescriptionList;
+    }
+
+    private boolean readPortId() {
+        // FIXME temporary solution will be substituted by
+        //  an XML driver property when the transition to
+        //  p4rt translation is completed
+        return ((GnmiControllerImpl) gnmiController).readPortId();
     }
 
     private GetRequest buildPortStateRequest() {
