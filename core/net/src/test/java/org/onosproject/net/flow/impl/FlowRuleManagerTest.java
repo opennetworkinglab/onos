@@ -543,6 +543,14 @@ public class FlowRuleManagerTest {
         public Device getDevice(DeviceId deviceId) {
             return deviceId.equals(FOO_DID) ? FOO_DEV : DEV;
         }
+
+        @Override
+        public boolean isAvailable(DeviceId deviceId) {
+            if (deviceId.equals(DID) || deviceId.equals(FOO_DID)) {
+                return true;
+            }
+            return false;
+        }
     }
 
     private class TestProvider extends AbstractProvider implements FlowRuleProvider {

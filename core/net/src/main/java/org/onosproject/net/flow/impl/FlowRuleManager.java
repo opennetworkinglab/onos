@@ -530,9 +530,13 @@ public class FlowRuleManager
                 // Flow rule is still valid, let's try to update the stats
                 if (storedEntry.state() != FlowEntry.FlowEntryState.PENDING_REMOVE &&
                         checkRuleLiveness(flowEntry, storedEntry)) {
+                    if (!shouldHandle(flowEntry.deviceId())) {
+                        return false;
+                    }
                     FlowRuleEvent event = store.addOrUpdateFlowRule(flowEntry);
-                    /* Something went wrong or there is no master
-                       better check if it is the latter */
+                    // Something went wrong or there is no master or
+                    // the device is not available better check if it
+                    // is the latter cases
                     if (event == null) {
                         log.debug("No flow store event generated for addOrUpdate of {}", flowEntry);
                         return false;
@@ -545,8 +549,8 @@ public class FlowRuleManager
                     removeFlowRules(flowEntry);
                 }
             } else {
-                /* It was already removed or there is no master
-                   better check if it is the latter */
+                // It was already removed or there is no master
+                // better check if it is the latter
                 return false;
             }
             return true;
@@ -603,6 +607,11 @@ public class FlowRuleManager
             pushFlowMetricsInternal(deviceId, flowEntries, false);
         }
 
+        private boolean shouldHandle(DeviceId deviceId) {
+            NodeId master = mastershipService.getMasterFor(deviceId);
+            return Objects.equals(local, master) && deviceService.isAvailable(deviceId);
+        }
+
         private void pushFlowMetricsInternal(DeviceId deviceId, Iterable<FlowEntry> flowEntries,
                                              boolean useMissingFlow) {
             Map<FlowEntry, FlowEntry> storedRules = Maps.newHashMap();
@@ -620,17 +629,17 @@ public class FlowRuleManager
                             done = handleExistingFlow(rule);
                             if (!done) {
                                 // Mastership change can occur during this iteration
-                                master = mastershipService.getMasterFor(deviceId);
-                                if (!Objects.equals(local, master)) {
-                                    log.warn("Tried to update the flow stats while the node was not the master");
+                                if (!shouldHandle(deviceId)) {
+                                    log.warn("Tried to update the flow stats while the node was not the master" +
+                                            " or the device {} was not available", deviceId);
                                     return;
                                 }
                             }
                         } else {
                             // Mastership change can occur during this iteration
-                            master = mastershipService.getMasterFor(deviceId);
-                            if (!Objects.equals(local, master)) {
-                                log.warn("Tried to update the flows while the node was not the master");
+                            if (!shouldHandle(deviceId)) {
+                                log.warn("Tried to update the flows while the node was not the master" +
+                                        " or the device {} was not available", deviceId);
                                 return;
                             }
                             // the two rules are not an exact match - remove the
@@ -642,9 +651,9 @@ public class FlowRuleManager
                         // the device has a rule the store does not have
                         if (!allowExtraneousRules) {
                             // Mastership change can occur during this iteration
-                            master = mastershipService.getMasterFor(deviceId);
-                            if (!Objects.equals(local, master)) {
-                                log.warn("Tried to remove flows while the node was not the master");
+                            if (!shouldHandle(deviceId)) {
+                                log.warn("Tried to remove flows while the node was not the master" +
+                                        " or the device {} was not available", deviceId);
                                 return;
                             }
                             extraneousFlow(rule);
@@ -652,9 +661,9 @@ public class FlowRuleManager
                             FlowRuleEvent flowRuleEvent = store.addOrUpdateFlowRule(rule);
                             if (flowRuleEvent == null) {
                                 // Mastership change can occur during this iteration
-                                master = mastershipService.getMasterFor(deviceId);
-                                if (!Objects.equals(local, master)) {
-                                    log.warn("Tried to import flows while the node was not the master");
+                                if (!shouldHandle(deviceId)) {
+                                    log.warn("Tried to import flows while the node was not the master" +
+                                            " or the device {} was not available", deviceId);
                                     return;
                                 }
                             }
@@ -670,9 +679,9 @@ public class FlowRuleManager
             if (useMissingFlow) {
                 for (FlowEntry rule : storedRules.keySet()) {
                     // Mastership change can occur during this iteration
-                    master = mastershipService.getMasterFor(deviceId);
-                    if (!Objects.equals(local, master)) {
-                        log.warn("Tried to install missing rules while the node was not the master");
+                    if (!shouldHandle(deviceId)) {
+                        log.warn("Tried to install missing rules while the node was not the master" +
+                                " or the device {} was not available", deviceId);
                         return;
                     }
                     try {
