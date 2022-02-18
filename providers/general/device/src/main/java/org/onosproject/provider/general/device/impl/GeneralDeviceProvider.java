@@ -124,6 +124,11 @@ public class GeneralDeviceProvider extends AbstractProvider
     private static final int CORE_POOL_SIZE = 10;
     private static final String UNKNOWN = "unknown";
 
+    // We have measured a grace period of 5s with the
+    // current devices - giving some time more to absorb
+    // any fluctuation.
+    private static final int GRACE_PERIOD = 8000;
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private DeviceProviderRegistry providerRegistry;
 
@@ -411,8 +416,14 @@ public class GeneralDeviceProvider extends AbstractProvider
         return handshaker.probeReachability();
     }
 
+    @Override
+    public int gracePeriod() {
+        return GRACE_PERIOD;
+    }
+
     private boolean probeReachabilitySync(DeviceId deviceId) {
-        // Wait 3/4 of the checkup interval
+        // Wait 3/4 of the checkup interval and make sure the thread
+        // is not blocked more than the checkUpInterval
         return Tools.futureGetOrElse(probeReachability(deviceId), (checkupInterval * 3000 / 4),
                 TimeUnit.MILLISECONDS, Boolean.FALSE);
     }
@@ -664,22 +675,20 @@ public class GeneralDeviceProvider extends AbstractProvider
         if (deviceService.getDevice(deviceId) != null &&
                 deviceService.isAvailable(deviceId) == available &&
                 storeDescription != null) {
-            /*
-             * FIXME SDFAB-650 rethink the APIs and abstractions around the DeviceStore.
-             * Device registration is a two-step process for the GDP. Initially, the device is
-             * registered with default avail. to false. Later, the checkup task will update the
-             * description with the default avail to true in order to mark it available. Today,
-             * there is only one API to mark online a device from the device provider which is
-             * deviceConnected which assumes an update on the device description. The device provider
-             * is the only one able to update the device description and we have to make sure that
-             * the default avail. is flipped to true as it is used to mark as online the device when
-             * it is created or updated. Otherwise, if an ONOS instance fails and restarts, when re-joining
-             * the cluster, it will get the device marked as offline and will not be able to update
-             * its status until it become the master. This process concurs with the markOnline done
-             * by the background thread in the DeviceManager and its the reason why we cannot just check
-             * the device availability but we need to compare also the desc. Checking here the equality,
-             * as in general we may want to upgrade the device description at run time.
-             */
+            // FIXME SDFAB-650 rethink the APIs and abstractions around the DeviceStore.
+            //  Device registration is a two-step process for the GDP. Initially, the device is
+            //  registered with default avail. to false. Later, the checkup task will update the
+            //  description with the default avail to true in order to mark it available. Today,
+            //  there is only one API to mark online a device from the device provider which is
+            //  deviceConnected which assumes an update on the device description. The device provider
+            //  is the only one able to update the device description and we have to make sure that
+            //  the default avail. is flipped to true as it is used to mark as online the device when
+            //  it is created or updated. Otherwise, if an ONOS instance fails and restarts, when re-joining
+            //  the cluster, it will get the device marked as offline and will not be able to update
+            //  its status until it become the master. This process concurs with the markOnline done
+            //  by the background thread in the DeviceManager and its the reason why we cannot just check
+            //  the device availability but we need to compare also the desc. Checking here the equality,
+            //  as in general we may want to upgrade the device description at run time.
             DeviceDescription testDeviceDescription = DefaultDeviceDescription.copyReplacingAnnotation(
                     deviceDescription, storeDescription.annotations());
             if (testDeviceDescription.equals(storeDescription)) {
@@ -784,8 +793,8 @@ public class GeneralDeviceProvider extends AbstractProvider
                 log.warn("Detected role mismatch for {}, core expects {}, " +
                                 "but device reports {}, reassert the role... ",
                         deviceId, expectedRole, deviceRole);
-                /* If we are experience a severe issue, eventually
-                   the DeviceManager will move the mastership */
+                // If we are experiencing a severe issue, eventually
+                // the DeviceManager will move the mastership
                 roleChanged(deviceId, expectedRole);
             } else {
                 log.debug("Detected role mismatch for {}, core expects {}, " +

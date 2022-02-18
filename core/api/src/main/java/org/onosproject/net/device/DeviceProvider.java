@@ -125,4 +125,15 @@ public interface DeviceProvider extends Provider {
         return CompletableFuture.completedFuture(isReachable(deviceId));
     }
 
+    /**
+     * Return the grace period of this provider in milliseconds. With some devices, it might be
+     * required more time to establish a working channel. This method returns a grace period
+     * that should be respected before checking the reachability with the device.
+     *
+     * @return the grace period of the device. 0 if the device is expected to be immediately functional
+     */
+    default int gracePeriod() {
+        return 0;
+    }
+
 }
