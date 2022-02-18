@@ -1100,6 +1100,16 @@ public class DistributedGroupStore
                 .forEach(entriesPendingRemove::add);
 
         purgeGroupEntries(entriesPendingRemove);
+
+        // it is unlikely to happen but better clear also the
+        // pending groups: device disconnected before we got
+        // the first stats and the apps were able to push groups.
+        entriesPendingRemove.clear();
+        getPendingGroupKeyTable().entrySet().stream()
+                .filter(entry -> entry.getKey().deviceId().equals(deviceId))
+                .forEach(entriesPendingRemove::add);
+
+        purgeGroupEntries(entriesPendingRemove);
     }
 
     @Override
@@ -1112,11 +1122,25 @@ public class DistributedGroupStore
                 .forEach(entriesPendingRemove::add);
 
         purgeGroupEntries(entriesPendingRemove);
+
+        // it is unlikely to happen but better clear also the
+        // pending groups: device disconnected before we got
+        // the first stats and the apps were able to push groups.
+        entriesPendingRemove.clear();
+        getPendingGroupKeyTable().entrySet().stream()
+                .filter(entry -> entry.getKey().deviceId().equals(deviceId) && entry.getValue().appId().equals(appId))
+                .forEach(entriesPendingRemove::add);
+
+        purgeGroupEntries(entriesPendingRemove);
     }
 
     @Override
     public void purgeGroupEntries() {
         purgeGroupEntries(getGroupStoreKeyMap().entrySet());
+        // it is unlikely to happen but better clear also the
+        // pending groups: device disconnected before we got
+        // the first stats and the apps were able to push groups.
+        purgeGroupEntries(getPendingGroupKeyTable().entrySet());
     }
 
     @Override
@@ -1140,7 +1164,14 @@ public class DistributedGroupStore
                     log.debug("processing pending group add requests for device {}: {}",
                             deviceId, pendingIds);
                 }
+                NodeId master;
                 for (Group group : pendingGroupRequests) {
+                    // Mastership change can occur during this iteration
+                    if (!shouldHandle(deviceId)) {
+                        log.warn("Tried to process pending groups while the node was not the master" +
+                                " or the device {} was not available", deviceId);
+                        return;
+                    }
                     GroupDescription tmp = new DefaultGroupDescription(
                             group.deviceId(),
                             group.type(),
@@ -1470,6 +1501,11 @@ public class DistributedGroupStore
         }
     }
 
+    private boolean shouldHandle(DeviceId deviceId) {
+        NodeId master = mastershipService.getMasterFor(deviceId);
+        return Objects.equals(local, master) && deviceService.isAvailable(deviceId);
+    }
+
     @Override
     public void pushGroupMetrics(DeviceId deviceId,
                                  Collection<Group> groupEntries) {
@@ -1504,9 +1540,9 @@ public class DistributedGroupStore
         // update stats
         for (Iterator<Group> it2 = southboundGroupEntries.iterator(); it2.hasNext();) {
             // Mastership change can occur during this iteration
-            master = mastershipService.getMasterFor(deviceId);
-            if (!Objects.equals(local, master)) {
-                log.warn("Tried to update the group stats while the node was not the master");
+            if (!shouldHandle(deviceId)) {
+                log.warn("Tried to update the group stats while the node was not the master" +
+                        " or the device {} was not available", deviceId);
                 return;
             }
             Group group = it2.next();
@@ -1534,9 +1570,9 @@ public class DistributedGroupStore
                 }
             } else {
                 // Mastership change can occur during this iteration
-                master = mastershipService.getMasterFor(deviceId);
-                if (!Objects.equals(local, master)) {
-                    log.warn("Tried to process extraneous groups while the node was not the master");
+                if (!shouldHandle(deviceId)) {
+                    log.warn("Tried to process extraneous groups while the node was not the master" +
+                            " or the device {} was not available", deviceId);
                     return;
                 }
                 // there are groups in the switch that aren't in the store
@@ -1554,9 +1590,9 @@ public class DistributedGroupStore
         // missing groups in the dataplane
         for (StoredGroupEntry group : storedGroupEntries) {
             // Mastership change can occur during this iteration
-            master = mastershipService.getMasterFor(deviceId);
-            if (!Objects.equals(local, master)) {
-                log.warn("Tried to process missing groups while the node was not the master");
+            if (!shouldHandle(deviceId)) {
+                log.warn("Tried to process missing groups while the node was not the master" +
+                        " or the device {} was not available", deviceId);
                 return;
             }
             // there are groups in the store that aren't in the switch
@@ -1568,9 +1604,9 @@ public class DistributedGroupStore
         // extraneous groups in the store
         for (Group group : extraneousStoredEntries) {
             // Mastership change can occur during this iteration
-            master = mastershipService.getMasterFor(deviceId);
-            if (!Objects.equals(local, master)) {
-                log.warn("Tried to process node extraneous groups while the node was not the master");
+            if (!shouldHandle(deviceId)) {
+                log.warn("Tried to process node extraneous groups while the node was not the master" +
+                        " or the device {} was not available", deviceId);
                 return;
             }
             // there are groups in the extraneous store that
