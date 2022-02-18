@@ -398,9 +398,22 @@ public class DeviceManager
         return ls.dateTime.toEpochMilli();
     }
 
+    // Returns true if the grace period is still on
+    private boolean inGracePeriod(DeviceId deviceId) {
+        LocalStatus ls = deviceLocalStatus.get(deviceId);
+        if (ls == null) {
+            // This should not be possible, unless the device is removed
+            log.warn("Not found a recent local status for {}", deviceId);
+            return true;
+        }
+        DeviceProvider provider = getProvider(deviceId);
+        return ls.connected &&
+                (Instant.now().toEpochMilli() - ls.dateTime.toEpochMilli()) < provider.gracePeriod();
+    }
+
     // Check a device for control channel connectivity
     // and changes local-status appropriately.
-    private boolean isReachable(DeviceId deviceId) {
+    private boolean isReachable(DeviceId deviceId, boolean inGracePeriod) {
         if (deviceId == null) {
             return false;
         }
@@ -409,7 +422,8 @@ public class DeviceManager
             boolean reachable = probeReachability(deviceId);
             if (reachable && !isLocallyConnected(deviceId)) {
                 deviceLocalStatus.put(deviceId, new LocalStatus(true, Instant.now()));
-            } else if (!reachable && isLocallyConnected(deviceId)) {
+            } else if (!reachable && isLocallyConnected(deviceId) && !inGracePeriod) {
+                // Do not update if the grace period is still on
                 deviceLocalStatus.put(deviceId, new LocalStatus(false, Instant.now()));
             }
             return reachable;
@@ -513,8 +527,12 @@ public class DeviceManager
             final DeviceId deviceId = device.id();
             MastershipRole myRole = mastershipService.getLocalRole(deviceId);
             log.trace("Checking device {}. Current role is {}", deviceId, myRole);
-            log.info("Device local status is {}", localStatus(deviceId));
-            if (!isReachable(deviceId)) {
+
+            log.debug("Device {} local status is {}", deviceId, localStatus(deviceId));
+            final boolean isGracePeriodOn = inGracePeriod(deviceId);
+            final boolean isReachable = isReachable(deviceId, isGracePeriodOn);
+            // Passed the grace period and it is still not reachable
+            if (!isGracePeriodOn && !isReachable) {
                 if (myRole != NONE) {
                     // Verify if the device is fully disconnected from the cluster
                     if (updateMastershipFor(deviceId) == null
@@ -523,10 +541,10 @@ public class DeviceManager
                         post(store.markOffline(deviceId));
                     }
                 } else {
-                    /* Firstly get a role and then check if the device is available in the store.
-                       if it is, if this node is the master and the device is fully disconnected
-                       from the cluster mark the device offline. In principle, this condition should
-                       never be hit unless in a device removed phase for NONE mastership roles. */
+                    // Firstly get a role and then check if the device is available in the store.
+                    // if it is, if this node is the master and the device is fully disconnected
+                    // from the cluster mark the device offline. In principle, this condition should
+                    // never be hit unless in a device removed phase for NONE mastership roles.
                     try {
                         mastershipService.requestRoleFor(deviceId).get();
                     } catch (InterruptedException e) {
@@ -545,19 +563,22 @@ public class DeviceManager
                     }
                 }
                 roleToAcknowledge.remove(deviceId);
-                continue;
+            } else if (isReachable) {
+                // If this node is the master, ensure the device is marked online.
+                if (myRole == MASTER && canMarkOnline(device)) {
+                    log.info("Can mark online {}", deviceId);
+                    post(store.markOnline(deviceId));
+                }
+
+                log.info("{} is reachable - reasserting the role", deviceId);
+
+                // Device is still reachable. It is useful for some protocols
+                // to reassert the role. Note: NONE triggers request to MastershipService
+                reassertRole(deviceId, myRole);
+            } else {
+                // Do not proceed furthermore if the grace period is still on
+                log.debug("Skipping mastership check for {}", deviceId);
             }
-
-            // If this node is the master, ensure the device is marked online.
-            if (myRole == MASTER && canMarkOnline(device)) {
-                post(store.markOnline(deviceId));
-            }
-
-            log.info("{} is reachable - reasserting the role", deviceId);
-
-            /* Device is still reachable. It is useful for some protocols
-               to reassert the role. Note: NONE triggers request to MastershipService */
-            reassertRole(deviceId, myRole);
         }
     }
 
@@ -595,8 +616,8 @@ public class DeviceManager
                 log.debug("Timeout is expired but current role is not MASTER ({}), nothing to do", myRole);
                 continue;
             }
-            /* Switch failed to acknowledge master role we asked for.
-               Yield mastership to other instance*/
+            // Switch failed to acknowledge master role we asked for.
+            // Yield mastership to other instance
             log.warn("Failed to assert role onto device {}. requested={}, no response",
                     deviceId, myRole);
             updateMastershipFor(deviceId);
@@ -705,10 +726,10 @@ public class DeviceManager
             log.info("Device {} disconnected from this node: {}", deviceId,
                      clusterService.getLocalNode().id());
 
-            /* If none can reach the device, we will continue with the disconnection logic.
-               If there is one instance that reported device is still reachable, we hand over
-               the mastership to it if we are the current master, otherwise if we are a backup
-               we demote ourselves to the bottom of the backups list */
+            // If none can reach the device, we will continue with the disconnection logic.
+            // If there is one instance that reported device is still reachable, we hand over
+            // the mastership to it if we are the current master, otherwise if we are a backup
+            // we demote ourselves to the bottom of the backups list
             if (updateMastershipFor(deviceId) == null) {
                 log.info("Device {} is fully disconnected from the cluster", deviceId);
                 List<PortDescription> descs = store.getPortDescriptions(provider().id(), deviceId)
@@ -1058,6 +1079,7 @@ public class DeviceManager
     }
 
     private void handleMastershipEvent(MastershipEvent event) {
+        log.debug("Handling mastership event");
         final DeviceId did = event.subject();
 
         // myNextRole suggested by MastershipService event
@@ -1079,9 +1101,11 @@ public class DeviceManager
             myNextRole = NONE;
         }
 
-        final boolean isReachable = isReachable(did);
-        log.info("Device local status is {}", localStatus(did));
-        if (!isReachable) {
+        log.debug("Device {} local status is {}", did, localStatus(did));
+        final boolean isGracePeriodOn = inGracePeriod(did);
+        final boolean isReachable = isReachable(did, isGracePeriodOn);
+        // Passed the grace period and it is still not reachable
+        if (!isGracePeriodOn && !isReachable) {
             // device is not connected to this node, nevertheless we should get a role
             if (mastershipService.getLocalRole(did) == NONE) {
                 log.debug("Node was instructed to be {} role for {}, "
@@ -1106,20 +1130,23 @@ public class DeviceManager
             // Let's put some order in the candidates list
             roleToAcknowledge.remove(did);
             updateMastershipFor(did);
-            return;
-        }
-
-        /* Device is connected to this node - always reassert the role.
-           Ideally, protocols like OpenFlow would not need to reassert the
-           role because the instances are only identified by the role. However,
-           other protocols like P4RT require to provide also an election id
-           which maybe different over time, by reasserting the role will guarantee
-           that updated election ids are communicated to the devices. It should not
-           cost us a lot as it is equivalent to a probe.*/
-        if (store.getDevice(did) != null) {
-            reassertRole(did, myNextRole);
+        } else if (isReachable) {
+            // Device is connected to this node - always reassert the role.
+            // Ideally, protocols like OpenFlow would not need to reassert the
+            // role because the instances are only identified by the role. However,
+            // other protocols like P4RT require to provide also an election id
+            // which maybe different over time, by reasserting the role will guarantee
+            // that updated election ids are communicated to the devices. It should not
+            // cost us a lot as it is equivalent to a probe.
+            if (store.getDevice(did) != null) {
+                log.info("{} is reachable - reasserting the role", did);
+                reassertRole(did, myNextRole);
+            } else {
+                log.debug("Device is not yet/no longer in the store: {}", did);
+            }
         } else {
-            log.debug("Device is not yet/no longer in the store: {}", did);
+            // Do not proceed furthermore if the grace period is still on
+            log.debug("Skipping mastership event {}", event);
         }
     }
 
@@ -1452,10 +1479,10 @@ public class DeviceManager
             if (myRole == MASTER) {
                 log.info("Handing over the mastership of {} to next master {}", deviceId, nextMaster);
                 mastershipAdminService.setRole(nextMaster, deviceId, MASTER);
-                /* Do not demote here because setRole can return before the mastership has been passed.
-                   Current implementation promotes first the nextMaster as top of candidate list and then
-                   transfer the leadership. We can use the BACKUP events to do demote or leverage periodic
-                   checks.*/
+                // Do not demote here because setRole can return before the mastership has been passed.
+                // Current implementation promotes first the nextMaster as top of candidate list and then
+                // transfer the leadership. We can use the BACKUP events to do demote or leverage periodic
+                // checks.
             } else if (myRole == STANDBY) {
                 log.info("Demote current instance to the bottom of the candidates list for {}", deviceId);
                 mastershipAdminService.demote(localNodeId, deviceId);
@@ -1466,8 +1493,6 @@ public class DeviceManager
 
         return nextMaster;
     }
-
-
 
     /**
      * Port Enable/Disable message sent to the device's MASTER node.
