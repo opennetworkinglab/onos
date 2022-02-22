@@ -55,10 +55,12 @@ public final class P4RuntimeClientImpl
     private static final long DEFAULT_P4_DEVICE_ID = 1;
 
     // TODO: consider making timeouts configurable per-device via netcfg
+    // We have measured that some devices can take up to 15s to push a pipeline
+    // which can block potentially other READ done against the target.
     /**
      * Timeout in seconds for short/fast RPCs.
      */
-    static final int SHORT_TIMEOUT_SECONDS = 10;
+    static final int SHORT_TIMEOUT_SECONDS = 15;
     /**
      * Timeout in seconds for RPCs that involve transfer of potentially large
      * amount of data. This shoulld be long enough to allow for network delay
