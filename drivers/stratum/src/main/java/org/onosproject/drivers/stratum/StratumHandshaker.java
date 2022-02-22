@@ -64,7 +64,12 @@ public class StratumHandshaker
 
     @Override
     public CompletableFuture<Boolean> probeReachability() {
-        return p4runtime.probeReachability();
+        // p4runtime probe reachability is based on GetPipelineConfig gRPC that
+        // can timeout if we are setting in parallel the pipeline: the two requests
+        // can concur for the same lock. For our purposes it is enough to check if
+        // the device is still there; for this reason stratum handshaker now relies
+        // on gNOI reachability which is based on getTime RPC.
+        return gnoi.probeReachability();
     }
 
     @Override
