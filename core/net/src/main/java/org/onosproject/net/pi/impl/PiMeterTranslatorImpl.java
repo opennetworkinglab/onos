@@ -68,12 +68,13 @@ final class PiMeterTranslatorImpl {
             throw new PiTranslationException("PI TCM meter must have a MARK_YELLOW band and a MARK_RED band!");
         }
 
-        // Validate proper config of the trTCM settings
-        if (bands[0].burst() <= 0 || bands[1].burst() <= 0) {
-            throw new PiTranslationException("PI trTCM meter can not have band with burst <= 0!");
+        // Validate proper config. NOTE that we have relaxed some checks
+        // and the ONOS meters are not spec compliants with trTCM RFC
+        if (bands[0].burst() < 0 || bands[1].burst() < 0) {
+            throw new PiTranslationException("PI trTCM meter can not have band with burst < 0!");
         }
-        if (bands[0].rate() <= 0 || bands[1].rate() <= 0) {
-            throw new PiTranslationException("PI trTCM meter can not have band with rate <= 0!");
+        if (bands[0].rate() < 0 || bands[1].rate() < 0) {
+            throw new PiTranslationException("PI trTCM meter can not have band with rate < 0!");
         }
 
         long cir, cburst, pir, pburst;
