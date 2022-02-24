@@ -21,12 +21,15 @@ import org.onosproject.grpc.utils.AbstractGrpcHandshaker;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.device.DeviceAgentListener;
 import org.onosproject.net.device.DeviceHandshaker;
+import org.onosproject.net.pi.model.PiPipeconf;
+import org.onosproject.net.pi.service.PiPipeconfService;
 import org.onosproject.net.pi.service.PiPipeconfWatchdogService;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.p4runtime.api.P4RuntimeClient;
 import org.onosproject.p4runtime.api.P4RuntimeController;
 
 import java.math.BigInteger;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -94,7 +97,20 @@ public class P4RuntimeHandshaker
                 !client.isSessionOpen(p4DeviceId)) {
             return completedFuture(false);
         }
-        return client.isAnyPipelineConfigSet(p4DeviceId);
+
+        PiPipeconfService piPipeconfService = handler().get(PiPipeconfService.class);
+        final Optional<PiPipeconf> optionalPiPipeconf = piPipeconfService.getPipeconf(deviceId);
+        if (optionalPiPipeconf.isEmpty()) {
+            return completedFuture(false);
+        }
+
+        if (!PiPipeconfWatchdogService.PipelineStatus.READY.equals(
+                handler().get(PiPipeconfWatchdogService.class)
+                        .getStatus(data().deviceId()))) {
+            return completedFuture(false);
+        }
+
+        return client.isPipelineConfigSet(p4DeviceId, optionalPiPipeconf.get());
     }
 
     @Override
