@@ -204,7 +204,7 @@ public class GeneralDeviceProvider extends AbstractProvider
     public void activate(ComponentContext context) {
         mainExecutor = newFixedThreadPool(CORE_POOL_SIZE, groupedThreads(
                 "onos/gdp", "%d", log));
-        taskExecutor = new DeviceTaskExecutor<>(mainExecutor);
+        taskExecutor = new DeviceTaskExecutor<>(mainExecutor, GDP_ALLOWLIST);
         providerService = providerRegistry.register(this);
         componentConfigService.registerProperties(getClass());
         coreService.registerApplication(APP_NAME);
@@ -586,6 +586,9 @@ public class GeneralDeviceProvider extends AbstractProvider
         ROLE_STANDBY,
         NOT_MASTER,
     }
+
+    private static final Set<TaskType> GDP_ALLOWLIST = Sets.newHashSet(TaskType.ROLE_MASTER, TaskType.ROLE_NONE,
+            TaskType.ROLE_STANDBY, TaskType.NOT_MASTER);
 
     private void submitTask(DeviceId deviceId, TaskType taskType) {
         taskExecutor.submit(deviceId, taskType, taskRunnable(deviceId, taskType));
