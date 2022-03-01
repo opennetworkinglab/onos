@@ -19,6 +19,7 @@ package org.onosproject.provider.general.device.impl;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
+import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.packet.ChassisId;
 import org.onlab.util.ItemNotFoundException;
 import org.onlab.util.SharedScheduledExecutors;
@@ -192,6 +193,9 @@ public class GeneralDeviceProvider extends AbstractProvider
     private StatsPoller statsPoller;
     private DeviceProviderService providerService;
 
+    private final Map<DeviceId, Pair<MastershipRole, Integer>> lastRoleRequest =
+            Maps.newConcurrentMap();
+
     public GeneralDeviceProvider() {
         super(new ProviderId(URI_SCHEME, DEVICE_PROVIDER_PACKAGE));
     }
@@ -329,7 +333,13 @@ public class GeneralDeviceProvider extends AbstractProvider
                 break;
             case NONE:
                 // No preference for NONE, apply as is.
-                log.info("Notifying role {} to {}", newRole, deviceId);
+                Pair<MastershipRole, Integer> pairRolePref = Pair.of(newRole, -1);
+                if (log.isDebugEnabled()) {
+                    log.debug("Notifying role {} to {}", newRole, deviceId);
+                } else if (!pairRolePref.equals(lastRoleRequest.get(deviceId))) {
+                    log.info("Notifying role {} to {}", newRole, deviceId);
+                }
+                lastRoleRequest.put(deviceId, pairRolePref);
                 handshaker.roleChanged(newRole);
                 return;
             default:
@@ -337,8 +347,15 @@ public class GeneralDeviceProvider extends AbstractProvider
                 return;
         }
 
-        log.info("Notifying role {} (preference {}) for term {} to {}",
-                 newRole, preference, mastershipInfo.term(), deviceId);
+        Pair<MastershipRole, Integer> pairRolePref = Pair.of(newRole, preference);
+        if (log.isDebugEnabled()) {
+            log.debug("Notifying role {} (preference {}) for term {} to {}",
+                    newRole, preference, mastershipInfo.term(), deviceId);
+        } else if (!pairRolePref.equals(lastRoleRequest.get(deviceId))) {
+            log.info("Notifying role {} (preference {}) for term {} to {}",
+                    newRole, preference, mastershipInfo.term(), deviceId);
+        }
+        lastRoleRequest.put(deviceId, pairRolePref);
 
         try {
             handshaker.roleChanged(preference, mastershipInfo.term());
