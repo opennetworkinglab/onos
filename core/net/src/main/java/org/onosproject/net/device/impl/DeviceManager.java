@@ -216,6 +216,10 @@ public class DeviceManager
     private ScheduledExecutorService backgroundRoleChecker;
     private static final int ROLE_TIMEOUT_SECONDS = 10;
 
+    // FIXME join this map with roleToAcknowledge and fix the back to back event issue here
+    private final Map<DeviceId, MastershipRole> lastAcknowledgedRole =
+            Maps.newConcurrentMap();
+
     @Activate
     public void activate() {
         portAnnotationOp = new PortAnnotationOperator(networkConfigService);
@@ -566,11 +570,11 @@ public class DeviceManager
             } else if (isReachable) {
                 // If this node is the master, ensure the device is marked online.
                 if (myRole == MASTER && canMarkOnline(device)) {
-                    log.info("Can mark online {}", deviceId);
+                    log.debug("Can mark online {}", deviceId);
                     post(store.markOnline(deviceId));
                 }
 
-                log.info("{} is reachable - reasserting the role", deviceId);
+                log.debug("{} is reachable - reasserting the role", deviceId);
 
                 // Device is still reachable. It is useful for some protocols
                 // to reassert the role. Note: NONE triggers request to MastershipService
@@ -913,8 +917,13 @@ public class DeviceManager
 
             if (Objects.equals(requested, response)) {
                 if (Objects.equals(requested, expected)) {
-                    // Stop the timer
-                    log.info("Role has been acknowledged for device {}", deviceId);
+                    if (log.isDebugEnabled()) {
+                        log.debug("Role has been acknowledged for device {}", deviceId);
+                    } else if (!requested.equals(lastAcknowledgedRole.get(deviceId))) {
+                        log.info("Role has been acknowledged for device {}", deviceId);
+                    }
+                    // Update the last known role and stop the timer
+                    lastAcknowledgedRole.put(deviceId, requested);
                     roleToAcknowledge.remove(deviceId);
                 } else {
                     log.warn("Role mismatch on {}. Set to {}, but store demands {}",
@@ -1174,6 +1183,7 @@ public class DeviceManager
                 // When device is administratively removed, force disconnect.
                 DeviceId deviceId = event.subject().id();
                 deviceLocalStatus.remove(deviceId);
+                lastAcknowledgedRole.remove(deviceId);
 
                 DeviceProvider provider = getProvider(deviceId);
                 if (provider != null) {
