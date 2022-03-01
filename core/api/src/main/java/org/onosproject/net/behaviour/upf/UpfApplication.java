@@ -261,9 +261,6 @@ public final class UpfApplication implements UpfEntity {
         }
 
         public UpfApplication build() {
-            checkArgument(ipPrefix != null || l4PortRange != null ||
-                                  ipProto != null,
-                          "At least one match field is required");
             checkNotNull(sliceId, "Slice ID must be provided");
             checkNotNull(appId, "Application ID must be provided");
             checkNotNull(priority, "Priority must be provided");
