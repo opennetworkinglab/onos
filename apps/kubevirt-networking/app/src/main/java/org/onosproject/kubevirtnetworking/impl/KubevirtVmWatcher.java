@@ -18,6 +18,7 @@ package org.onosproject.kubevirtnetworking.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
@@ -382,6 +383,10 @@ public class KubevirtVmWatcher {
                 JsonNode spec = json.get(SPEC).get(TEMPLATE).get(SPEC);
                 ArrayNode interfaces = (ArrayNode) spec.get(DOMAIN).get(DEVICES).get(INTERFACES);
 
+                // if the VM is not associated with any network, we skip parsing MAC address
+                if (interfaces == null) {
+                    return ImmutableMap.of();
+                }
                 Map<MacAddress, String> result = new HashMap<>();
                 for (JsonNode intf : interfaces) {
                     String network = intf.get(NAME).asText();
