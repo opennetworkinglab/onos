@@ -668,10 +668,11 @@ public class DeviceFlowTable {
      * @param newReplicaInfo  the new replica info
      */
     private void syncFlowsOnMaster(DeviceReplicaInfo prevReplicaInfo, DeviceReplicaInfo newReplicaInfo) {
+        log.info("syncFlowsOnMaster {}", prevReplicaInfo.master());
         syncFlowsOn(prevReplicaInfo.master())
             .whenCompleteAsync((result, error) -> {
                 if (error != null) {
-                    log.debug("Failed to synchronize flows on previous master {}", prevReplicaInfo.master(), error);
+                    log.warn("Failed to synchronize flows on previous master {}", prevReplicaInfo.master(), error);
                     syncFlowsOnBackups(prevReplicaInfo, newReplicaInfo);
                 } else {
                     activateMaster(newReplicaInfo);
@@ -690,10 +691,11 @@ public class DeviceFlowTable {
             .stream()
             .filter(nodeId -> !nodeId.equals(localNodeId))
             .collect(Collectors.toList());
+        log.info("syncFlowsOnBackups {}", backups);
         syncFlowsOn(backups)
             .whenCompleteAsync((result, error) -> {
                 if (error != null) {
-                    log.debug("Failed to synchronize flows on previous backup nodes {}", backups, error);
+                    log.warn("Failed to synchronize flows on previous backup nodes {}", backups, error);
                 }
                 activateMaster(newReplicaInfo);
             }, executor);
@@ -721,6 +723,7 @@ public class DeviceFlowTable {
      * @return a future to be completed once the flows have been synchronizes
      */
     private CompletableFuture<Void> syncFlowsOn(NodeId nodeId) {
+        log.info("syncFlowsOn {}", nodeId);
         return requestDigests(nodeId)
             .thenCompose(digests -> Tools.allOf(digests.stream()
                 .filter(digest -> digest.isNewerThan(getDigest(digest.bucket())))
@@ -737,6 +740,7 @@ public class DeviceFlowTable {
      * @return a future to be completed once the bucket has been synchronizes
      */
     private CompletableFuture<Void> syncBucketOn(NodeId nodeId, int bucketNumber) {
+        log.info("syncBucket {} on {}", bucketNumber, nodeId);
         return requestBucket(nodeId, bucketNumber)
             .thenAcceptAsync(flowBucket -> {
                 flowBuckets.compute(flowBucket.bucketId().bucket(),
@@ -752,7 +756,7 @@ public class DeviceFlowTable {
      * @return a future to be completed with the bucket
      */
     private CompletableFuture<FlowBucket> requestBucket(NodeId nodeId, int bucket) {
-        log.debug("Requesting flow bucket {} from {}", bucket, nodeId);
+        log.info("Requesting flow bucket {} from {}", bucket, nodeId);
         return sendWithTimestamp(bucket, getBucketSubject, nodeId);
     }
 
@@ -773,7 +777,7 @@ public class DeviceFlowTable {
      */
     private void activateMaster(DeviceReplicaInfo replicaInfo) {
         if (replicaInfo.isMaster(localNodeId)) {
-            log.debug("Activating term {} for device {}", replicaInfo.term(), deviceId);
+            log.info("Activating term {} for device {}", replicaInfo.term(), deviceId);
             for (int i = 0; i < NUM_BUCKETS; i++) {
                 activateBucket(i);
             }
