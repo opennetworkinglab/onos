@@ -50,6 +50,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.Lock;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.p4runtime.api.P4RuntimeWriteClient.UpdateType;
@@ -148,7 +149,10 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
         }
 
         piMeterCellConfigs = client.read(p4DeviceId, pipeconf)
-                .meterCells(meterIds).submitSync().all(PiMeterCellConfig.class);
+                .meterCells(meterIds).submitSync().all(PiMeterCellConfig.class)
+                .stream()
+                .filter(piMeterCellConfig -> !piMeterCellConfig.isDefaultConfig())
+                .collect(Collectors.toList());
 
         meterMirror.sync(deviceId, piMeterCellConfigs);
 
