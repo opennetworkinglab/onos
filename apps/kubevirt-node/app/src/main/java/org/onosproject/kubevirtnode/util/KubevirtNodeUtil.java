@@ -318,6 +318,36 @@ public final class KubevirtNodeUtil {
     }
 
     /**
+     * Returns the type of the given kubernetes node.
+     *
+     * @param node kubernetes node
+     * @return node type
+     */
+    public static KubevirtNode.Type getNodeType(Node node) {
+        Set<String> rolesFull = node.getMetadata().getLabels().keySet().stream()
+                .filter(l -> l.contains(K8S_ROLE))
+                .collect(Collectors.toSet());
+
+        KubevirtNode.Type nodeType = WORKER;
+
+        for (String roleStr : rolesFull) {
+            String role = roleStr.split("/")[1];
+            if (MASTER.name().equalsIgnoreCase(role)) {
+                nodeType = MASTER;
+                break;
+            }
+        }
+
+        Map<String, String> annots = node.getMetadata().getAnnotations();
+        String gatewayConfig = annots.get(GATEWAY_CONFIG_KEY);
+        if (gatewayConfig != null) {
+            nodeType = GATEWAY;
+        }
+
+        return nodeType;
+    }
+
+    /**
      * Returns the kubevirt node from the node.
      *
      * @param node a raw node object returned from a k8s client

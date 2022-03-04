@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import org.onosproject.kubevirtnode.api.KubevirtApiConfig;
 import org.onosproject.kubevirtnode.api.KubevirtApiConfigService;
 import org.onosproject.kubevirtnode.api.KubevirtNode;
@@ -43,14 +44,19 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.io.InputStream;
+import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static javax.ws.rs.core.Response.created;
 import static org.onlab.util.Tools.nullIsIllegal;
 import static org.onlab.util.Tools.readTreeFromStream;
+import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.WORKER;
 import static org.onosproject.kubevirtnode.api.KubevirtNodeState.COMPLETE;
 import static org.onosproject.kubevirtnode.api.KubevirtNodeState.INIT;
+import static org.onosproject.kubevirtnode.util.KubevirtNodeUtil.getNodeType;
+import static org.onosproject.kubevirtnode.util.KubevirtNodeUtil.k8sClient;
 import static org.onosproject.kubevirtnode.util.KubevirtNodeUtil.waitFor;
 
 /**
@@ -301,6 +307,24 @@ public class KubevirtNodeWebResource extends AbstractWebResource {
         String result = ERROR;
         if (config != null && !allInit) {
             result = OK;
+        }
+
+        KubernetesClient client = k8sClient(config);
+        if (client != null) {
+            Set<String> k8sNodeNames = new HashSet<>();
+            client.nodes().list().getItems().forEach(n -> {
+                if (getNodeType(n) == WORKER) {
+                    k8sNodeNames.add(n.getMetadata().getName());
+                }
+            });
+            Set<String> nodeNames = nodeService.nodes(WORKER).stream()
+                    .map(KubevirtNode::hostname).collect(Collectors.toSet());
+            if (!k8sNodeNames.containsAll(nodeNames)) {
+                result = ERROR;
+            }
+            if (!nodeNames.containsAll(k8sNodeNames)) {
+                result = ERROR;
+            }
         }
 
         ObjectNode jsonResult = mapper().createObjectNode();
