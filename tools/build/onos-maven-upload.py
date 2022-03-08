@@ -91,7 +91,10 @@ if __name__ == '__main__':
     # Upload the artifacts to the remote Nexus repository
     for artifact_id, info in artifacts_to_upload.items():
         artifacts = info["artifacts"]
-        call_funct = ["mvn", "deploy:deploy-file",
+        call_funct = ["mvn",
+                      "-B",  # Run in batch mode
+                      "-q",  # Run in quiet mode, will report only warning or errors
+                      "deploy:deploy-file",
                       "-Durl=" + destination_repo_url,
                       "-DrepositoryId=" + repo_id,
                       "-DgroupId=" + group_id,
