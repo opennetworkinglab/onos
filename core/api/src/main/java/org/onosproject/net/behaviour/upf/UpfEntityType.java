@@ -32,7 +32,10 @@ public enum UpfEntityType {
     COUNTER("counter"),
     APPLICATION("application"),
     SESSION_METER("session_meter"),
-    APPLICATION_METER("application_meter");
+    APPLICATION_METER("application_meter"),
+    // TODO: slice meter shouldn't be exposed via UpfProgrammable driver behaviour
+    //  we should have dedicated driver behaviour for the slicing functionality.
+    SLICE_METER("slice_meter");
 
     private final String humanReadableName;
 

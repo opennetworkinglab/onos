@@ -16,6 +16,7 @@
 
 package org.onosproject.net.behaviour.upf;
 
+import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.onosproject.net.meter.Band;
@@ -29,16 +30,18 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.behaviour.upf.UpfEntityType.APPLICATION_METER;
 import static org.onosproject.net.behaviour.upf.UpfEntityType.SESSION_METER;
+import static org.onosproject.net.behaviour.upf.UpfEntityType.SLICE_METER;
 import static org.onosproject.net.meter.Band.Type.MARK_RED;
 import static org.onosproject.net.meter.Band.Type.MARK_YELLOW;
 
 /**
- * A structure representing a UPF meter, either for metering session (UE) or
- * application traffic.
- * UPF meters represent PFCP QER MBR and GBR information.
- * UPF meters of type session support only the peak band.
+ * A structure representing a UPF meter, either for metering session (UE),
+ * application traffic, or slice traffic.
+ * UPF meters represent PFCP QER MBR and GBR information and slice maximum rate.
+ * UPF meters of type session and slice support only the peak band.
  * UPF meters of type application support both peak and committed bands.
  */
+@Beta
 public final class UpfMeter implements UpfEntity {
     private final int cellId;
     private final ImmutableMap<Band.Type, Band> meterBands;
@@ -161,13 +164,24 @@ public final class UpfMeter implements UpfEntity {
         return new UpfMeter(cellId, Maps.newHashMap(), APPLICATION_METER);
     }
 
+    /**
+     * Return a slice meter with no bands. Used to reset the meter.
+     *
+     * @param cellId the meter cell index of this meter
+     * @return a UpfMeter of type slice with no bands
+     */
+    public static UpfMeter resetSlice(int cellId) {
+        return new UpfMeter(cellId, Maps.newHashMap(), SLICE_METER);
+    }
+
     public static Builder builder() {
         return new Builder();
     }
 
     /**
-     * Builder of UpfMeter object. Use {@link #resetApplication(int)} and
-     * {@link #resetSession(int)} to reset the meter config.
+     * Builder of UpfMeter object. Use {@link #resetApplication(int)},
+     * {@link #resetSession(int)}, or {@link #resetSlice(int)} to reset the
+     * meter config.
      */
     public static class Builder {
         private Integer cellId = null;
@@ -246,12 +260,23 @@ public final class UpfMeter implements UpfEntity {
             return this;
         }
 
+        /**
+         * Make this meter a slice meter.
+         *
+         * @return this builder object
+         */
+        public Builder setSlice() {
+            this.type = SLICE_METER;
+            return this;
+        }
+
         public UpfMeter build() {
             checkNotNull(type, "A meter type must be assigned");
             switch (type) {
                 case SESSION_METER:
+                case SLICE_METER:
                     checkArgument(!bands.containsKey(MARK_YELLOW),
-                                  "Committed band can not be provided for session meter!");
+                                  "Committed band can not be provided for " + type + " meter!");
                     break;
                 case APPLICATION_METER:
                     checkArgument((bands.containsKey(MARK_YELLOW) && bands.containsKey(MARK_RED)) || bands.isEmpty(),
