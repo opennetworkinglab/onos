@@ -248,6 +248,9 @@ public final class UpfTerminationUplink implements UpfEntity {
                 applicationId = DEFAULT_APP_ID;
             }
             checkNotNull(ctrId, "Counter ID must be provided");
+            if (!dropping) {
+                checkNotNull(trafficClass, "Traffic class must be provided");
+            }
             // TODO: should we verify that when dropping no other fields are provided
             return new UpfTerminationUplink(
                     this.ueSessionId, this.applicationId, this.ctrId,
