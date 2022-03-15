@@ -383,12 +383,11 @@ public class KubevirtRoutingSnatHandler {
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
 
+        sBuilder.matchEthType(Ethernet.TYPE_IPV4);
+
         if (externalNetwork.type() == VLAN) {
-            sBuilder.matchEthType(Ethernet.TYPE_VLAN)
-                    .matchVlanId(VlanId.vlanId(externalNetwork.segmentId()));
+            sBuilder.matchVlanId(VlanId.vlanId(externalNetwork.segmentId()));
             tBuilder.popVlan();
-        } else {
-            sBuilder.matchEthType(Ethernet.TYPE_IPV4);
         }
 
         sBuilder.matchIPDst(IpPrefix.valueOf(routerSnatIp, 32));
