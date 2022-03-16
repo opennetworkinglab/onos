@@ -263,17 +263,23 @@ public class KubevirtVmWatcher {
                         .build();
 
                 KubevirtPort existing = portAdminService.port(port.macAddress());
-
-                if (existing == null) {
-                    return;
-                }
-
                 Set<String> sgs = parseSecurityGroups(resource);
 
-                // we only update the port, if the newly updated security groups
-                // have different values compared to existing ones
-                if (!port.securityGroups().equals(sgs)) {
-                    portAdminService.updatePort(existing.updateSecurityGroups(sgs));
+                if (existing == null) {
+                    // if the network related information is filled with VM update event,
+                    // and there is no port found in the store
+                    // we try to add port by extracting network related info from VM
+                    port = port.updateSecurityGroups(sgs);
+                    Map<String, IpAddress> ips = parseIpAddresses(resource);
+                    IpAddress ip = ips.get(port.networkId());
+                    port = port.updateIpAddress(ip);
+                    portAdminService.createPort(port);
+                } else {
+                    // we only update the port, if the newly updated security groups
+                    // have different values compared to existing ones
+                    if (!port.securityGroups().equals(sgs)) {
+                        portAdminService.updatePort(existing.updateSecurityGroups(sgs));
+                    }
                 }
             });
         }
