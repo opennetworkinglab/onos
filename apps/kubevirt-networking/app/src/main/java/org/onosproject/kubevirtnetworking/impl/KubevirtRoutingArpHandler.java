@@ -27,6 +27,7 @@ import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+
 import org.onosproject.kubevirtnetworking.api.KubevirtFlowRuleService;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetworkAdminService;
 import org.onosproject.kubevirtnetworking.api.KubevirtPeerRouter;
@@ -57,6 +58,8 @@ import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
 import java.util.Objects;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
@@ -107,6 +110,9 @@ public class KubevirtRoutingArpHandler {
     private final PacketProcessor packetProcessor = new InternalPacketProcessor();
 
     private final InternalRouterEventListener kubevirtRouterlistener = new InternalRouterEventListener();
+
+    private final Timer timer = new Timer("kubevirtcni-routing-arphandler");
+    private static final long SECONDS = 1000L;
 
     private ApplicationId appId;
     private NodeId localNodeId;
@@ -284,7 +290,14 @@ public class KubevirtRoutingArpHandler {
                         router.peerRouter().ipAddress(), gatewayNode.hostname(), true);
 
                 retrievePeerRouterMac(router, router.peerRouter().ipAddress());
+                checkPeerRouterMacRetrieved(router);
+
             }
+        }
+
+        private void checkPeerRouterMacRetrieved(KubevirtRouter router) {
+            InternalTimerTask task = new InternalTimerTask(router.name(), router.peerRouter().ipAddress());
+            timer.schedule(task, 5 * SECONDS, 60 * SECONDS);
         }
 
         private void processRouterExternalNetDetached(KubevirtRouter router, String routerSnatIp,
@@ -403,6 +416,33 @@ public class KubevirtRoutingArpHandler {
             log.info("Update peer router mac adress {} to router {}", peerRouter.macAddress(), router.name());
 
             kubevirtRouterService.updatePeerRouterMac(router.name(), sha);
+        }
+    }
+
+    private class InternalTimerTask extends TimerTask {
+        String routerName;
+        IpAddress routerIpAddress;
+
+        public InternalTimerTask(String routerName, IpAddress routerIpAddress) {
+            this.routerName = routerName;
+            this.routerIpAddress = routerIpAddress;
+        }
+
+        @Override
+        public void run() {
+            KubevirtRouter router = kubevirtRouterService.router(routerName);
+
+            if (router == null) {
+                return;
+            }
+
+            if (router.peerRouter().macAddress() != null) {
+                log.info("Peer Router Mac for {} is retrieved. Stop this task..", routerName);
+                this.cancel();
+                return;
+            }
+
+            retrievePeerRouterMac(router, routerIpAddress);
         }
     }
 }
