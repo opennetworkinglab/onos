@@ -25,6 +25,8 @@ import org.onosproject.p4runtime.ctl.utils.P4InfoBrowser;
 import p4.config.v1.P4InfoOuterClass;
 import p4.v1.P4RuntimeOuterClass;
 
+import java.nio.ByteBuffer;
+
 import static org.onlab.util.ImmutableByteSequence.copyAndFit;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
 
@@ -41,12 +43,18 @@ public final class PacketMetadataCodec
             PiPacketMetadata piEntity, P4InfoOuterClass.Preamble ctrlPktMetaPreamble,
             PiPipeconf pipeconf, P4InfoBrowser browser)
             throws P4InfoBrowser.NotFoundException {
-        final int metadataId = browser
+        P4InfoOuterClass.ControllerPacketMetadata.Metadata packetMetadata = browser
                 .packetMetadatas(ctrlPktMetaPreamble.getId())
-                .getByName(piEntity.id().id()).getId();
+                .getByName(piEntity.id().id());
+        final ByteBuffer value;
+        if (browser.isTypeString(packetMetadata.getTypeName())) {
+            value = piEntity.value().asReadOnlyBuffer();
+        } else {
+            value = piEntity.value().canonical().asReadOnlyBuffer();
+        }
         return P4RuntimeOuterClass.PacketMetadata.newBuilder()
-                .setMetadataId(metadataId)
-                .setValue(ByteString.copyFrom(piEntity.value().asReadOnlyBuffer()))
+                .setMetadataId(packetMetadata.getId())
+                .setValue(ByteString.copyFrom(value))
                 .build();
     }
 

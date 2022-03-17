@@ -34,9 +34,9 @@ final class Utils {
             throws CodecException {
 
         int byteWidth = (int) Math.ceil((float) bitWidth / 8);
-        if (value.size() != byteWidth) {
+        if (value.size() > byteWidth) {
             throw new CodecException(format(
-                    "Wrong size for %s, expected %d bytes, but found %d",
+                    "Wrong size for %s, expected no more than %d bytes, but found %d",
                     entityDescr, byteWidth, value.size()));
         }
     }
