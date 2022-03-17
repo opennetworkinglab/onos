@@ -326,7 +326,7 @@ public final class ImmutableByteSequence {
      * @return an integer value
      */
     public int size() {
-        return this.value.capacity();
+        return this.value.limit() - this.value.position();
     }
 
     /**
@@ -544,6 +544,22 @@ public final class ImmutableByteSequence {
         }
 
         return new ImmutableByteSequence(newBuffer);
+    }
+
+    /**
+     * Returns a new ImmutableByteSequence with same content as this one, but with leading zero bytes stripped.
+     *
+     * @return new ImmutableByteSequence
+     */
+    public ImmutableByteSequence canonical() {
+        ByteBuffer newByteBuffer = this.value.duplicate();
+        ImmutableByteSequence canonicalBs = new ImmutableByteSequence(newByteBuffer);
+        canonicalBs.value.rewind();
+        while (canonicalBs.value.hasRemaining() && canonicalBs.value.get() == 0) {
+            // Make style check happy
+        }
+        canonicalBs.value.position(canonicalBs.value.position() - 1);
+        return canonicalBs;
     }
 
     /**

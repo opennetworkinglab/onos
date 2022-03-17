@@ -376,4 +376,52 @@ public class ImmutableByteSequenceTest {
         assertThat("Invalid bitwise XOR result",
                    xorBs.asReadOnlyBuffer().getLong(), is(long1 ^ long2));
     }
+
+    @Test
+    public void testCanonical() {
+        ImmutableByteSequence bs = ImmutableByteSequence.copyFrom(0x000000ff);
+        ImmutableByteSequence canonicalBs = bs.canonical();
+        assertThat("Incorrect size", canonicalBs.size(), is(1));
+        ByteBuffer bb = canonicalBs.asReadOnlyBuffer();
+        assertThat("Incorrect byte buffer position", bb.position(), is(3));
+
+        bs = ImmutableByteSequence.copyFrom(0x100000ff);
+        canonicalBs = bs.canonical();
+        assertThat("Incorrect size", canonicalBs.size(), is(4));
+        bb = canonicalBs.asReadOnlyBuffer();
+        assertThat("Incorrect byte buffer position", bb.position(), is(0));
+
+        bs = ImmutableByteSequence.copyFrom(0x00000000ff0000ffL);
+        canonicalBs = bs.canonical();
+        assertThat("Incorrect size", canonicalBs.size(), is(4));
+        bb = canonicalBs.asReadOnlyBuffer();
+        assertThat("Incorrect byte buffer position", bb.position(), is(4));
+
+        bs = ImmutableByteSequence.copyFrom(0);
+        canonicalBs = bs.canonical();
+        assertThat("Incorrect size", canonicalBs.size(), is(1));
+        bb = canonicalBs.asReadOnlyBuffer();
+        assertThat("Incorrect byte buffer position", bb.position(), is(3));
+
+        bs = ImmutableByteSequence.copyFrom(0L);
+        canonicalBs = bs.canonical();
+        assertThat("Incorrect size", canonicalBs.size(), is(1));
+        bb = canonicalBs.asReadOnlyBuffer();
+        assertThat("Incorrect byte buffer position", bb.position(), is(7));
+
+        new EqualsTester()
+                .addEqualityGroup(
+                        ImmutableByteSequence.copyFrom(0x000000ff).canonical(),
+                        ImmutableByteSequence.copyFrom((short) 0x00ff).canonical())
+                .addEqualityGroup(
+                        ImmutableByteSequence.copyFrom(0x000001ff).canonical(),
+                        ImmutableByteSequence.copyFrom(0x00000000000001ffL).canonical())
+                .addEqualityGroup(
+                        ImmutableByteSequence.copyFrom(0xc00001ff).canonical(),
+                        ImmutableByteSequence.copyFrom(0x00000000c00001ffL).canonical())
+                .addEqualityGroup(
+                        ImmutableByteSequence.copyFrom(0).canonical(),
+                        ImmutableByteSequence.copyFrom(0L).canonical())
+                .testEquals();
+    }
 }

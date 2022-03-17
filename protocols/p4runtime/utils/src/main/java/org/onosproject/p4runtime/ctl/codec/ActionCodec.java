@@ -49,11 +49,14 @@ public final class ActionCodec
         for (PiActionParam p : piAction.parameters()) {
             final P4InfoOuterClass.Action.Param paramInfo = browser.actionParams(actionId)
                     .getByName(p.id().toString());
-            final ByteString paramValue = ByteString.copyFrom(p.value().asReadOnlyBuffer());
-            if (!browser.isTypeString(paramInfo.getTypeName())) {
+            final ByteString paramValue;
+            if (browser.isTypeString(paramInfo.getTypeName())) {
+                paramValue = ByteString.copyFrom(p.value().asReadOnlyBuffer());
+            } else {
+                paramValue = ByteString.copyFrom(p.value().canonical().asReadOnlyBuffer());
                 // Check size only if the param type is not a sdn_string
                 assertSize(format("param '%s' of action '%s'", p.id(), piAction.id()),
-                           paramValue, paramInfo.getBitwidth());
+                        paramValue, paramInfo.getBitwidth());
             }
             actionMsgBuilder.addParams(P4RuntimeOuterClass.Action.Param.newBuilder()
                                                .setParamId(paramInfo.getId())

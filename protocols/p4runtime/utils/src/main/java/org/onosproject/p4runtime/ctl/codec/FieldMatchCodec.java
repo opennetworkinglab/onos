@@ -74,8 +74,11 @@ public final class FieldMatchCodec
         switch (piFieldMatch.type()) {
             case EXACT:
                 PiExactFieldMatch fieldMatch = (PiExactFieldMatch) piFieldMatch;
-                ByteString exactValue = ByteString.copyFrom(fieldMatch.value().asReadOnlyBuffer());
-                if (!isSdnString) {
+                ByteString exactValue;
+                if (isSdnString) {
+                    exactValue = ByteString.copyFrom(fieldMatch.value().asReadOnlyBuffer());
+                } else {
+                    exactValue = ByteString.copyFrom(fieldMatch.value().canonical().asReadOnlyBuffer());
                     assertSize(VALUE_OF_PREFIX + entityName, exactValue, fieldBitwidth);
                 }
                 return messageBuilder.setExact(
@@ -86,8 +89,8 @@ public final class FieldMatchCodec
                         .build();
             case TERNARY:
                 PiTernaryFieldMatch ternaryMatch = (PiTernaryFieldMatch) piFieldMatch;
-                ByteString ternaryValue = ByteString.copyFrom(ternaryMatch.value().asReadOnlyBuffer());
-                ByteString ternaryMask = ByteString.copyFrom(ternaryMatch.mask().asReadOnlyBuffer());
+                ByteString ternaryValue = ByteString.copyFrom(ternaryMatch.value().canonical().asReadOnlyBuffer());
+                ByteString ternaryMask = ByteString.copyFrom(ternaryMatch.mask().canonical().asReadOnlyBuffer());
                 if (isSdnString) {
                     sdnStringUnsupported(entityName, piFieldMatch.type());
                 }
@@ -102,7 +105,7 @@ public final class FieldMatchCodec
                         .build();
             case LPM:
                 PiLpmFieldMatch lpmMatch = (PiLpmFieldMatch) piFieldMatch;
-                ByteString lpmValue = ByteString.copyFrom(lpmMatch.value().asReadOnlyBuffer());
+                ByteString lpmValue = ByteString.copyFrom(lpmMatch.value().canonical().asReadOnlyBuffer());
                 int lpmPrefixLen = lpmMatch.prefixLength();
                 if (isSdnString) {
                     sdnStringUnsupported(entityName, piFieldMatch.type());
@@ -117,8 +120,8 @@ public final class FieldMatchCodec
                         .build();
             case RANGE:
                 PiRangeFieldMatch rangeMatch = (PiRangeFieldMatch) piFieldMatch;
-                ByteString rangeHighValue = ByteString.copyFrom(rangeMatch.highValue().asReadOnlyBuffer());
-                ByteString rangeLowValue = ByteString.copyFrom(rangeMatch.lowValue().asReadOnlyBuffer());
+                ByteString rangeHighValue = ByteString.copyFrom(rangeMatch.highValue().canonical().asReadOnlyBuffer());
+                ByteString rangeLowValue = ByteString.copyFrom(rangeMatch.lowValue().canonical().asReadOnlyBuffer());
                 if (isSdnString) {
                     sdnStringUnsupported(entityName, piFieldMatch.type());
                 }
@@ -132,8 +135,11 @@ public final class FieldMatchCodec
                         .build();
             case OPTIONAL:
                 PiOptionalFieldMatch optionalMatch = (PiOptionalFieldMatch) piFieldMatch;
-                ByteString optionalValue = ByteString.copyFrom(optionalMatch.value().asReadOnlyBuffer());
-                if (!isSdnString) {
+                ByteString optionalValue;
+                if (isSdnString) {
+                    optionalValue = ByteString.copyFrom(optionalMatch.value().asReadOnlyBuffer());
+                } else {
+                    optionalValue = ByteString.copyFrom(optionalMatch.value().canonical().asReadOnlyBuffer());
                     assertSize(VALUE_OF_PREFIX + entityName, optionalValue, fieldBitwidth);
                 }
                 return messageBuilder.setOptional(

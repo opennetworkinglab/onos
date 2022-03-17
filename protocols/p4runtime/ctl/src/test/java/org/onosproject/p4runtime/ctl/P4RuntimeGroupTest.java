@@ -185,7 +185,8 @@ public class P4RuntimeGroupTest {
 
         assertEquals(false, response.isSuccess());
         assertEquals(1, response.all().size());
-        assertEquals("Wrong size for param 'port' of action 'set_egress_port', expected 2 bytes, but found 13",
+        assertEquals("Wrong size for param 'port' of action 'set_egress_port', " +
+                        "expected no more than 2 bytes, but found 13",
                 response.all().iterator().next().explanation());
     }
 
@@ -244,7 +245,7 @@ public class P4RuntimeGroupTest {
             Action.Param param = action.getParamsList().get(0);
             assertEquals(1, param.getParamId());
             byte outPort = (byte) (member.getMemberId() - BASE_MEM_ID);
-            ByteString bs = ByteString.copyFrom(new byte[]{0, outPort});
+            ByteString bs = ByteString.copyFrom(new byte[]{outPort});
             assertEquals(bs, param.getValue());
         }
     }
