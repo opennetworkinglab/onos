@@ -256,7 +256,7 @@ public class TableEntryEncoderTest {
 
         // Ternary match.
         byte[] encodedTernaryMatchValue = tableEntryMsg.getMatch(0).getTernary().getValue().toByteArray();
-        assertThat(encodedTernaryMatchValue, is(ethAddr.asArray()));
+        assertThat(encodedTernaryMatchValue, is(ethAddr.canonical().asArray()));
 
         Action actionMsg = tableEntryMsg.getAction().getAction();
 
@@ -386,7 +386,7 @@ public class TableEntryEncoderTest {
 
         // Ternary match.
         byte[] encodedTernaryMatchValue = tableEntryMsg.getMatch(0).getTernary().getValue().toByteArray();
-        assertThat(encodedTernaryMatchValue, is(ethAddr.asArray()));
+        assertThat(encodedTernaryMatchValue, is(ethAddr.canonical().asArray()));
 
         // no action
         assertThat(tableEntryMsg.hasAction(), is(false));
