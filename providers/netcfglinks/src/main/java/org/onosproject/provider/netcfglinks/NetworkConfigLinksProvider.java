@@ -140,7 +140,7 @@ public class NetworkConfigLinksProvider
     private AtomicReference<ClusterMetadata> clusterMetadata = new AtomicReference<>();
 
     public NetworkConfigLinksProvider() {
-        super(new ProviderId("lldp", PROVIDER_NAME));
+        super(new ProviderId("netcfglinks", PROVIDER_NAME));
     }
 
     private String buildSrcMac() {
