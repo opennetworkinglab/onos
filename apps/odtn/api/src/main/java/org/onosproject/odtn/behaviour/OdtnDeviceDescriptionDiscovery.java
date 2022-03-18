@@ -34,24 +34,29 @@ public interface OdtnDeviceDescriptionDiscovery
         extends DeviceDescriptionDiscovery {
 
     /**
-     * Annotations key intended for a Port, which stores OpenConfig component name.
-     * <p>
-     * Optional; only for purpose of debugging.
+     * Annotations key intended for an OpenConfig generic component, which stores component name.
+     * Typically used for Ports
      */
     String OC_NAME = "oc-name";
 
     /**
-     * Annotations key intended for a Port, which stores OpenConfig component type.
-     * <p>
-     * Optional; only for purpose of debugging.
-     */
+     * Annotations key intended for an OpenConfig generic component, which stores component type.
+    */
     String OC_TYPE = "oc-type";
 
     /**
-     * Annotations key intended for a Port, which stores OpenConfig logical channel
-     * associated the port.
-     * <p>
-     * Optional; only for purpose of debugging.
+     * Annotations key intended for a Port, which stores OpenConfig optical channel component associated to the port.
+     */
+    String OC_OPTICAL_CHANNEL_NAME = "oc-optical-channel-name";
+
+    /**
+     * Annotations key intended for a Port, which stores OpenConfig transceiver associated to the port.
+     */
+    String OC_TRANSCEIVER_NAME = "oc-transceiver-name";
+
+
+    /**
+     * Annotations key intended for a Port, which stores OpenConfig logical channel associated to the port.
      */
     String OC_LOGICAL_CHANNEL = "oc-logical-channel";
 
