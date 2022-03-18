@@ -24,7 +24,9 @@ import java.util.List;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.net.flow.FlowRuleOperation.Type.*;
+import static org.onosproject.net.flow.FlowRuleOperation.Type.ADD;
+import static org.onosproject.net.flow.FlowRuleOperation.Type.REMOVE;
+import static org.onosproject.net.flow.FlowRuleOperation.Type.MODIFY;
 
 /**
  * A batch of flow rule operations that are broken into stages.
@@ -34,17 +36,21 @@ public class FlowRuleOperations {
 
     private final List<Set<FlowRuleOperation>> stages;
     private final FlowRuleOperationsContext callback;
+    private final Integer stripeKey;
 
     private FlowRuleOperations(List<Set<FlowRuleOperation>> stages,
-                               FlowRuleOperationsContext cb) {
+                               FlowRuleOperationsContext cb,
+                               Integer stripeKey) {
         this.stages = stages;
         this.callback = cb;
+        this.stripeKey = stripeKey;
     }
 
     // kryo-constructor
     protected FlowRuleOperations() {
         this.stages = Lists.newArrayList();
         this.callback = null;
+        this.stripeKey = null;
     }
 
     /**
@@ -64,6 +70,18 @@ public class FlowRuleOperations {
      */
     public FlowRuleOperationsContext callback() {
         return callback;
+    }
+
+    /**
+     * Returns the stripe key. Expectation is that FlowRuleOperations with the
+     * same key will be executed sequentially in the same order as they are
+     * submitted to the FlowRuleService. Operations without a key or with
+     * different keys might be executed in parallel.
+     *
+     * @return the stripe key associated to this or null if not present
+     */
+    public Integer stripeKey() {
+        return stripeKey;
     }
 
     /**
@@ -89,6 +107,7 @@ public class FlowRuleOperations {
 
         private final ImmutableList.Builder<Set<FlowRuleOperation>> listBuilder = ImmutableList.builder();
         private ImmutableSet.Builder<FlowRuleOperation> currentStage = ImmutableSet.builder();
+        private Integer stripeKey = null;
 
         // prevent use of the default constructor outside of this file; use the above method
         private Builder() {}
@@ -160,6 +179,25 @@ public class FlowRuleOperations {
         }
 
         /**
+         * Provides semantics similar to lock striping. FlowRuleOperations
+         * with the same key will be executed sequentially. Operations without
+         * a key or with different keys might be executed in parallel.
+         * <p>
+         * This parameter is useful to correlate different operations with
+         * potentially conflicting writes, to guarantee that operations are
+         * executed in-order. For example, to handle the case where one operation
+         * that removes a flow rule is followed by one that adds the same flow rule.
+         * </p>
+         *
+         * @param stripeKey an integer key
+         * @return this
+         */
+        public Builder striped(int stripeKey) {
+            this.stripeKey = stripeKey;
+            return this;
+        }
+
+        /**
          * Builds the immutable flow rule operations.
          *
          * @return flow rule operations
@@ -178,7 +216,7 @@ public class FlowRuleOperations {
             checkNotNull(cb);
 
             closeStage();
-            return new FlowRuleOperations(listBuilder.build(), cb);
+            return new FlowRuleOperations(listBuilder.build(), cb, stripeKey);
         }
     }
 }

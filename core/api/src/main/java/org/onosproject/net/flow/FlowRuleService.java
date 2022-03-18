@@ -196,4 +196,33 @@ public interface FlowRuleService
     default long getActiveFlowRuleCount(DeviceId deviceId) {
         return 0;
     }
+
+    /**
+     * Applies the specified flow rules onto their respective devices. Similar
+     * to {@link FlowRuleService#applyFlowRules(FlowRule...)} but expectation is
+     * that flow rules applied by subsequent calls using the same key will be
+     * executed sequentially. Flow rules applied through {@link FlowRuleService#applyFlowRules(FlowRule...)}
+     * might be executed in parallel.
+     *
+     * @param stripeKey an integer key
+     * @param flowRules one or more flow rules
+     */
+    default void applyFlowRules(int stripeKey, FlowRule... flowRules) {
+
+    }
+
+    /**
+     * Removes the specified flow rules from their respective devices. Similar
+     * to {@link FlowRuleService#removeFlowRules(FlowRule...)} but expectation is
+     * that flow rules removed by subsequent calls using the same key will be
+     * executed sequentially. Flow rules applied through {@link FlowRuleService#removeFlowRules(FlowRule...)}
+     * might be executed in parallel.
+     *
+     * @param stripeKey an integer key
+     * @param flowRules one or more flow rules
+     */
+    default void removeFlowRules(int stripeKey, FlowRule... flowRules) {
+
+    }
+
 }
