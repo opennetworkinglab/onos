@@ -19,8 +19,6 @@ package org.onosproject.drivers.p4runtime;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Striped;
-import org.onosproject.drivers.p4runtime.mirror.P4RuntimeMeterMirror;
-import org.onosproject.drivers.p4runtime.mirror.TimedEntry;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.meter.Band;
 import org.onosproject.net.meter.DefaultMeter;
@@ -63,7 +61,6 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
     private static final Striped<Lock> WRITE_LOCKS = Striped.lock(30);
 
     private PiMeterTranslator translator;
-    private P4RuntimeMeterMirror meterMirror;
     private PiPipelineModel pipelineModel;
 
     @Override
@@ -73,7 +70,6 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
         }
 
         translator = translationService.meterTranslator();
-        meterMirror = handler().get(P4RuntimeMeterMirror.class);
         pipelineModel = pipeconf.pipelineModel();
         return true;
     }
@@ -120,13 +116,10 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
                     return false;
             }
 
-            WriteRequest request = client.write(p4DeviceId, pipeconf);
-            appendEntryToWriteRequestOrSkip(request, handle, piMeterCellConfig);
+            WriteRequest request = client.write(p4DeviceId, pipeconf)
+                    .entity(piMeterCellConfig, UpdateType.MODIFY);
             if (!request.pendingUpdates().isEmpty()) {
                 result = request.submitSync().isSuccess();
-                if (result) {
-                    meterMirror.applyWriteRequest(request);
-                }
             }
         } finally {
             WRITE_LOCKS.get(deviceId).unlock();
@@ -154,8 +147,6 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
                 .filter(piMeterCellConfig -> !piMeterCellConfig.isDefaultConfig())
                 .collect(Collectors.toList());
 
-        meterMirror.sync(deviceId, piMeterCellConfigs);
-
         if (piMeterCellConfigs.isEmpty()) {
             return CompletableFuture.completedFuture(Collections.emptyList());
         }
@@ -179,11 +170,8 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
         // Reset all inconsistent meter cells to the default config
         if (!inconsistentOrDefaultCells.isEmpty()) {
             WriteRequest request = client.write(p4DeviceId, pipeconf);
-            for (PiMeterCellId cellId : inconsistentOrDefaultCells) {
-                PiMeterCellHandle handle = PiMeterCellHandle.of(deviceId, cellId);
-                appendEntryToWriteRequestOrSkip(request, handle, PiMeterCellConfig.reset(cellId));
-            }
-
+            inconsistentOrDefaultCells.forEach(cellId ->
+                    request.entity(PiMeterCellConfig.reset(cellId), UpdateType.MODIFY));
             request.submit().whenComplete((response, ex) -> {
                 if (ex != null) {
                     log.error("Exception resetting inconsistent meter entries", ex);
@@ -191,7 +179,6 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
                     log.debug("Successfully removed {} out of {} inconsistent meter entries",
                             response.success().size(), response.all().size());
                 }
-                response.success().forEach(entity -> meterMirror.remove((PiMeterCellHandle) entity.handle()));
             });
         }
 
@@ -215,7 +202,6 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
     private Meter forgeMeter(PiMeterCellConfig config, PiMeterCellHandle handle) {
         final Optional<PiTranslatedEntity<Meter, PiMeterCellConfig>>
             translatedEntity = translator.lookup(handle);
-        final TimedEntry<PiMeterCellConfig> timedEntry = meterMirror.get(handle);
 
         // A meter cell config might not be present in the translation store if it
         // is default configuration.
@@ -239,13 +225,6 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
             return null;
         }
 
-        // Big problems in the mirror ? This could happen in case of issues with
-        // the eventual consistent maps used in the AbstractDistributedP4RuntimeMirror
-        if (timedEntry == null) {
-            log.warn("Meter entry handle not found in device mirror: {}", handle);
-            return null;
-        }
-
         Meter original = translatedEntity.get().original();
         // Forge a meter with MeterCellId, Bands and DeviceId using the original value.
         DefaultMeter meter = (DefaultMeter) DefaultMeter.builder()
@@ -255,23 +234,6 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
                 .build();
         meter.setState(MeterState.ADDED);
         return meter;
-    }
-
-    private boolean appendEntryToWriteRequestOrSkip(
-            final WriteRequest writeRequest,
-            final PiMeterCellHandle handle,
-            PiMeterCellConfig configToModify) {
-
-        final TimedEntry<PiMeterCellConfig> configOnDevice = meterMirror.get(handle);
-
-        if (configOnDevice != null && configOnDevice.entry().equals(configToModify)) {
-            log.debug("Ignoring re-apply of existing entry: {}", configToModify);
-            return true;
-        }
-
-        writeRequest.entity(configToModify, UpdateType.MODIFY);
-
-        return false;
     }
 
     /**
