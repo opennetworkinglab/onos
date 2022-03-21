@@ -534,9 +534,8 @@ public class FlowRuleManager
                         return false;
                     }
                     FlowRuleEvent event = store.addOrUpdateFlowRule(flowEntry);
-                    // Something went wrong or there is no master or
-                    // the device is not available better check if it
-                    // is the latter cases
+                    // Something went wrong or there is no master or the device
+                    // is not available better check if it is the latter cases
                     if (event == null) {
                         log.debug("No flow store event generated for addOrUpdate of {}", flowEntry);
                         return false;
@@ -544,7 +543,14 @@ public class FlowRuleManager
                         log.trace("Flow {} {}", flowEntry, event.type());
                         post(event);
                     }
-                } else {
+                } else if (storedEntry.state() == FlowEntry.FlowEntryState.PENDING_REMOVE) {
+                    // Store is already in sync, let's re-issue flow removal only
+                    log.debug("Removing {} from the device", flowEntry);
+                    FlowRuleProvider frp = getProvider(flowEntry.deviceId());
+                    frp.removeFlowRule(flowEntry);
+                } else if (!checkRuleLiveness(flowEntry, storedEntry)) {
+                    // Update store first as the flow entry is expired. Then,
+                    // as consequence of this a flow removal will be sent.
                     log.debug("Removing {}", flowEntry);
                     removeFlowRules(flowEntry);
                 }
