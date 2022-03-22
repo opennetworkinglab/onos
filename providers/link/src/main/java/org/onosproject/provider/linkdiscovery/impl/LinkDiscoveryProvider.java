@@ -336,6 +336,11 @@ public class LinkDiscoveryProvider extends AbstractProvider
                 case DEVICE_REMOVED:
                     evaluateLinks(device.id(), Sets.newHashSet());
                     break;
+                case DEVICE_AVAILABILITY_CHANGED:
+                    if (!deviceService.isAvailable(device.id())) {
+                        evaluateLinks(device.id(), Sets.newHashSet());
+                    }
+                    break;
                 default:
                     log.debug("No implemented action for other DeviceEvents for the device {}", device.id());
                     break;
