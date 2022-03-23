@@ -118,7 +118,8 @@ public final class DefaultKubevirtPort implements KubevirtPort {
         } else {
             return network.type() == KubevirtNetwork.Type.VXLAN ||
                     network.type() == KubevirtNetwork.Type.GRE ||
-                    network.type() == KubevirtNetwork.Type.GENEVE;
+                    network.type() == KubevirtNetwork.Type.GENEVE ||
+                    network.type() == KubevirtNetwork.Type.STT;
         }
     }
 

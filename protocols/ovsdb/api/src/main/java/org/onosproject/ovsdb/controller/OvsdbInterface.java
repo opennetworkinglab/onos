@@ -63,6 +63,10 @@ public final class OvsdbInterface {
          */
         VXLAN,
         /**
+         * An Ethernet over draft-davie-stt-06 Stateless Transport Tunneling Protocol for Network Virtualization.
+         */
+        STT,
+        /**
          * A pair of virtual devices that act as a patch cable.
          */
         PATCH,

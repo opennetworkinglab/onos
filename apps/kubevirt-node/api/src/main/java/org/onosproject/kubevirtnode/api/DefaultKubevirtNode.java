@@ -35,6 +35,7 @@ import static org.onosproject.kubevirtnode.api.Constants.DEFAULT_CLUSTER_NAME;
 import static org.onosproject.kubevirtnode.api.Constants.GENEVE;
 import static org.onosproject.kubevirtnode.api.Constants.GRE;
 import static org.onosproject.kubevirtnode.api.Constants.INTEGRATION_TO_PHYSICAL_PREFIX;
+import static org.onosproject.kubevirtnode.api.Constants.STT;
 import static org.onosproject.kubevirtnode.api.Constants.VXLAN;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 
@@ -219,6 +220,11 @@ public class DefaultKubevirtNode implements KubevirtNode {
     @Override
     public PortNumber genevePort() {
         return tunnelPort(GENEVE);
+    }
+
+    @Override
+    public PortNumber sttPort() {
+        return tunnelPort(STT);
     }
 
     @Override

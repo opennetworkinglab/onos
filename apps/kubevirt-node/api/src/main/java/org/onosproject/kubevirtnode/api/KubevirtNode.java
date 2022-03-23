@@ -175,6 +175,13 @@ public interface KubevirtNode {
     PortNumber genevePort();
 
     /**
+     * Returns the STT tunnel port number.
+     *
+     * @return STT port number; null if the STT tunnel port does not exist
+     */
+    PortNumber sttPort();
+
+    /**
      * Returns the name of the gateway bridge.
      *
      * @return gateway bridge name
