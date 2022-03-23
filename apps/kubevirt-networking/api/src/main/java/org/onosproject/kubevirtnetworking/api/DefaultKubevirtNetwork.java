@@ -35,6 +35,7 @@ import static org.onosproject.kubevirtnetworking.api.Constants.TUNNEL_TO_TENANT_
 import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.FLAT;
 import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.GENEVE;
 import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.GRE;
+import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.STT;
 import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.VXLAN;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 
@@ -157,7 +158,7 @@ public final class DefaultKubevirtNetwork implements KubevirtNetwork {
 
     @Override
     public String tenantBridgeName() {
-        if (type == VXLAN || type == GRE || type == GENEVE) {
+        if (type == VXLAN || type == GRE || type == GENEVE || type == STT) {
             return TENANT_BRIDGE_PREFIX + segmentIdHex(segmentId);
         }
         return null;
@@ -165,7 +166,7 @@ public final class DefaultKubevirtNetwork implements KubevirtNetwork {
 
     @Override
     public DeviceId tenantDeviceId(String hostname) {
-        if (type == VXLAN || type == GRE || type == GENEVE) {
+        if (type == VXLAN || type == GRE || type == GENEVE || type == STT) {
             String dpid = genDpidFromName(tenantBridgeName() + "-" + hostname);
             return DeviceId.deviceId(dpid);
         }

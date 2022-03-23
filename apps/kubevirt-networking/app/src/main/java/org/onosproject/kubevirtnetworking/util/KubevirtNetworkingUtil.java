@@ -320,6 +320,8 @@ public final class KubevirtNetworkingUtil {
                 return node.grePort();
             case GENEVE:
                 return node.genevePort();
+            case STT:
+                return node.sttPort();
             default:
                 break;
         }
@@ -446,6 +448,8 @@ public final class KubevirtNetworkingUtil {
                 return node.grePort();
             case GENEVE:
                 return node.genevePort();
+            case STT:
+                return node.sttPort();
             case FLAT:
             case VLAN:
             default:

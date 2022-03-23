@@ -31,6 +31,7 @@ public final class Constants {
     public static final String VXLAN = "vxlan";
     public static final String GRE = "gre";
     public static final String GENEVE = "geneve";
+    public static final String STT = "stt";
 
     public static final String INTEGRATION_BRIDGE = "br-int";
     public static final String TUNNEL_BRIDGE = "br-tun";

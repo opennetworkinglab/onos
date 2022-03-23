@@ -30,6 +30,7 @@ import org.onosproject.net.device.DeviceService;
 import static org.onosproject.kubevirtnode.api.Constants.GENEVE;
 import static org.onosproject.kubevirtnode.api.Constants.GRE;
 import static org.onosproject.kubevirtnode.api.Constants.INTEGRATION_BRIDGE;
+import static org.onosproject.kubevirtnode.api.Constants.STT;
 import static org.onosproject.kubevirtnode.api.Constants.TUNNEL_BRIDGE;
 import static org.onosproject.kubevirtnode.api.Constants.VXLAN;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
@@ -87,6 +88,7 @@ public class KubevirtCheckNodeCommand extends AbstractShellCommand {
                 printPortState(deviceService, node.tunBridge(), VXLAN);
                 printPortState(deviceService, node.tunBridge(), GRE);
                 printPortState(deviceService, node.tunBridge(), GENEVE);
+                printPortState(deviceService, node.tunBridge(), STT);
             }
         }
     }

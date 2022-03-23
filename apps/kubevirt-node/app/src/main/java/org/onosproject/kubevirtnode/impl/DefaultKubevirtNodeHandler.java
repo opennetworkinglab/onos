@@ -82,6 +82,7 @@ import static org.onosproject.kubevirtnode.api.Constants.INTEGRATION_BRIDGE;
 import static org.onosproject.kubevirtnode.api.Constants.INTEGRATION_TO_PHYSICAL_PREFIX;
 import static org.onosproject.kubevirtnode.api.Constants.INTEGRATION_TO_TUNNEL;
 import static org.onosproject.kubevirtnode.api.Constants.PHYSICAL_TO_INTEGRATION_SUFFIX;
+import static org.onosproject.kubevirtnode.api.Constants.STT;
 import static org.onosproject.kubevirtnode.api.Constants.TENANT_BRIDGE_PREFIX;
 import static org.onosproject.kubevirtnode.api.Constants.TUNNEL_BRIDGE;
 import static org.onosproject.kubevirtnode.api.Constants.TUNNEL_TO_INTEGRATION;
@@ -244,6 +245,10 @@ public class DefaultKubevirtNodeHandler implements KubevirtNodeHandler {
             if (node.dataIp() != null && !isIntfEnabled(node, GENEVE)) {
                 createGeneveTunnelInterface(node);
             }
+
+            if (node.dataIp() != null && !isIntfEnabled(node, STT)) {
+                createSttTunnelInterface(node);
+            }
         } catch (Exception e) {
             log.error("Exception occurred because of {}", e);
         }
@@ -362,6 +367,10 @@ public class DefaultKubevirtNodeHandler implements KubevirtNodeHandler {
         createTunnelInterface(node, GENEVE, GENEVE);
     }
 
+    private void createSttTunnelInterface(KubevirtNode node) {
+        createTunnelInterface(node, STT, STT);
+    }
+
     /**
      * Creates a tunnel interface in a given kubernetes node.
      *
@@ -396,7 +405,7 @@ public class DefaultKubevirtNodeHandler implements KubevirtNodeHandler {
      */
     private TunnelDescription buildTunnelDesc(String type, String intfName) {
         TunnelKey<String> key = new TunnelKey<>(FLOW_KEY);
-        if (VXLAN.equals(type) || GRE.equals(type) || GENEVE.equals(type)) {
+        if (VXLAN.equals(type) || GRE.equals(type) || GENEVE.equals(type) || STT.equals(type)) {
             TunnelDescription.Builder tdBuilder =
                     DefaultTunnelDescription.builder()
                             .deviceId(TUNNEL_BRIDGE)
@@ -413,6 +422,9 @@ public class DefaultKubevirtNodeHandler implements KubevirtNodeHandler {
                     break;
                 case GENEVE:
                     tdBuilder.type(TunnelDescription.Type.GENEVE);
+                    break;
+                case STT:
+                    tdBuilder.type(TunnelDescription.Type.STT);
                     break;
                 default:
                     return null;
@@ -556,6 +568,8 @@ public class DefaultKubevirtNodeHandler implements KubevirtNodeHandler {
             log.warn("GENEVE interface is not enabled!");
             return false;
         }
+
+        // we make the STT tunnel port check optional
 
         for (KubevirtPhyInterface phyIntf : node.phyIntfs()) {
             if (phyIntf == null) {
@@ -963,7 +977,8 @@ public class DefaultKubevirtNodeHandler implements KubevirtNodeHandler {
             if (node.state() == DEVICE_CREATED && (
                     Objects.equals(portName, VXLAN) ||
                             Objects.equals(portName, GRE) ||
-                            Objects.equals(portName, GENEVE))) {
+                            Objects.equals(portName, GENEVE) ||
+                            Objects.equals(portName, STT))) {
                 log.info("Interface {} added or updated to {}",
                         portName, device.id());
                 bootstrapNode(node);
@@ -985,7 +1000,8 @@ public class DefaultKubevirtNodeHandler implements KubevirtNodeHandler {
             if (node.state() == COMPLETE && (
                     Objects.equals(portName, VXLAN) ||
                             Objects.equals(portName, GRE) ||
-                            Objects.equals(portName, GENEVE))) {
+                            Objects.equals(portName, GENEVE) ||
+                            Objects.equals(portName, STT))) {
                 log.warn("Interface {} removed from {}", portName, device.id());
                 setState(node, INCOMPLETE);
             }
