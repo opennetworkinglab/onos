@@ -78,6 +78,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -156,6 +157,8 @@ public class FlowRuleManager
     private final Map<Long, FlowOperationsProcessor> pendingFlowOperations = new ConcurrentHashMap<>();
 
     private NodeId local;
+
+    private Random randomGenerator = new Random();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected FlowRuleStore store;
@@ -389,7 +392,7 @@ public class FlowRuleManager
     @Override
     public void apply(FlowRuleOperations ops) {
         checkPermission(FLOWRULE_WRITE);
-        if (ops.stripeKey() == null) {
+        if (ops.stripeKey().isEmpty()) {
             // Null means that we don't care about the in-order processing
             // this approach maximizes the throughput but it can introduce
             // consistency issues as the original order between conflictual
@@ -947,7 +950,7 @@ public class FlowRuleManager
 
         @Override
         public int hint() {
-            return fops.stripeKey();
+            return fops.stripeKey().orElse(randomGenerator.nextInt());
         }
     }
 
