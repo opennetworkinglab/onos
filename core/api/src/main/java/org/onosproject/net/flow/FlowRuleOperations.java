@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -80,8 +81,8 @@ public class FlowRuleOperations {
      *
      * @return the stripe key associated to this or null if not present
      */
-    public Integer stripeKey() {
-        return stripeKey;
+    public Optional<Integer> stripeKey() {
+        return Optional.ofNullable(stripeKey);
     }
 
     /**
