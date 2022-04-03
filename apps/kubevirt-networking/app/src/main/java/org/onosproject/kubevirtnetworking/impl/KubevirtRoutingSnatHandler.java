@@ -44,6 +44,7 @@ import org.onosproject.kubevirtnetworking.util.RulePopulatorUtil;
 import org.onosproject.kubevirtnode.api.KubevirtNode;
 import org.onosproject.kubevirtnode.api.KubevirtNodeService;
 import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceAdminService;
 import org.onosproject.net.driver.DriverService;
@@ -725,7 +726,13 @@ public class KubevirtRoutingSnatHandler {
             }
 
             if (router.enableSnat() && !router.external().isEmpty() && router.peerRouter() != null) {
-                initGatewayNodeSnatForRouter(router, disAssociatedGateway, false);
+                DeviceId disAssociatedGatewayIntDeviceId = kubevirtNodeService.node(disAssociatedGateway).intgBridge();
+
+                //Only do this in case disassociated gateway device is still alive.
+                if (disAssociatedGatewayIntDeviceId != null &&
+                        deviceService.isAvailable(disAssociatedGatewayIntDeviceId)) {
+                    initGatewayNodeSnatForRouter(router, disAssociatedGateway, false);
+                }
                 initGatewayNodeSnatForRouter(router, router.electedGateway(), true);
 
                 processRouterGatewayNodeDetached(router, disAssociatedGateway);
