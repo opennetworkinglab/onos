@@ -61,6 +61,7 @@ import static org.onosproject.kubevirtnode.api.Constants.INTEGRATION_BRIDGE;
 import static org.onosproject.kubevirtnode.api.Constants.TUNNEL_BRIDGE;
 import static org.onosproject.kubevirtnode.impl.OsgiPropertyConstants.OVSDB_PORT;
 import static org.onosproject.kubevirtnode.impl.OsgiPropertyConstants.OVSDB_PORT_NUM_DEFAULT;
+import static org.onosproject.kubevirtnode.util.KubevirtNodeUtil.genDpidFromName;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -305,6 +306,21 @@ public class KubevirtNodeManager
                 .findFirst().orElse(null);
     }
 
+    @Override
+    public KubevirtNode nodeByPhyBridge(DeviceId deviceId) {
+        return nodeStore.nodes().stream()
+                .filter(node -> hasPhyBridge(node, deviceId))
+                .findAny()
+                .orElse(null);
+    }
+
+    private boolean hasPhyBridge(KubevirtNode node, DeviceId deviceId) {
+        return node.phyIntfs().stream()
+                .filter(phyIntf -> phyIntf.physBridge().equals(deviceId))
+                .findAny()
+                .isPresent();
+    }
+
     private boolean hasIntgBridge(DeviceId deviceId, String hostname) {
         Optional<KubevirtNode> existNode = nodeStore.nodes().stream()
                 .filter(n -> !n.hostname().equals(hostname))
@@ -321,15 +337,6 @@ public class KubevirtNodeManager
                 .findFirst();
 
         return existNode.isPresent();
-    }
-
-    private String genDpidFromName(String name) {
-        if (name != null) {
-            String hexString = Integer.toHexString(name.hashCode());
-            return OF_PREFIX + Strings.padStart(hexString, 16, '0');
-        }
-
-        return null;
     }
 
     private class InternalNodeStoreDelegate implements KubevirtNodeStoreDelegate {

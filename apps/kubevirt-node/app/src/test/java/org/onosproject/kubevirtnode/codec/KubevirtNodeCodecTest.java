@@ -59,6 +59,10 @@ public class KubevirtNodeCodecTest {
 
     final CoreService mockCoreService = createMock(CoreService.class);
     private static final String REST_APP_ID = "org.onosproject.rest";
+    private static final DeviceId DEVICE_ID_1 = DeviceId.deviceId(String.format("of:%016d", 1));
+    private static final DeviceId DEVICE_ID_2 = DeviceId.deviceId(String.format("of:%016d", 2));
+    private static final DeviceId DEVICE_ID_3 = DeviceId.deviceId(String.format("of:%016d", 3));
+
 
     @Before
     public void setUp() {
@@ -83,11 +87,13 @@ public class KubevirtNodeCodecTest {
         KubevirtPhyInterface phyIntf1 = DefaultKubevirtPhyInterface.builder()
                 .network("mgmtnetwork")
                 .intf("eth3")
+                .physBridge(DEVICE_ID_1)
                 .build();
 
         KubevirtPhyInterface phyIntf2 = DefaultKubevirtPhyInterface.builder()
                 .network("oamnetwork")
                 .intf("eth4")
+                .physBridge(DEVICE_ID_2)
                 .build();
 
         KubevirtNode node = DefaultKubevirtNode.builder()
@@ -125,9 +131,11 @@ public class KubevirtNodeCodecTest {
         node.phyIntfs().forEach(intf -> {
             if (intf.network().equals("mgmtnetwork")) {
                 assertThat(intf.intf(), is("eth3"));
+                assertThat(intf.physBridge().toString(), is("of:00000000000000a3"));
             }
             if (intf.network().equals("oamnetwork")) {
                 assertThat(intf.intf(), is("eth4"));
+                assertThat(intf.physBridge().toString(), is("of:00000000000000a4"));
             }
         });
     }
