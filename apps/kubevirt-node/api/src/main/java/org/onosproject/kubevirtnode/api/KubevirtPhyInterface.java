@@ -15,6 +15,8 @@
  */
 package org.onosproject.kubevirtnode.api;
 
+import org.onosproject.net.DeviceId;
+
 /**
  * Representation of a KubeVirt physical interface used in KubeVirt networking service.
  */
@@ -32,6 +34,13 @@ public interface KubevirtPhyInterface {
      * @return name of this physical interface
      */
     String intf();
+
+    /**
+     * Returns the device ID of the physical interface bridge at the node.
+     *
+     * @return device id
+     */
+    DeviceId physBridge();
 
     /**
      * Builder of kubevirt physical interface.
@@ -55,5 +64,13 @@ public interface KubevirtPhyInterface {
          * @return kubevirt physical interface builder
          */
         Builder intf(String intf);
+
+        /**
+         * Returns kubevirt physical interface builder with supplied.
+         *
+         * @param physBridge device id of the physical bridge
+         * @return kubevirt physical interface builder
+         */
+        Builder physBridge(DeviceId physBridge);
     }
 }

@@ -21,6 +21,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
 
 import java.util.List;
 
@@ -47,6 +48,7 @@ public final class DefaultKubevirtNodeTest extends KubevirtNodeTest {
 
     private static final String PHY_INTF_NETWORK = "mgmtnetwork";
     private static final String PHY_INTF_NAME = "eth3";
+    private static final DeviceId BRIDGE = DeviceId.deviceId("phys1");
 
     private static final String GATEWAY_BRIDGE_NAME = "gateway";
 
@@ -203,6 +205,7 @@ public final class DefaultKubevirtNodeTest extends KubevirtNodeTest {
         KubevirtPhyInterface phyIntf = DefaultKubevirtPhyInterface.builder()
                 .intf(PHY_INTF_NAME)
                 .network(PHY_INTF_NETWORK)
+                .physBridge(BRIDGE)
                 .build();
 
         return ImmutableList.of(phyIntf);

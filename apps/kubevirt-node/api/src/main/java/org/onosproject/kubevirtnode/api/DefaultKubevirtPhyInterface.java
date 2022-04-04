@@ -16,6 +16,7 @@
 package org.onosproject.kubevirtnode.api;
 
 import com.google.common.base.MoreObjects;
+import org.onosproject.net.DeviceId;
 
 import java.util.Objects;
 
@@ -28,6 +29,7 @@ public class DefaultKubevirtPhyInterface implements KubevirtPhyInterface {
 
     private final String network;
     private final String intf;
+    private final DeviceId physBridge;
 
     private static final String NOT_NULL_MSG = "% cannot be null";
 
@@ -36,10 +38,12 @@ public class DefaultKubevirtPhyInterface implements KubevirtPhyInterface {
      *
      * @param network network that this physical interface connects with
      * @param intf    name of physical interface
+     * @param physBridge device id of the physical bridge
      */
-    protected DefaultKubevirtPhyInterface(String network, String intf) {
+    protected DefaultKubevirtPhyInterface(String network, String intf, DeviceId physBridge) {
         this.network = network;
         this.intf = intf;
+        this.physBridge = physBridge;
     }
 
     @Override
@@ -53,6 +57,11 @@ public class DefaultKubevirtPhyInterface implements KubevirtPhyInterface {
     }
 
     @Override
+    public DeviceId physBridge() {
+        return physBridge;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -62,12 +71,13 @@ public class DefaultKubevirtPhyInterface implements KubevirtPhyInterface {
         }
         DefaultKubevirtPhyInterface that = (DefaultKubevirtPhyInterface) o;
         return network.equals(that.network) &&
-                intf.equals(that.intf);
+                intf.equals(that.intf) &&
+                physBridge.equals(that.physBridge);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(network, intf);
+        return Objects.hash(network, intf, physBridge);
     }
 
     @Override
@@ -75,6 +85,7 @@ public class DefaultKubevirtPhyInterface implements KubevirtPhyInterface {
         return MoreObjects.toStringHelper(this)
                 .add("network", network)
                 .add("intf", intf)
+                .add("physnetBridge", physBridge)
                 .toString();
     }
 
@@ -91,6 +102,7 @@ public class DefaultKubevirtPhyInterface implements KubevirtPhyInterface {
 
         private String network;
         private String intf;
+        private DeviceId physBridge;
 
         // private constructor not intended to use from external
         private Builder() {
@@ -100,8 +112,9 @@ public class DefaultKubevirtPhyInterface implements KubevirtPhyInterface {
         public KubevirtPhyInterface build() {
             checkArgument(network != null, NOT_NULL_MSG, "network");
             checkArgument(intf != null, NOT_NULL_MSG, "intf");
+            checkArgument(physBridge != null, NOT_NULL_MSG, "physBridge");
 
-            return new DefaultKubevirtPhyInterface(network, intf);
+            return new DefaultKubevirtPhyInterface(network, intf, physBridge);
         }
 
         @Override
@@ -115,5 +128,12 @@ public class DefaultKubevirtPhyInterface implements KubevirtPhyInterface {
             this.intf = intf;
             return this;
         }
+
+        @Override
+        public KubevirtPhyInterface.Builder physBridge(DeviceId physBridge) {
+            this.physBridge = physBridge;
+            return this;
+        }
+
     }
 }

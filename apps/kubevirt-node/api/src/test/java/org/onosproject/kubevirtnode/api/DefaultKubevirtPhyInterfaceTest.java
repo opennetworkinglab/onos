@@ -17,6 +17,7 @@ package org.onosproject.kubevirtnode.api;
 
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
+import org.onosproject.net.DeviceId;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -30,13 +31,15 @@ public class DefaultKubevirtPhyInterfaceTest {
     private static final String NETWORK_2 = "oamnetwork";
     private static final String INTERFACE_1 = "eth3";
     private static final String INTERFACE_2 = "eth4";
+    private static final DeviceId BRIDGE_1 = DeviceId.deviceId("phys1");
+    private static final DeviceId BRIDGE_2 = DeviceId.deviceId("phys2");
 
-    private static final KubevirtPhyInterface KV_PHY_INTF_1 =
-            new DefaultKubevirtPhyInterface(NETWORK_1, INTERFACE_1);
-    private static final KubevirtPhyInterface KV_PHY_INTF_2 =
-            new DefaultKubevirtPhyInterface(NETWORK_1, INTERFACE_1);
-    private static final KubevirtPhyInterface KV_PHY_INTF_3 =
-            new DefaultKubevirtPhyInterface(NETWORK_2, INTERFACE_2);
+    private static final KubevirtPhyInterface KV_PHY_INTF_1 = createPhysIntf(
+            NETWORK_1, INTERFACE_1, BRIDGE_1);
+    private static final KubevirtPhyInterface KV_PHY_INTF_2 = createPhysIntf(
+            NETWORK_1, INTERFACE_1, BRIDGE_1);
+    private static final KubevirtPhyInterface KV_PHY_INTF_3 = createPhysIntf(
+            NETWORK_2, INTERFACE_2, BRIDGE_2);
 
     @Test
     public void testEquality() {
@@ -52,5 +55,14 @@ public class DefaultKubevirtPhyInterfaceTest {
 
         assertThat(phyIntf.network(), is(NETWORK_1));
         assertThat(phyIntf.intf(), is(INTERFACE_1));
+    }
+
+    private static KubevirtPhyInterface createPhysIntf(String network,
+                                                       String intf, DeviceId physBridge) {
+        return DefaultKubevirtPhyInterface.builder()
+                .network(network)
+                .intf(intf)
+                .physBridge(physBridge)
+                .build();
     }
 }

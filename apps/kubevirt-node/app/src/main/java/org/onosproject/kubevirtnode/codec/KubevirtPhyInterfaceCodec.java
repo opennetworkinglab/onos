@@ -15,11 +15,13 @@
  */
 package org.onosproject.kubevirtnode.codec;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.kubevirtnode.api.DefaultKubevirtPhyInterface;
 import org.onosproject.kubevirtnode.api.KubevirtPhyInterface;
+import org.onosproject.net.DeviceId;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.nullIsIllegal;
@@ -31,6 +33,7 @@ public final class KubevirtPhyInterfaceCodec extends JsonCodec<KubevirtPhyInterf
 
     private static final String NETWORK = "network";
     private static final String INTERFACE = "intf";
+    private static final String PHYS_BRIDGE_ID = "physBridgeId";
 
     private static final String MISSING_MESSAGE = " is required in KubevirtPhyInterface";
 
@@ -38,9 +41,15 @@ public final class KubevirtPhyInterfaceCodec extends JsonCodec<KubevirtPhyInterf
     public ObjectNode encode(KubevirtPhyInterface phyIntf, CodecContext context) {
         checkNotNull(phyIntf, "Kubevirt physical interface cannot be null");
 
-        return context.mapper().createObjectNode()
+        ObjectNode result = context.mapper().createObjectNode()
                 .put(NETWORK, phyIntf.network())
                 .put(INTERFACE, phyIntf.intf());
+
+        if (phyIntf.physBridge() != null) {
+            result.put(PHYS_BRIDGE_ID, phyIntf.physBridge().toString());
+        }
+
+        return result;
     }
 
     @Override
@@ -54,9 +63,15 @@ public final class KubevirtPhyInterfaceCodec extends JsonCodec<KubevirtPhyInterf
         String intf = nullIsIllegal(json.get(INTERFACE).asText(),
                 INTERFACE + MISSING_MESSAGE);
 
-        return DefaultKubevirtPhyInterface.builder()
+        KubevirtPhyInterface.Builder builder = DefaultKubevirtPhyInterface.builder()
                 .network(network)
-                .intf(intf)
-                .build();
+                .intf(intf);
+
+        JsonNode physBridgeJson = json.get(PHYS_BRIDGE_ID);
+        if (physBridgeJson != null) {
+            builder.physBridge(DeviceId.deviceId(physBridgeJson.asText()));
+        }
+
+        return builder.build();
     }
 }

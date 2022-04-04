@@ -38,6 +38,7 @@ import org.onosproject.kubevirtnode.api.KubevirtNode;
 import org.onosproject.kubevirtnode.api.KubevirtNodeState;
 import org.onosproject.kubevirtnode.api.KubevirtPhyInterface;
 import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.BridgeConfig;
 import org.onosproject.net.behaviour.BridgeName;
 import org.onosproject.net.device.DeviceService;
@@ -86,6 +87,7 @@ public final class KubevirtNodeUtil {
     private static final String GATEWAY_BRIDGE_NAME = "gatewayBridgeName";
     private static final String NETWORK_KEY = "network";
     private static final String INTERFACE_KEY = "interface";
+    private static final String PHYS_BRIDGE_ID = "physBridgeId";
 
     private static final int PORT_NAME_MAX_LENGTH = 15;
 
@@ -365,8 +367,20 @@ public final class KubevirtNodeUtil {
                     String intf = object.getString(INTERFACE_KEY);
 
                     if (network != null && intf != null) {
+                        String physBridgeId;
+                        if (object.has(PHYS_BRIDGE_ID)) {
+                            physBridgeId = object.getString(PHYS_BRIDGE_ID);
+                        } else {
+                            physBridgeId = genDpidFromName(network + intf + hostname);
+                            log.trace("host {} physnet dpid for network {} intf {} is null so generate dpid {}",
+                                    hostname, network, intf, physBridgeId);
+                        }
+
                         phys.add(DefaultKubevirtPhyInterface.builder()
-                                .network(network).intf(intf).build());
+                                .network(network)
+                                .intf(intf)
+                                .physBridge(DeviceId.deviceId(physBridgeId))
+                                .build());
                     }
                 }
             }
@@ -411,6 +425,20 @@ public final class KubevirtNodeUtil {
                 .phyIntfs(phys)
                 .gatewayBridgeName(gatewayBridgeName)
                 .build();
+    }
+
+    /**
+     * Generates a unique dpid from given name.
+     *
+     * @param name name
+     * @return device id in string
+     */
+    public static String genDpidFromName(String name) {
+        if (name != null) {
+            String hexString = Integer.toHexString(name.hashCode());
+            return OF_PREFIX + Strings.padStart(hexString, 16, '0');
+        }
+        return null;
     }
 
     /**

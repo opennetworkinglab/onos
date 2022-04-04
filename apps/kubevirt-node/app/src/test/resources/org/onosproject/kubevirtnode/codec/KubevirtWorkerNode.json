@@ -8,11 +8,14 @@
   "phyIntfs": [
     {
       "network": "mgmtnetwork",
-      "intf": "eth3"
+      "intf": "eth3",
+      "physBridgeId": "of:00000000000000a3"
+
     },
     {
       "network": "oamnetwork",
-      "intf": "eth4"
+      "intf": "eth4",
+      "physBridgeId": "of:00000000000000a4"
     }
   ]
 }

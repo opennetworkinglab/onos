@@ -99,4 +99,12 @@ public interface KubevirtNodeService extends ListenerService<KubevirtNodeEvent, 
      * @return kubevirt node
      */
     KubevirtNode nodeByTunBridge(DeviceId deviceId);
+
+    /**
+     * Returns the node with the specified physical device ID.
+     *
+     * @param deviceId device id
+     * @return node
+     */
+    KubevirtNode nodeByPhyBridge(DeviceId deviceId);
 }

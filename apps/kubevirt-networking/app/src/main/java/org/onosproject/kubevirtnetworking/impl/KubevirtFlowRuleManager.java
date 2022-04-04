@@ -130,9 +130,7 @@ public class KubevirtFlowRuleManager implements KubevirtFlowRuleService {
         nodeService.addListener(internalNodeListener);
         localNodeId = clusterService.getLocalNode().id();
         leadershipService.runForLeadership(appId.name());
-        nodeService.completeNodes(WORKER)
-                .forEach(node -> initializeWorkerNodePipeline(node.intgBridge()));
-
+        nodeService.completeNodes(WORKER).forEach(this::initializeGatewayNodePipeline);
         log.info("Started");
     }
 
@@ -236,7 +234,8 @@ public class KubevirtFlowRuleManager implements KubevirtFlowRuleService {
         }));
     }
 
-    protected void initializeGatewayNodePipeline(DeviceId deviceId) {
+    protected void initializeGatewayNodePipeline(KubevirtNode kubevirtNode) {
+        DeviceId deviceId = kubevirtNode.intgBridge();
         // for inbound to gateway entry table transition
         connectTables(deviceId, STAT_INBOUND_TABLE, GW_ENTRY_TABLE);
 
@@ -247,9 +246,15 @@ public class KubevirtFlowRuleManager implements KubevirtFlowRuleService {
         setupGatewayNodeDropTable(deviceId);
 
         // for setting up default Forwarding table behavior which is NORMAL
-        setupForwardingTable(deviceId);
+        setupNormalTable(deviceId, FORWARDING_TABLE);
+
+        kubevirtNode.phyIntfs().stream().filter(intf -> intf.physBridge() != null)
+                .forEach(phyIntf -> {
+                    setupNormalTable(phyIntf.physBridge(), STAT_INBOUND_TABLE);
+                });
     }
-    protected void initializeWorkerNodePipeline(DeviceId deviceId) {
+    protected void initializeWorkerNodePipeline(KubevirtNode kubevirtNode) {
+        DeviceId deviceId = kubevirtNode.intgBridge();
         // for inbound table transition
         connectTables(deviceId, STAT_INBOUND_TABLE, VTAP_INBOUND_TABLE);
         connectTables(deviceId, VTAP_INBOUND_TABLE, DHCP_TABLE);
@@ -264,7 +269,12 @@ public class KubevirtFlowRuleManager implements KubevirtFlowRuleService {
         setupArpTable(deviceId);
 
         // for setting up default Forwarding table behavior which is NORMAL
-        setupForwardingTable(deviceId);
+        setupNormalTable(deviceId, FORWARDING_TABLE);
+
+        kubevirtNode.phyIntfs().stream().filter(intf -> intf.physBridge() != null)
+                .forEach(phyIntf -> {
+                    setupNormalTable(phyIntf.physBridge(), STAT_INBOUND_TABLE);
+                });
     }
 
     private void setupArpTable(DeviceId deviceId) {
@@ -284,7 +294,7 @@ public class KubevirtFlowRuleManager implements KubevirtFlowRuleService {
                 true);
     }
 
-    private void setupForwardingTable(DeviceId deviceId) {
+    private void setupNormalTable(DeviceId deviceId, int tableNum) {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder()
                 .setOutput(PortNumber.NORMAL);
@@ -295,7 +305,7 @@ public class KubevirtFlowRuleManager implements KubevirtFlowRuleService {
                 selector.build(),
                 treatment.build(),
                 LOW_PRIORITY,
-                FORWARDING_TABLE,
+                tableNum,
                 true);
     }
 
@@ -346,9 +356,9 @@ public class KubevirtFlowRuleManager implements KubevirtFlowRuleService {
                         }
 
                         if (event.subject().type().equals(WORKER)) {
-                            initializeWorkerNodePipeline(node.intgBridge());
+                            initializeWorkerNodePipeline(node);
                         } else {
-                            initializeGatewayNodePipeline(node.intgBridge());
+                            initializeGatewayNodePipeline(node);
                         }
                     });
                     break;
