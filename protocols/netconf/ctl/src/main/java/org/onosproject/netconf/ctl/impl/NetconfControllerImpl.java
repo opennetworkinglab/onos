@@ -22,6 +22,7 @@ import org.apache.commons.lang3.tuple.Triple;
 import com.google.common.annotations.Beta;
 import com.google.common.collect.Lists;
 
+import org.onlab.util.Tools;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
@@ -162,6 +163,8 @@ public class NetconfControllerImpl implements NetconfController {
     public static final Logger log = LoggerFactory
             .getLogger(NetconfControllerImpl.class);
 
+    private static final int CORE_POOL_SIZE = 32;
+
     private Map<DeviceId, NetconfDevice> netconfDeviceMap = new ConcurrentHashMap<>();
 
     private Map<DeviceId, Lock> netconfCreateMutex = new ConcurrentHashMap<>();
@@ -175,11 +178,10 @@ public class NetconfControllerImpl implements NetconfController {
 
 
     protected final ExecutorService executor =
-            Executors.newCachedThreadPool(groupedThreads("onos/netconfdevicecontroller",
+            Executors.newFixedThreadPool(CORE_POOL_SIZE, groupedThreads("onos/netconfdevicecontroller",
                                                          "connection-reopen-%d", log));
 
-    private final ExecutorService remoteRequestExecutor =
-            Executors.newCachedThreadPool();
+    private final ExecutorService remoteRequestExecutor = Executors.newFixedThreadPool(CORE_POOL_SIZE);
 
     protected NodeId localNodeId;
 
@@ -570,20 +572,14 @@ public class NetconfControllerImpl implements NetconfController {
     }
 
     @Override
-    public <T> boolean pingDevice(DeviceId deviceId) {
-        NetconfProxyMessage proxyMessage = new DefaultNetconfProxyMessage(
-                NetconfProxyMessage.SubjectType.GET_DEVICE_CAPABILITIES_SET, deviceId, null, localNodeId);
-        CompletableFuture<T> reply;
-        if (deviceService.getRole(deviceId).equals(MastershipRole.MASTER)) {
-            reply = handleProxyMessage(proxyMessage);
-        } else {
-            reply = relayMessageToMaster(proxyMessage);
-        }
+    public boolean pingDevice(DeviceId deviceId) {
         try {
-            T deviceCapabilities = reply.get();
-            log.debug("Get device capabilities from device : {} -> {}", deviceId, deviceCapabilities);
-        } catch (InterruptedException | ExecutionException e) {
-            log.error("Error while getting device capabilities for device : {}", deviceId);
+            CompletableFuture<CharSequence> future = getNetconfDevice(deviceId).getSession().asyncGet();
+            CharSequence reply = Tools.futureGetOrElse(future, NETCONF_REPLY_TIMEOUT_DEFAULT, TimeUnit.SECONDS,
+                                  "Unable to read netconf data tree from device");
+            log.debug("Netconf data tree for device : {} -> {}", deviceId, reply);
+        } catch (NetconfException e) {
+            log.error("Error while getting netconf data tree for device : {}", deviceId);
             log.error("Error details : ", e);
             return false;
         }
