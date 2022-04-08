@@ -146,10 +146,9 @@ public interface NetconfController {
      * Meant only for internal synchronization and not to be used by applications.
      *
      * @param deviceId deviceId of device
-     * @param <T> for handling reply of generic type
      * @return true or false
      */
-    default <T> boolean pingDevice(DeviceId deviceId) {
+    default boolean pingDevice(DeviceId deviceId) {
         return false;
     }
 
