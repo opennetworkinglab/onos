@@ -716,6 +716,7 @@ public class KubevirtRoutingSnatHandler {
                                         gatewayNode, kubevirtPort, true);
                             });
                         });
+                sendGarpPacketForSnatIp(router);
             }
         }
 
