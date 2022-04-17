@@ -56,6 +56,11 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
     private static StaticDataModelInjector staticDataModelInjector = new StaticDataModelInjector();
 
     /**
+     * Workflow Logger injector.
+     */
+    private WorkflowLoggerInjector workflowLoggerInjector = new WorkflowLoggerInjector();
+
+    /**
      * Constructor of ImmutableListWorkflow.
      *
      * @param builder builder of ImmutableListWorkflow
@@ -118,6 +123,7 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
                 continue;
 
             } else {
+                workflowLoggerInjector.inject(worklet, context);
                 // isNext is read only. It does not perform 'inhale'.
                 dataModelInjector.inject(worklet, context);
                 WorkletDescription workletDesc = getWorkletDesc(pc);

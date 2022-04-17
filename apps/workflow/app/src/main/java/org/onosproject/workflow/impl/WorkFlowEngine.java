@@ -51,6 +51,7 @@ import org.onosproject.workflow.api.WorkplaceStoreDelegate;
 import org.onosproject.workflow.api.WorkflowExecutionService;
 import org.onosproject.workflow.api.WorkletDescription;
 import org.onosproject.workflow.api.StaticDataModelInjector;
+import org.onosproject.workflow.api.WorkflowLoggerInjector;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.event.Event;
 import org.onosproject.net.intent.WorkPartitionService;
@@ -123,6 +124,7 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
     private static final int DEFAULT_WORKFLOW_THREADS = 12;
     private static final int DEFAULT_EVENTTASK_THREADS = 12;
     private static final int MAX_REGISTER_EVENTMAP_WAITS = 10;
+    private static final String ERROR = "ERROR";
 
     private ScheduledExecutorService eventMapTriggerExecutor;
 
@@ -130,6 +132,7 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
 
     private JsonDataModelInjector dataModelInjector = new JsonDataModelInjector();
     private StaticDataModelInjector staticDataModelInjector = new StaticDataModelInjector();
+    private WorkflowLoggerInjector workflowLoggerInjector = new WorkflowLoggerInjector();
 
     public static final String APPID = "org.onosproject.workflow";
     private ApplicationId appId;
@@ -190,6 +193,7 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
                 log.info("{} worklet.process:{}", context.name(), initWorklet.tag());
                 log.trace("{} context: {}", context.name(), context);
 
+                workflowLoggerInjector.inject(initWorklet, context);
                 dataModelInjector.inject(initWorklet, context);
                 initWorklet.process(context);
                 dataModelInjector.inhale(initWorklet, context);
@@ -496,6 +500,7 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
             log.info("{} worklet.isCompleted:{}", latestContext.name(), worklet.tag());
             log.trace("{} task:{}, context: {}", latestContext.name(), task, latestContext);
 
+            workflowLoggerInjector.inject(worklet, latestContext);
             dataModelInjector.inject(worklet, latestContext);
             boolean completed = worklet.isCompleted(latestContext, task.event());
             dataModelInjector.inhale(worklet, latestContext);
@@ -589,6 +594,7 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
             log.info("{} worklet.timeout(for event):{}", latestContext.name(), worklet.tag());
             log.trace("{} task:{}, context: {}", latestContext.name(), task, latestContext);
 
+            workflowLoggerInjector.inject(worklet, latestContext);
             dataModelInjector.inject(worklet, latestContext);
 
             WorkletDescription workletDesc = workflow.getWorkletDesc(task.programCounter());
@@ -666,6 +672,7 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
             log.info("{} worklet.timeout:{}", latestContext.name(), worklet.tag());
             log.trace("{} context: {}", latestContext.name(), latestContext);
 
+            workflowLoggerInjector.inject(worklet, latestContext);
             dataModelInjector.inject(worklet, latestContext);
 
             WorkletDescription workletDesc = workflow.getWorkletDesc(task.programCounter());
@@ -793,6 +800,7 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
             log.trace("{} context: {}", latestContext.name(), latestContext);
 
 
+            workflowLoggerInjector.inject(worklet, latestContext);
             dataModelInjector.inject(worklet, latestContext);
 
             WorkletDescription workletDesc = workflow.getWorkletDesc(pc);
