@@ -41,6 +41,8 @@ public final class DefaultKubevirtApiConfig implements KubevirtApiConfig {
     private final String serviceFqdn;
     private final String apiServerFqdn;
     private final IpAddress controllerIp;
+    private final String datacenterId;
+    private final String clusterId;
 
     /**
      * Default constructor for Kubevirt API config.
@@ -56,13 +58,15 @@ public final class DefaultKubevirtApiConfig implements KubevirtApiConfig {
      * @param serviceFqdn       service FQDN
      * @param apiServerFqdn     API server FQDN
      * @param controllerIp      controller IP address
+     * @param datacenterId      datacenter Id
+     * @param clusterId         cluster Id
      */
     private DefaultKubevirtApiConfig(Scheme scheme, IpAddress ipAddress,
-                                    int port, State state,
-                                    String token, String caCertData,
-                                    String clientCertData, String clientKeyData,
-                                    String serviceFqdn, String apiServerFqdn,
-                                    IpAddress controllerIp) {
+                                     int port, State state,
+                                     String token, String caCertData,
+                                     String clientCertData, String clientKeyData,
+                                     String serviceFqdn, String apiServerFqdn,
+                                     IpAddress controllerIp, String datacenterId, String clusterId) {
         this.scheme = scheme;
         this.ipAddress = ipAddress;
         this.port = port;
@@ -74,6 +78,8 @@ public final class DefaultKubevirtApiConfig implements KubevirtApiConfig {
         this.serviceFqdn = serviceFqdn;
         this.apiServerFqdn = apiServerFqdn;
         this.controllerIp = controllerIp;
+        this.datacenterId = datacenterId;
+        this.clusterId = clusterId;
     }
 
     @Override
@@ -110,6 +116,8 @@ public final class DefaultKubevirtApiConfig implements KubevirtApiConfig {
                 .serviceFqdn(serviceFqdn)
                 .apiServerFqdn(apiServerFqdn)
                 .controllerIp(controllerIp)
+                .datacenterId(datacenterId)
+                .clusterId(clusterId)
                 .build();
     }
 
@@ -127,6 +135,8 @@ public final class DefaultKubevirtApiConfig implements KubevirtApiConfig {
                 .serviceFqdn(serviceFqdn)
                 .apiServerFqdn(apiServerFqdn)
                 .controllerIp(controllerIp)
+                .datacenterId(datacenterId)
+                .clusterId(clusterId)
                 .build();
     }
 
@@ -144,6 +154,8 @@ public final class DefaultKubevirtApiConfig implements KubevirtApiConfig {
                 .serviceFqdn(serviceFqdn)
                 .apiServerFqdn(apiServerFqdn)
                 .controllerIp(controllerIp)
+                .datacenterId(datacenterId)
+                .clusterId(clusterId)
                 .build();
     }
 
@@ -183,6 +195,16 @@ public final class DefaultKubevirtApiConfig implements KubevirtApiConfig {
     }
 
     @Override
+    public String datacenterId() {
+        return datacenterId;
+    }
+
+    @Override
+    public String clusterId() {
+        return clusterId;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -198,14 +220,16 @@ public final class DefaultKubevirtApiConfig implements KubevirtApiConfig {
                 clientKeyData.equals(that.clientKeyData) &&
                 Objects.equals(serviceFqdn, that.serviceFqdn) &&
                 Objects.equals(apiServerFqdn, that.apiServerFqdn) &&
-                Objects.equals(controllerIp, that.controllerIp);
+                Objects.equals(controllerIp, that.controllerIp) &&
+                Objects.equals(datacenterId, that.datacenterId) &&
+                Objects.equals(clusterId, that.clusterId);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(scheme, ipAddress, port, state, token,
                 caCertData, clientCertData, clientKeyData, serviceFqdn,
-                apiServerFqdn, controllerIp);
+                apiServerFqdn, controllerIp, datacenterId, clusterId);
     }
 
     @Override
@@ -222,6 +246,8 @@ public final class DefaultKubevirtApiConfig implements KubevirtApiConfig {
                 .add("serviceFqdn", serviceFqdn)
                 .add("apiServerFqdn", apiServerFqdn)
                 .add("controllerIp", controllerIp)
+                .add("datacenterId", datacenterId)
+                .add("clusterId", clusterId)
                 .toString();
     }
 
@@ -247,6 +273,8 @@ public final class DefaultKubevirtApiConfig implements KubevirtApiConfig {
         private String serviceFqdn;
         private String apiServerFqdn;
         private IpAddress controllerIp;
+        private String datacenterId;
+        private String clusterId;
 
         @Override
         public KubevirtApiConfig build() {
@@ -262,7 +290,7 @@ public final class DefaultKubevirtApiConfig implements KubevirtApiConfig {
 
             return new DefaultKubevirtApiConfig(scheme, ipAddress, port, state,
                     token, caCertData, clientCertData, clientKeyData, serviceFqdn,
-                    apiServerFqdn, controllerIp);
+                    apiServerFqdn, controllerIp, datacenterId, clusterId);
         }
 
         @Override
@@ -328,6 +356,18 @@ public final class DefaultKubevirtApiConfig implements KubevirtApiConfig {
         @Override
         public Builder controllerIp(IpAddress controllerIp) {
             this.controllerIp = controllerIp;
+            return this;
+        }
+
+        @Override
+        public Builder datacenterId(String datacenterId) {
+            this.datacenterId = datacenterId;
+            return this;
+        }
+
+        @Override
+        public Builder clusterId(String clusterId) {
+            this.clusterId = clusterId;
             return this;
         }
     }

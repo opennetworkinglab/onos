@@ -62,6 +62,13 @@ public final class DefaultKubevirtApiConfigTest {
     private static final IpAddress CONTROLLER_IP_1 = IpAddress.valueOf("127.0.0.1");
     private static final IpAddress CONTROLLER_IP_2 = IpAddress.valueOf("169.254.169.254");
 
+    private static final String DATACENTER_ID_1 = "BD";
+    private static final String DATACENTER_ID_2 = "SS";
+
+    private static final String CLUSTER_ID_1 = "BD-CT-01";
+    private static final String CLUSTER_ID_2 = "SS-CT-01";
+
+
     private KubevirtApiConfig config1;
     private KubevirtApiConfig sameAsConfig1;
     private KubevirtApiConfig config2;
@@ -91,6 +98,8 @@ public final class DefaultKubevirtApiConfigTest {
                 .serviceFqdn(SERVICE_FQDN_1)
                 .apiServerFqdn(API_SERVER_FQDN_1)
                 .controllerIp(CONTROLLER_IP_1)
+                .datacenterId(DATACENTER_ID_1)
+                .clusterId(CLUSTER_ID_1)
                 .build();
 
         sameAsConfig1 = DefaultKubevirtApiConfig.builder()
@@ -105,6 +114,8 @@ public final class DefaultKubevirtApiConfigTest {
                 .serviceFqdn(SERVICE_FQDN_1)
                 .apiServerFqdn(API_SERVER_FQDN_1)
                 .controllerIp(CONTROLLER_IP_1)
+                .datacenterId(DATACENTER_ID_1)
+                .clusterId(CLUSTER_ID_1)
                 .build();
 
         config2 = DefaultKubevirtApiConfig.builder()
@@ -119,6 +130,8 @@ public final class DefaultKubevirtApiConfigTest {
                 .serviceFqdn(SERVICE_FQDN_2)
                 .apiServerFqdn(API_SERVER_FQDN_2)
                 .controllerIp(CONTROLLER_IP_2)
+                .datacenterId(DATACENTER_ID_2)
+                .clusterId(CLUSTER_ID_2)
                 .build();
     }
 
@@ -150,5 +163,7 @@ public final class DefaultKubevirtApiConfigTest {
         assertEquals(SERVICE_FQDN_1, config.serviceFqdn());
         assertEquals(API_SERVER_FQDN_1, config.apiServerFqdn());
         assertEquals(CONTROLLER_IP_1, config.controllerIp());
+        assertEquals(DATACENTER_ID_1, config.datacenterId());
+        assertEquals(CLUSTER_ID_1, config.clusterId());
     }
 }

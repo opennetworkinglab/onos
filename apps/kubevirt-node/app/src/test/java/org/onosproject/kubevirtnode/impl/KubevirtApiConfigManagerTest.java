@@ -74,12 +74,16 @@ public class KubevirtApiConfigManagerTest {
                 .ipAddress(IpAddress.valueOf("10.10.10.2"))
                 .port(6443)
                 .state(DISCONNECTED)
+                .datacenterId("BD")
+                .clusterId("BD-MEH-CT01")
                 .build();
         apiConfig2 = DefaultKubevirtApiConfig.builder()
                 .scheme(KubevirtApiConfig.Scheme.HTTP)
                 .ipAddress(IpAddress.valueOf("10.10.10.3"))
                 .port(6443)
                 .state(DISCONNECTED)
+                .datacenterId("BD")
+                .clusterId("BD-MEH-CT01")
                 .build();
 
         configStore = new DistributedKubevirtApiConfigStore();

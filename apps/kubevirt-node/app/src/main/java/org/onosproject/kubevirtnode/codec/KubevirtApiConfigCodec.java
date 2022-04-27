@@ -44,6 +44,8 @@ public final class KubevirtApiConfigCodec extends JsonCodec<KubevirtApiConfig> {
     private static final String SERVICE_FQDN = "serviceFqdn";
     private static final String API_SERVER_FQDN = "apiServerFqdn";
     private static final String CONTROLLER_IP = "controllerIp";
+    private static final String DATACENTER_ID = "datacenterId";
+    private static final String CLUSTER_ID = "clusterId";
 
     private static final String MISSING_MESSAGE = " is required in KubevirtApiConfig";
 
@@ -53,7 +55,9 @@ public final class KubevirtApiConfigCodec extends JsonCodec<KubevirtApiConfig> {
                 .put(SCHEME, entity.scheme().name())
                 .put(IP_ADDRESS, entity.ipAddress().toString())
                 .put(PORT, entity.port())
-                .put(STATE, entity.state().name());
+                .put(STATE, entity.state().name())
+                .put(DATACENTER_ID, entity.datacenterId())
+                .put(CLUSTER_ID, entity.clusterId());
 
         if (entity.scheme() == HTTPS) {
             node.put(CA_CERT_DATA, entity.caCertData())
@@ -122,6 +126,8 @@ public final class KubevirtApiConfigCodec extends JsonCodec<KubevirtApiConfig> {
         JsonNode serviceFqdn = json.get(SERVICE_FQDN);
         JsonNode apiServerFqdn = json.get(API_SERVER_FQDN);
         JsonNode controllerIp = json.get(CONTROLLER_IP);
+        JsonNode datacenterId = json.get(DATACENTER_ID);
+        JsonNode clusterId = json.get(CLUSTER_ID);
 
         String token = "";
         String caCertData = "";
@@ -184,6 +190,14 @@ public final class KubevirtApiConfigCodec extends JsonCodec<KubevirtApiConfig> {
 
         if (controllerIp != null) {
             builder.controllerIp(IpAddress.valueOf(controllerIp.asText()));
+        }
+
+        if (datacenterId != null) {
+            builder.datacenterId(datacenterId.asText());
+        }
+
+        if (clusterId != null) {
+            builder.clusterId(clusterId.asText());
         }
 
         return builder.build();
