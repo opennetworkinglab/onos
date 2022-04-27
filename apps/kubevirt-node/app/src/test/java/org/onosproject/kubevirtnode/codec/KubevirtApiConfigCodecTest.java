@@ -89,7 +89,10 @@ public class KubevirtApiConfigCodecTest {
                 .serviceFqdn("kubevirt.edgestack.svc.cluster.local")
                 .apiServerFqdn("kubernetes.default.svc.cluster.local")
                 .controllerIp(IpAddress.valueOf("127.0.0.1"))
+                .datacenterId("BD")
+                .clusterId("BD-MEH-CT01")
                 .build();
+
         ObjectNode configJson = kubevirtApiConfigCodec.encode(config, context);
         assertThat(configJson, matchesKubevirtApiConfig(config));
     }
@@ -113,6 +116,9 @@ public class KubevirtApiConfigCodecTest {
         assertEquals("kubevirt.edgestack.svc.cluster.local", config.serviceFqdn());
         assertEquals("kubernetes.default.svc.cluster.local", config.apiServerFqdn());
         assertEquals("127.0.0.1", config.controllerIp().toString());
+        assertEquals("BD", config.datacenterId());
+        assertEquals("BD-MEH-CT01", config.clusterId());
+
     }
 
     private KubevirtApiConfig getKubevirtApiConfig(String resourceName) throws IOException {

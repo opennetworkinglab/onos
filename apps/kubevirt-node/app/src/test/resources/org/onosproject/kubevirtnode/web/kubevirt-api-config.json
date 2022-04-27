@@ -6,5 +6,7 @@
   "caCertData": "caCertData",
   "clientCertData": "clientCertData",
   "clientKeyData": "clientKeyData",
-  "controllerIp": "127.0.0.1"
+  "controllerIp": "127.0.0.1",
+  "datacenterId": "BD",
+  "clusterId": "BD-MEH-CT01"
 }

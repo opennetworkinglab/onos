@@ -154,6 +154,20 @@ public interface KubevirtApiConfig {
     IpAddress controllerIp();
 
     /**
+     * Returns the datacenter id.
+     *
+     * @return datacenter id.
+     */
+    String datacenterId();
+
+    /**
+     * Returns the cluster id.
+     *
+     * @return cluster id.
+     */
+    String clusterId();
+
+    /**
      * Builder of new API config entity.
      */
     interface Builder {
@@ -252,5 +266,21 @@ public interface KubevirtApiConfig {
          * @return Kubevirt API config builder
          */
         Builder controllerIp(IpAddress controllerIp);
+
+        /**
+         * Returns kubevirt API server config builder with the supplied datacenter id.
+         *
+         * @param datacenteId datacenter id
+         * @return Kubevirt API config builder
+         */
+        Builder datacenterId(String datacenteId);
+
+        /**
+         * Returns kubevirt API server config builder with the supplied cluster id.
+         *
+         * @param clusterId cluster id
+         * @return Kubevirt API config builder
+         */
+        Builder clusterId(String clusterId);
     }
 }

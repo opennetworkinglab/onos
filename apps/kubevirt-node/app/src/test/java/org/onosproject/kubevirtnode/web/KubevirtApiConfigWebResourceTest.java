@@ -87,6 +87,8 @@ public class KubevirtApiConfigWebResourceTest extends ResourceTest {
                 .caCertData("caCertData")
                 .clientCertData("clientCertData")
                 .clientKeyData("clientKeyData")
+                .datacenterId("DB")
+                .clusterId("BD-MEH-CT01")
                 .build();
     }
 

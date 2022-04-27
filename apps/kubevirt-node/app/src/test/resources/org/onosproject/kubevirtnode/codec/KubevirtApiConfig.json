@@ -8,5 +8,7 @@
   "clientKeyData": "clientKeyData",
   "serviceFqdn": "kubevirt.edgestack.svc.cluster.local",
   "apiServerFqdn": "kubernetes.default.svc.cluster.local",
-  "controllerIp": "127.0.0.1"
+  "controllerIp": "127.0.0.1",
+  "datacenterId": "BD",
+  "clusterId": "BD-MEH-CT01"
 }

@@ -5,7 +5,9 @@
     "segmentId",
     "scheme",
     "ipAddress",
-    "port"
+    "port",
+    "datacenterId",
+    "clusterId"
   ],
   "properties": {
     "clusterName": {
@@ -27,6 +29,14 @@
     "port": {
       "type": "integer",
       "example": 6443
+    },
+    "datacenterId": {
+      "type": "string",
+      "example": "BD"
+    },
+    "clusterId": {
+      "type": "string",
+      "example": "BD-MEH-CT01"
     }
   }
 }
