@@ -542,6 +542,12 @@ public class DeviceManager
                     if (updateMastershipFor(deviceId) == null
                             && myRole == MASTER && isAvailable(deviceId)) {
                         log.info("Local Role {}, Marking unreachable device {} offline", MASTER, deviceId);
+                        // Following the deviceDisconnected method logic (line 734) we are marking also all the
+                        // ports as disabled.
+                        List<PortDescription> descs = store.getPortDescriptions(getProvider(deviceId).id(), deviceId)
+                                .map(desc -> ensurePortEnabledState(desc, false))
+                                .collect(Collectors.toList());
+                        store.updatePorts(getProvider(deviceId).id(), deviceId, descs);
                         post(store.markOffline(deviceId));
                     }
                 } else {
@@ -563,6 +569,12 @@ public class DeviceManager
                             term != null && localNodeId.equals(term.master()) &&
                             isAvailable(deviceId)) {
                         log.info("Marking unreachable device {} offline", deviceId);
+                        // Following the deviceDisconnected method logic (line 734) we are marking also all the
+                        // ports as disabled.
+                        List<PortDescription> descs = store.getPortDescriptions(getProvider(deviceId).id(), deviceId)
+                                .map(desc -> ensurePortEnabledState(desc, false))
+                                .collect(Collectors.toList());
+                        store.updatePorts(getProvider(deviceId).id(), deviceId, descs);
                         post(store.markOffline(deviceId));
                     }
                 }
@@ -626,6 +638,15 @@ public class DeviceManager
                     deviceId, myRole);
             updateMastershipFor(deviceId);
         }
+    }
+
+    PortDescription ensurePortEnabledState(PortDescription desc, boolean enabled) {
+        if (desc.isEnabled() != enabled) {
+            return DefaultPortDescription.builder(desc)
+                    .isEnabled(enabled)
+                    .build();
+        }
+        return desc;
     }
 
     // Personalized device provider service issued to the supplied provider.
@@ -710,15 +731,6 @@ public class DeviceManager
             } else {
                 log.info("Device {} registered", deviceId);
             }
-        }
-
-        private PortDescription ensurePortEnabledState(PortDescription desc, boolean enabled) {
-            if (desc.isEnabled() != enabled) {
-                return DefaultPortDescription.builder(desc)
-                        .isEnabled(enabled)
-                        .build();
-            }
-            return desc;
         }
 
         @Override
