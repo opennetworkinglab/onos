@@ -29,6 +29,8 @@ public enum UpfEntityType {
     SESSION_DOWNLINK("session_downlink"),
     SESSION_UPLINK("session_downlink"),
     TUNNEL_PEER("tunnel_peer"),
+    INGRESS_COUNTER("ingress_counter"),
+    EGRESS_COUNTER("egress_counter"),
     COUNTER("counter"),
     APPLICATION("application"),
     SESSION_METER("session_meter"),
