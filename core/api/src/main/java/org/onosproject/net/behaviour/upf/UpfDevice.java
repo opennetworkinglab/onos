@@ -52,27 +52,31 @@ public interface UpfDevice {
     Collection<? extends UpfEntity> readAll(UpfEntityType entityType) throws UpfProgrammableException;
 
     /**
-     * Reads the given UPF counter ID from the UPF-programmable device.
+     * Reads the given UPF counter type and index from the UPF-programmable device.
      *
-     * @param counterId The counter ID from which to read.
+     * @param counterIdx The counter index from which to read.
+     * @param type       {@link UpfEntityType} of UPF counter to read
+     *                   ({@code COUNTER, INGRESS_COUNTER, EGRESS_COUNTER})
      * @return The content of the UPF counter.
      * @throws UpfProgrammableException if the counter ID is out of bounds.
      */
-    UpfCounter readCounter(int counterId) throws UpfProgrammableException;
+    UpfCounter readCounter(int counterIdx, UpfEntityType type) throws UpfProgrammableException;
 
     /**
-     * Reads the UPF counter contents for all indices that are valid on the
-     * UPF-programmable device. {@code maxCounterId} parameter is used to limit
-     * the number of counters retrieved from the UPF. If the limit given is
+     * Reads the given UPF counter type contents for all indices that are valid
+     * on the UPF-programmable device. {@code maxCounterId} parameter is used to
+     * limit the number of counters retrieved from the UPF. If the limit given is
      * larger than the physical limit, the physical limit will be used.
      * A limit of -1 removes limitations, and it is equivalent of calling
-     * {@link #readAll(UpfEntityType)} passing the {@code COUNTER} {@link UpfEntityType}.
+     * {@link #readAll(UpfEntityType)} passing the given {@link UpfEntityType}.
      *
-     * @param maxCounterId Maximum counter ID to retrieve from the UPF device.
+     * @param maxCounterIdx Maximum counter index to retrieve from the UPF device.
+     * @param type          {@link UpfEntityType} of UPF counter to read
+     *                      ({@code COUNTER, INGRESS_COUNTER, EGRESS_COUNTER})
      * @return A collection of UPF counters for all valid hardware counter cells.
      * @throws UpfProgrammableException if the counters are unable to be read.
      */
-    Collection<UpfCounter> readCounters(long maxCounterId) throws UpfProgrammableException;
+    Collection<UpfCounter> readCounters(long maxCounterIdx, UpfEntityType type) throws UpfProgrammableException;
 
     /**
      * Deletes the given UPF entity from the UPF-programmable device.
@@ -97,6 +101,7 @@ public interface UpfDevice {
      * the UPF-programmable device. For entities that have a direction,returns
      * the total amount of entities including both the downlink and the uplink
      * directions.
+     *
      * @param entityType The type of UPF programmable entities to retrieve the size from.
      * @return The total number of supported UPF entities.
      * @throws UpfProgrammableException if the operation is not supported on the given UPF entity.

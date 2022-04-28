@@ -16,34 +16,40 @@
 
 package org.onosproject.net.behaviour.upf;
 
-
 import com.google.common.annotations.Beta;
 
 import java.util.Objects;
+import java.util.Optional;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.behaviour.upf.UpfEntityType.COUNTER;
+import static org.onosproject.net.behaviour.upf.UpfEntityType.EGRESS_COUNTER;
+import static org.onosproject.net.behaviour.upf.UpfEntityType.INGRESS_COUNTER;
 
 /**
- * A structure for compactly passing UPF counter values for a given counter ID.
- * Contains four counts: Ingress Packets, Ingress Bytes, Egress Packets, Egress Bytes.
- * UpfCounter can be used ONLY on {@code apply} and {@code readAll} calls in the
- * {@link UpfDevice} interface.
+ * A structure for compactly passing UPF counter (ingress, egress or both) values
+ * for a given counter ID. Contains four counts: Ingress Packets, Ingress Bytes,
+ * Egress Packets, Egress Bytes. UpfCounter can be used ONLY on {@code apply}
+ * and {@code readAll} calls in the {@link UpfDevice} interface.
  */
 @Beta
 public final class UpfCounter implements UpfEntity {
     private final int cellId;
-    private final long ingressPkts;
-    private final long ingressBytes;
-    private final long egressPkts;
-    private final long egressBytes;
+    private final Long ingressPkts;
+    private final Long ingressBytes;
+    private final Long egressPkts;
+    private final Long egressBytes;
+    private final UpfEntityType type;
 
-    private UpfCounter(int cellId, long ingressPkts, long ingressBytes,
-                       long egressPkts, long egressBytes) {
+    private UpfCounter(int cellId, Long ingressPkts, Long ingressBytes,
+                       Long egressPkts, Long egressBytes, UpfEntityType type) {
         this.cellId = cellId;
         this.ingressPkts = ingressPkts;
         this.ingressBytes = ingressBytes;
         this.egressPkts = egressPkts;
         this.egressBytes = egressBytes;
+        this.type = type;
     }
 
     public static Builder builder() {
@@ -52,8 +58,19 @@ public final class UpfCounter implements UpfEntity {
 
     @Override
     public String toString() {
-        return String.format("UpfStats(cell_id=%d, ingress=(%dpkts,%dbytes), egress=(%dpkts,%dbytes))",
-                cellId, ingressPkts, ingressBytes, egressPkts, egressBytes);
+        switch (this.type) {
+            case COUNTER:
+                return String.format("UpfStats(cell_id=%d, ingress=(%dpkts,%dbytes), egress=(%dpkts,%dbytes))",
+                                     cellId, ingressPkts, ingressBytes, egressPkts, egressBytes);
+            case INGRESS_COUNTER:
+                return String.format("UpfIngressCounter(cell_id=%d, packets=%d, bytes=%d))",
+                                     cellId, ingressPkts, ingressBytes);
+            case EGRESS_COUNTER:
+                return String.format("UpfEgressCounter(cell_id=%d, packets=%d, bytes=%d))",
+                                     cellId, egressPkts, egressBytes);
+            default:
+                throw new IllegalStateException("I should never reach this point!");
+        }
     }
 
     @Override
@@ -68,7 +85,7 @@ public final class UpfCounter implements UpfEntity {
             return false;
         }
         UpfCounter that = (UpfCounter) object;
-        return this.cellId == that.cellId;
+        return this.cellId == that.cellId && this.type == that.type;
     }
 
     /**
@@ -80,16 +97,15 @@ public final class UpfCounter implements UpfEntity {
      */
     public boolean exactlyEquals(UpfCounter that) {
         return this.equals(that) &&
-                this.ingressPkts == that.ingressPkts &&
-                this.ingressBytes == that.ingressBytes &&
-                this.egressPkts == that.egressPkts &&
-                this.egressBytes == that.egressBytes;
+                (this.ingressPkts == that.ingressPkts || this.ingressPkts.equals(that.ingressPkts)) &&
+                (this.ingressBytes == that.ingressBytes || this.ingressBytes.equals(that.ingressBytes)) &&
+                (this.egressPkts == that.egressPkts || this.egressPkts.equals(that.egressPkts)) &&
+                (this.egressBytes == that.egressBytes || this.egressBytes.equals(that.egressBytes));
     }
-
 
     @Override
     public int hashCode() {
-        return Objects.hash(cellId);
+        return Objects.hash(cellId, type);
     }
 
     /**
@@ -103,57 +119,91 @@ public final class UpfCounter implements UpfEntity {
 
     /**
      * Get the number of packets that hit this counter in the dataplane ingress pipeline.
+     * Return a value only if the counter is of type {@code UpfEntityType.COUNTER}
+     * or {@code UpfEntityType.INGRESS_COUNTER}, otherwise an empty Optional.
      *
-     * @return ingress packet count
+     * @return ingress packet count or empty if this is of type {@code UpfEntityType.EGRESS_COUNTER}
      */
-    public long getIngressPkts() {
-        return ingressPkts;
+    public Optional<Long> getIngressPkts() {
+        return Optional.ofNullable(ingressPkts);
     }
 
     /**
      * Get the number of packets that hit this counter in the dataplane egress pipeline.
+     * Return a value only if the counter is of type {@code UpfEntityType.COUNTER}
+     * or {@code UpfEntityType.EGRESS_COUNTER}, otherwise an empty Optional.
      *
-     * @return egress packet count
+     * @return egress packet count or empty if this is of type {@code UpfEntityType.INGRESS_COUNTER}
      */
-    public long getEgressPkts() {
-        return egressPkts;
+    public Optional<Long> getEgressPkts() {
+        return Optional.ofNullable(egressPkts);
     }
 
     /**
      * Get the number of packet bytes that hit this counter in the dataplane ingress pipeline.
+     * Return value only if the counter is of type {{@code UpfEntityType.COUNTER}
+     * or {@code UpfEntityType.INGRESS_COUNTER}, otherwise an empty Optional.
      *
-     * @return ingress byte count
+     * @return ingress byte count or empty if this is of type {@code UpfEntityType.EGRESS_COUNTER}
      */
-    public long getIngressBytes() {
-        return ingressBytes;
+    public Optional<Long> getIngressBytes() {
+        return Optional.ofNullable(ingressBytes);
     }
 
     /**
      * Get the number of packet bytes that hit this counter in the dataplane egress pipeline.
+     * Return a value only if the counter is of type {@code UpfEntityType.COUNTER}
+     * or {@code UpfEntityType.EGRESS_COUNTER}, otherwise an empty Optional.
      *
-     * @return egress byte count
+     * @return egress byte count or empty if this is of type {@code UpfEntityType.INGRESS_COUNTER}
      */
-    public long getEgressBytes() {
-        return egressBytes;
+    public Optional<Long> getEgressBytes() {
+        return Optional.ofNullable(egressBytes);
     }
 
     @Override
     public UpfEntityType type() {
-        return UpfEntityType.COUNTER;
+        return type;
     }
 
+    /**
+     * Sum the content of the given UpfCounter to the counter values contained
+     * in this instance.
+     *
+     * @param that The UpfCounter to sum to this instance
+     * @return a new UpfCounter instance with sum counters.
+     * @throws IllegalArgumentException if the given UpfCounter is not referring
+     *                                  to the same type and id as this
+     */
+    public UpfCounter sum(UpfCounter that) throws IllegalArgumentException {
+        if (!this.equals(that)) {
+            throw new IllegalArgumentException(
+                    "The given UpfCounter is not of the same type or refers to a different index");
+        }
+        UpfCounter.Builder builder = UpfCounter.builder().withCellId(this.getCellId());
+        if (this.type.equals(UpfEntityType.COUNTER) || this.type.equals(UpfEntityType.INGRESS_COUNTER)) {
+            builder.setIngress(this.ingressPkts + that.ingressPkts,
+                               this.ingressBytes + that.ingressBytes);
+        }
+        if (this.type.equals(UpfEntityType.COUNTER) || this.type.equals(UpfEntityType.EGRESS_COUNTER)) {
+            builder.setEgress(this.egressPkts + that.egressPkts,
+                              this.egressBytes + that.egressBytes);
+        }
+        return builder.build();
+    }
+
+    /**
+     * Builder for UpfCounter.
+     */
     public static class Builder {
         private Integer cellId;
-        private long ingressPkts;
-        private long ingressBytes;
-        private long egressPkts;
-        private long egressBytes;
+        private Long ingressPkts;
+        private Long ingressBytes;
+        private Long egressPkts;
+        private Long egressBytes;
+        private UpfEntityType type = COUNTER;
 
         public Builder() {
-            this.ingressPkts = 0;
-            this.ingressBytes = 0;
-            this.egressPkts = 0;
-            this.egressBytes = 0;
         }
 
         /**
@@ -193,9 +243,51 @@ public final class UpfCounter implements UpfEntity {
             return this;
         }
 
+        /**
+         * Set the counter as ingress only counter.
+         *
+         * @return This builder
+         */
+        public Builder isIngressCounter() {
+            this.type = INGRESS_COUNTER;
+            return this;
+        }
+
+        /**
+         * Set the counter as egress only counter.
+         *
+         * @return This builder
+         */
+        public Builder isEgressCounter() {
+            this.type = EGRESS_COUNTER;
+            return this;
+        }
+
         public UpfCounter build() {
             checkNotNull(cellId, "CellID must be provided");
-            return new UpfCounter(cellId, ingressPkts, ingressBytes, egressPkts, egressBytes);
+            switch (type) {
+                case INGRESS_COUNTER:
+                    checkArgument(this.ingressBytes != null && this.ingressPkts != null,
+                                  "Ingress counter values must be provided");
+                    this.egressBytes = null;
+                    this.egressPkts = null;
+                    break;
+                case EGRESS_COUNTER:
+                    checkArgument(this.egressBytes != null && this.egressPkts != null,
+                                  "Egress counter values must be provided");
+                    this.ingressBytes = null;
+                    this.ingressPkts = null;
+                    break;
+                case COUNTER:
+                    checkArgument(this.ingressBytes != null && this.ingressPkts != null &&
+                                          this.egressBytes != null && this.egressPkts != null,
+                                  "Ingress and egress counter values must be provided");
+                    break;
+                default:
+                    // I should never reach this point
+                    throw new IllegalArgumentException("I should never reach this point!");
+            }
+            return new UpfCounter(cellId, ingressPkts, ingressBytes, egressPkts, egressBytes, type);
         }
     }
 }
