@@ -16,6 +16,6 @@ genrule(
     name = "topo_device_proto_sed",
     srcs = [":device/device.proto"],
     outs = ["new/device/device.proto"],
-    cmd = "sed -e 's:import \"gogoproto.*;::g;s: ..gogoproto\..*:;:g;s:import \"%s:import \":g;s:^syntax = \"proto3\";:&\\\n  option java_package = \"org.onosproject.uonos\";:g' $(location :device/device.proto) >> \"$@\""
+    cmd = "sed -e 's:import \"gogoproto.*;::g;s: ..gogoproto\\..*:;:g;s:import \"%s:import \":g;s:^syntax = \"proto3\";:&\\\n  option java_package = \"org.onosproject.uonos\";:g' $(location :device/device.proto) >> \"$@\""
         % IMPORT_PREFIX,
 )
