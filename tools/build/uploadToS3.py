@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Upload a file to S3
 """
@@ -20,7 +20,7 @@ def uploadFile( filename, dest=None, bucket=None, overwrite=False ):
         key = basename( filename )
     else:
         key = dest + basename( filename ) #FIXME add the /
-    print '* Uploading', filename, 'to bucket', bucket, 'as', key
+    print('* Uploading', filename, 'to bucket', bucket, 'as', key)
     stdout.flush()
     start = time()
     def callback( transmitted, size ):
@@ -28,9 +28,9 @@ def uploadFile( filename, dest=None, bucket=None, overwrite=False ):
         elapsed = time() - start
         percent = 100.0 * transmitted / size
         kbps = .001 * transmitted / elapsed
-        print ( '\r%d bytes transmitted of %d (%.2f%%),'
+        print(( '\r%d bytes transmitted of %d (%.2f%%),'
                 ' %.2f KB/sec ' %
-                ( transmitted, size, percent, kbps ) ),
+                ( transmitted, size, percent, kbps ) ), end='\n')
         stdout.flush()
     conn = S3Connection()
     bucket = conn.get_bucket( bucket )
@@ -38,11 +38,11 @@ def uploadFile( filename, dest=None, bucket=None, overwrite=False ):
     k.key = key
     if overwrite or not k.exists():
         k.set_contents_from_filename( filename, cb=callback, num_cb=100 )
-        print
+        print()
         elapsed = time() - start
-        print "* elapsed time: %.2f seconds" % elapsed
+        print("* elapsed time: %.2f seconds" % elapsed)
     else:
-        print 'file', basename( filename ), 'already exists in', bucket.name
+        print('file', basename( filename ), 'already exists in', bucket.name)
 
 def testAccess( bucket=None ):
     "Verify access to a bucket"
@@ -51,7 +51,7 @@ def testAccess( bucket=None ):
 
     conn = S3Connection()
     bucket = conn.get_bucket( bucket )
-    print bucket.get_acl()
+    print(bucket.get_acl())
 
 
 if __name__ == '__main__':

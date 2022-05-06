@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # This script finds an open staging repository, checks that it contains an
 # expected artifact, attemps to close the repository, and checks that it is closed.
@@ -29,7 +29,7 @@ def get(url):
       resp.raise_for_status()
       return resp
     except requests.exceptions.HTTPError as e:
-      print 'Encountered error:', e
+      print('Encountered error:', e)
       error = e
       time.sleep(1)
   if error:
@@ -46,7 +46,7 @@ def post(url, data):
       resp.raise_for_status()
       return resp
     except requests.exceptions.HTTPError as e:
-      print 'Encountered error:', e
+      print('Encountered error:', e)
       error = e
       time.sleep(1)
   if error:
@@ -64,11 +64,11 @@ def getStagingRepo(groupId):
       repos.append(( entry['repositoryId'], entry['profileId'] ))
   
   if len(repos) > 1:
-    print 'Aborting... too many open staging repos'
-    print repos
+    print('Aborting... too many open staging repos')
+    print(repos)
     sys.exit(1)
   elif len(repos) == 0:
-    print 'Aborting... there are no open staging repos'
+    print('Aborting... there are no open staging repos')
     sys.exit(1)
 
   return repos[0]  
@@ -131,8 +131,8 @@ def checkClose(repositoryId):
     if event['name'] == 'repositoryClosed':
       return True
     elif event['name'] == 'repositoryCloseFailed':
-      print 'Aborting... repository failed to close'
-      print json.dumps(activity, sort_keys=True, indent=2, separators=(',', ': '))
+      print('Aborting... repository failed to close')
+      print(json.dumps(activity, sort_keys=True, indent=2, separators=(',', ': ')))
       sys.exit(1)
   return False
 
@@ -144,12 +144,12 @@ def waitClosed(repositoryId):
     sys.stdout.write('.')
     sys.stdout.flush()     
     time.sleep(2)
-  print ' Closed.'
+  print(' Closed.')
 
 if __name__ == '__main__':
   repositoryId, profileId = getStagingRepo(GROUP_ID)
-  print 'Repository Id:', repositoryId
-  print 'Profile Id:', profileId
+  print('Repository Id:', repositoryId)
+  print('Profile Id:', profileId)
 
   checkStagingRepo(repositoryId, ARTIFACT, GROUP_ID, VERSION)
 
@@ -158,5 +158,5 @@ if __name__ == '__main__':
   waitClosed(repositoryId)
 
   if '-d' in sys.argv:
-    print 'Dropping repo %s' % repositoryId
+    print('Dropping repo %s' % repositoryId)
     dropRepo(repositoryId, profileId)

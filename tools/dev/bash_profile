@@ -77,7 +77,7 @@ alias olo='filterLog'
 alias ole='olo "ERROR|WARN|Exception|Error"'
 
 # Pretty-print JSON output
-alias pp='python -m json.tool'
+alias pp='python3 -m json.tool'
 
 # Short-hand to launch Java API docs, REST API docs and ONOS GUI
 alias docs='open $ONOS_ROOT/docs/target/site/apidocs/index.html'

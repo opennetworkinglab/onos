@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
  Copyright 2018-present Open Networking Foundation
 
@@ -147,8 +147,8 @@ def stage_file(file, repo_id, dest):
         with open(file, 'rb') as f:
             r = requests.post(url, data=f.read(), headers=headers, auth=(SONATYPE_USER, SONATYPE_PASSWORD))
             if r.status_code != 201:
-                print (r.status_code)
-                print (r.text)
+                print((r.status_code))
+                print((r.text))
                 sys.exit(1)
     else:
         # deploy to local repo
@@ -165,7 +165,7 @@ def stage_files(files, dest):
 
 
 def upload_file(src, dest):
-    print ("publishing: " + dest.replace("org/onosproject", ""))
+    print(("publishing: " + dest.replace("org/onosproject", "")))
     files = generate_metadata_files(src, dest)
     stage_files(files, dest)
 
@@ -174,7 +174,7 @@ if __name__ == '__main__':
     import sys
 
     if len(sys.argv) < 2:
-        print 'USAGE: upload-maven-artifacts catalog-file-name [nexus root url]'
+        print('USAGE: upload-maven-artifacts catalog-file-name [nexus root url]')
         sys.exit(1)
 
     input_list_file = sys.argv[1]
@@ -191,20 +191,20 @@ if __name__ == '__main__':
 
     if destination_repo_url is not None:
         if SONATYPE_USER is None:
-            print "Environment variable SONATYPE_USER must be set"
+            print("Environment variable SONATYPE_USER must be set")
             sys.exit(1)
 
         if SONATYPE_PASSWORD is None:
-            print "Environment variable SONATYPE_PASSWORD must be set"
+            print("Environment variable SONATYPE_PASSWORD must be set")
             sys.exit(1)
 
         if SONATYPE_PROFILE is None:
-            print "Environment variable SONATYPE_PROFILE must be set"
+            print("Environment variable SONATYPE_PROFILE must be set")
             sys.exit(1)
 
-        print ("Uploading to remote repo: " + destination_repo_url)
+        print(("Uploading to remote repo: " + destination_repo_url))
     else:
-        print ("Installing in local repo: " + local_maven_repo)
+        print(("Installing in local repo: " + local_maven_repo))
 
     list_file = open(input_list_file, "r")
     lines = list_file.readlines()

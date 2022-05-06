@@ -7,7 +7,7 @@
 # local_java_repository for docker based builds
 load("@bazel_tools//tools/jdk:local_java_repository.bzl", "local_java_repository")
 
-ABSOLUTE_JAVABASE = "/usr/lib/jvm/zulu11-ca-amd64"
+ABSOLUTE_JAVABASE = "/usr/lib/jvm/zulu11"
 
 local_java_repository(
   name = "dockerjdk",
