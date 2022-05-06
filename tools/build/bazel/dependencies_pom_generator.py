@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright 2019-present Open Networking Foundation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,7 @@ from xml.dom import minidom
 def resolve(mvn_coord):
     mvn_pieces = mvn_coord.split(":")
     if mvn_pieces[0] != "mvn":
-        raise ("Invalid Maven coordinate: %s" % mvn_coord)
+        raise ValueError("Invalid Maven coordinate: %s" % mvn_coord)
     return dict(
         groupId=mvn_pieces[1],
         artifactId=mvn_pieces[2],
@@ -79,7 +79,7 @@ def generate_pom(out_file, template_file, provided_deps, test_deps, deps, var_di
                 dep_template.format(scope='test', **deps[x])
                 for x in test_deps])
         else:
-            for old, new in var_dict.items():
+            for old, new in list(var_dict.items()):
                 line = line.replace(old, new)
             new_lines.append(line)
 
@@ -111,7 +111,7 @@ if __name__ == '__main__':
     for var in args.vars:
         pieces = var.split('=')
         if len(pieces) != 2:
-            raise ("Invalid var '%s'" % var)
+            raise ValueError("Invalid var '%s'" % var)
         processed_vars["<!-- %s -->" % pieces[0]] = pieces[1]
 
     generate_pom(

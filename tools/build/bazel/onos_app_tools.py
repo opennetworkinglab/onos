@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
  Copyright 2018-present Open Networking Foundation
 
@@ -207,7 +207,7 @@ if __name__ == '__main__':
         values['category'] = options.category
         values['url'] = options.url
     elif options.write_app:
-        sys.stderr.write('ERROR: Feature Name, Version, and Title are required\n')
+        sys.stderr.write('ERROR: App Name, Origin, Category and URL are required\n')
         sys.stderr.flush()
         sys.exit(1)
 

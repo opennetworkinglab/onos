@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 usage: onos-gen-config [-h] [-s PARTITION_SIZE] [-n NUM_PARTITIONS]
                             [filename] [node_ip [node_ip ...]]
@@ -87,7 +87,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     node = args.node
-    print node
+    print(node)
     filename = args.filename
     nodes = get_nodes(args.nodes)
 
@@ -106,4 +106,4 @@ if __name__ == '__main__':
         with open(filename, 'w') as f:
             f.write(output)
     else:
-        print output
+        print(output)
