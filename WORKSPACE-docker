@@ -1,0 +1,16 @@
+
+# Appended by the Dockerfiles to help bazel finding the local path of
+# the Azul jvm. When we build docker images we use the jvm available
+# in the base image to compile ONOS. In order to do that we have to
+# provide the absolute path by using the local_java_repository.
+
+# local_java_repository for docker based builds
+load("@bazel_tools//tools/jdk:local_java_repository.bzl", "local_java_repository")
+
+ABSOLUTE_JAVABASE = "/usr/lib/jvm/zulu11-ca-amd64"
+
+local_java_repository(
+  name = "dockerjdk",
+  version = "11",
+  java_home = ABSOLUTE_JAVABASE,
+)

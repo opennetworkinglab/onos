@@ -124,6 +124,8 @@ def _bnd_impl(ctx):
         bundle_classpath,
         karaf_commands,
         fragment_host,
+        # enable/disable osgi-wrap logging
+        "false",
     ]
 
     ctx.actions.run(
@@ -507,7 +509,7 @@ def osgi_jar_with_tests(
         native.java_library(
             name = name + "-native",
             srcs = native_srcs,
-            resource_jars = resource_jars + [name + "_cfgdef_jar"],
+            resources = resource_jars + [name + "_cfgdef_jar"],
             deps = deps,
             visibility = visibility,
             javacopts = javacopts,
@@ -516,13 +518,14 @@ def osgi_jar_with_tests(
         native.java_library(
             name = name + "-native",
             srcs = native_srcs,
-            resource_jars = [name + "_cfgdef_jar"],
-            resources = native_resources,
+            resources = native_resources + [name + "_cfgdef_jar"],
             deps = deps,
             visibility = visibility,
             javacopts = javacopts,
         )
 
+    # NOTE that the additional resource_jars are modified by
+    # osgi-wrap because java_library does not decompress them.
     karaf_command_packages_string = ",".join(karaf_command_packages)
     _bnd(
         name = name,
