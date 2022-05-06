@@ -1,3 +1,19 @@
+# Copyright 2015-present Open Networking Foundation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# With this dockerfile you can build a ONOS Docker container
+
 ARG JOBS=2
 ARG PROFILE=default
 ARG TAG=11.0.8-11.41.23
@@ -21,7 +37,7 @@ RUN apt-get update && apt-get install -y ${BUILD_DEPS}
 
 # Install Bazelisk, which will download the version of bazel specified in
 # .bazelversion
-RUN curl -L -o bazelisk https://github.com/bazelbuild/bazelisk/releases/download/v1.5.0/bazelisk-linux-amd64
+RUN curl -L -o bazelisk https://github.com/bazelbuild/bazelisk/releases/download/v1.11.0/bazelisk-linux-amd64
 RUN chmod +x bazelisk && mv bazelisk /usr/bin
 
 # Build-stage environment variables
@@ -36,16 +52,15 @@ WORKDIR ${ONOS_ROOT}
 # Build ONOS using the JDK pre-installed in the base image, instead of the
 # Bazel-provided remote one. By doing wo we make sure to build with the most
 # updated JDK, including bug and security fixes, independently of the Bazel
-# version.
+# version. NOTE that WORKSPACE-docker file defines dockerjdk
 ARG JOBS
 ARG JAVA_PATH
 ARG PROFILE
-RUN bazelisk build onos \
+RUN cat WORKSPACE-docker >> WORKSPACE && bazelisk build onos \
     --jobs ${JOBS} \
     --verbose_failures \
-    --javabase=@bazel_tools//tools/jdk:absolute_javabase \
-    --host_javabase=@bazel_tools//tools/jdk:absolute_javabase \
-    --define=ABSOLUTE_JAVABASE=${JAVA_PATH} \
+    --java_runtime_version=dockerjdk_11 \
+    --tool_java_runtime_version=dockerjdk_11 \
     --define profile=${PROFILE}
 
 # We extract the tar in the build environment to avoid having to put the tar in
