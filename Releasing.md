@@ -23,7 +23,7 @@ of a release. These are usually built from support branches. They are versioned 
 release candidate numbers.
 
 ## Support branches
-Support branches are created late in th release cycle to freeze development of a release and allow further work to
+Support branches are created late in the release cycle to freeze development of a release and allow further work to
 continue on the `master` branch. Once a support branch is created, any bug fixes to that release must go on `master`
 as well as the support branch. Official releases are _always_ built from support branches. The release branch name is
 derived from the major and minor numbers of the release. So for example, the support branch for ONOS 2.5 is called
