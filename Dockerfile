@@ -16,8 +16,8 @@
 
 ARG JOBS=2
 ARG PROFILE=default
-ARG TAG=11.0.8-11.41.23
-ARG JAVA_PATH=/usr/lib/jvm/zulu11-ca-amd64
+ARG TAG=11.0.13-11.52.13
+ARG JAVA_PATH=/usr/lib/jvm/zulu11
 
 # First stage is the build environment.
 # zulu-openjdk images are based on Ubuntu.
@@ -26,7 +26,6 @@ FROM azul/zulu-openjdk:${TAG} as builder
 ENV BUILD_DEPS \
     ca-certificates \
     zip \
-    python \
     python3 \
     git \
     bzip2 \

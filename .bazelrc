@@ -12,7 +12,7 @@ build --java_runtime_version=remotejdk_11
 build --tool_java_language_version=11
 build --tool_java_runtime_version=remotejdk_11
 
-build --host_force_python=PY2
+build --host_force_python=PY3
 
 build --nouse_ijars
 build --experimental_strict_action_env

@@ -22,7 +22,7 @@
 # -----------------------------------------------------------------------------
 
 checkJson() {
-    cat ${1} | python -m json.tool >> /dev/null
+    cat ${1} | python3 -m json.tool >> /dev/null
     if [ "$?" -ne "0" ]; then
         echo "Not valid JSON File" && exit 1
     fi

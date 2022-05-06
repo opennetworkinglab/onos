@@ -50,7 +50,7 @@ function testJavaVersion {
 
 # Tests availability of the required tools
 function testToolchain {
-    for tool in bash python git java javac mvn tar; do
+    for tool in bash python3 git java javac mvn tar; do
         testTool $tool;
     done
     testGerritTool

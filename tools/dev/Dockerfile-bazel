@@ -19,8 +19,8 @@
 # COPY command incompatibilities).
 # e.g. docker build -t onosproject/onos:latest -f $ONOS_ROOT/tools/dev/Dockerfile-bazel $ONOS_ROOT/bazel-bin
 
-ARG TAG=11.0.8-11.41.23
-ARG JAVA_PATH=/usr/lib/jvm/zulu11-ca-amd64
+ARG TAG=11.0.13-11.52.13
+ARG JAVA_PATH=/usr/lib/jvm/zulu11
 
 # Firts stage to copy and untar ONOS archive inside the container.
 FROM bitnami/minideb:jessie as untar

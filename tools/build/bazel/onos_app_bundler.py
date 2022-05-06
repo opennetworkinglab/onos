@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
  Copyright 2018-present Open Networking Foundation
 
@@ -60,5 +60,5 @@ if __name__ == '__main__':
         print('There must be an even number of args: file mvn_coords')
         sys.exit(2)
 
-    files = zip(*[iter(args)]*2)
+    files = list(zip(*[iter(args)]*2))
     generateOar(output, files)

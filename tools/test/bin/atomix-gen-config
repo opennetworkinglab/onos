@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 usage: atomix-gen-config [-h] [-s PARTITION_SIZE] [-n NUM_PARTITIONS]
                          [node_ip] [filename] [node_ip [node_ip ...]]
@@ -112,7 +112,7 @@ if __name__ == '__main__':
   args = parser.parse_args()
   filename = args.filename
   partition_size = args.partition_size
-  local_member_id = get_local_node(args.node)
+  local_member_id = get_local_node(args.node, args.nodes)
   local_member_address = get_local_address(args.node, args.nodes)
   nodes = get_nodes(args.nodes)
   num_partitions = args.num_partitions
@@ -158,4 +158,4 @@ if __name__ == '__main__':
     with open(filename, 'w') as f:
       f.write(output)
   else:
-    print output
+    print(output)
