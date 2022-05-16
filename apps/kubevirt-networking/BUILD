@@ -35,6 +35,15 @@ BUNDLES = [
     "//apps/kubevirt-networking/api:onos-apps-kubevirt-networking-api",
     "//apps/kubevirt-networking/app:onos-apps-kubevirt-networking-app",
     "//apps/kubevirt-networking/web:onos-apps-kubevirt-networking-web",
+    # prometheus deps
+    "@simpleclient//jar",
+    "@simpleclient_common//jar",
+    "@simpleclient_hotspot//jar",
+    "@simpleclient_servlet//jar",
+    "@jetty_servlet//jar",
+    "@jetty_server//jar",
+    "@jetty_util//jar",
+    "@jetty_websocket//jar",
 ]
 
 onos_app(
