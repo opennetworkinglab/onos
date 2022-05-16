@@ -37,6 +37,16 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + CLI + REST + [
     "@zjsonpatch//jar",
     "@validation_api//jar",
     "@dns_java//jar",
+    "@simpleclient//jar",
+    "@simpleclient_common//jar",
+    "@simpleclient_hotspot//jar",
+    "@simpleclient_servlet//jar",
+    "@jetty_servlet//jar",
+    "@jetty_http//jar",
+    "@jetty_server//jar",
+    "@jetty_util//jar",
+    "@jetty_websocket//jar",
+    "@servlet_api//jar",
 ]
 
 TEST_DEPS = TEST_ADAPTERS + [

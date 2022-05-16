@@ -68,7 +68,8 @@ import static org.onosproject.kubevirtnetworking.api.Constants.GW_ENTRY_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.KUBEVIRT_NETWORKING_APP_ID;
 import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_ARP_GATEWAY_RULE;
 import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_FLOATING_GATEWAY_TUN_BRIDGE_RULE;
-import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_FLOATING_IP_RULE;
+import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_FLOATING_IP_DOWNSTREAM_RULE;
+import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_FLOATING_IP_UPSTREAM_RULE;
 import static org.onosproject.kubevirtnetworking.api.Constants.TUNNEL_DEFAULT_TABLE;
 import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.GENEVE;
 import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.GRE;
@@ -255,7 +256,7 @@ public class KubevirtFloatingIpHandler {
                 electedGw.intgBridge(),
                 selector,
                 treatment,
-                PRIORITY_FLOATING_IP_RULE,
+                PRIORITY_FLOATING_IP_UPSTREAM_RULE,
                 GW_ENTRY_TABLE,
                 install);
     }
@@ -285,7 +286,7 @@ public class KubevirtFloatingIpHandler {
                 electedGw.intgBridge(),
                 selector,
                 treatment,
-                PRIORITY_FLOATING_IP_RULE,
+                PRIORITY_FLOATING_IP_DOWNSTREAM_RULE,
                 GW_ENTRY_TABLE,
                 install);
     }
