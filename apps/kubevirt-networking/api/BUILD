@@ -31,6 +31,8 @@ COMPILE_DEPS = CORE_DEPS + [
     "@jackson_datatype_jsr310//jar",
     "@snakeyaml//jar",
     "@commons_net//jar",
+    "@jersey_client//jar",
+    "@javax_ws_rs_api//jar",
 ]
 
 TEST_DEPS = TEST_ADAPTERS + [
