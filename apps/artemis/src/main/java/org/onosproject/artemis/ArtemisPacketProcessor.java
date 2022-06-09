@@ -16,7 +16,7 @@
 package org.onosproject.artemis;
 
 import io.netty.channel.ChannelHandlerContext;
-import org.json.JSONObject;
+import com.eclipsesource.json.JsonObject;
 import org.onosproject.artemis.impl.objects.ArtemisMessage;
 
 /**
@@ -37,5 +37,5 @@ public interface ArtemisPacketProcessor {
      *
      * @param msg BGP Update message
      */
-    void processMonitorPacket(JSONObject msg);
+    void processMonitorPacket(JsonObject msg);
 }

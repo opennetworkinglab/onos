@@ -1,4 +1,5 @@
 BUNDLES = [
+    "@minimal_json//jar",
     "@commons_net//jar",
     "@ipaddress//jar",
     "@k8s_client//jar",

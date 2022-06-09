@@ -16,8 +16,7 @@
 package org.onosproject.k8snetworking.impl;
 
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.eclipsesource.json.JsonObject;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
@@ -129,20 +128,15 @@ public class K8sOpenstackIntegrationHandler {
 
         String jsonString = "";
 
-        try {
-            jsonString = new JSONObject()
-                    .put(K8S_NODE_IP, k8sNodeIp)
-                    .put(POD_GW_IP, gatewayIp)
-                    .put(POD_CIDR, podCidr)
-                    .put(SERVICE_CIDR, SERVICE_IP_CIDR_DEFAULT)
-                    .put(OS_K8S_INT_PORT_NAME, osK8sIntPortName)
-                    .put(K8S_INT_OS_PORT_MAC, k8sIntOsPortMac)
-                    .toString();
-            log.info("push integration configuration {}", jsonString);
-        } catch (JSONException e) {
-            log.error("Failed to generate JSON string");
-            return;
-        }
+        jsonString = new JsonObject()
+                .set(K8S_NODE_IP, k8sNodeIp)
+                .set(POD_GW_IP, gatewayIp)
+                .set(POD_CIDR, podCidr)
+                .set(SERVICE_CIDR, SERVICE_IP_CIDR_DEFAULT)
+                .set(OS_K8S_INT_PORT_NAME, osK8sIntPortName)
+                .set(K8S_INT_OS_PORT_MAC, k8sIntOsPortMac)
+                .toString();
+        log.info("push integration configuration {}", jsonString);
 
         HttpAuthenticationFeature feature =
                 HttpAuthenticationFeature.basic(ONOS_USERNAME, ONOS_PASSWORD);
@@ -169,17 +163,12 @@ public class K8sOpenstackIntegrationHandler {
 
         String jsonString = "";
 
-        try {
-            jsonString = new JSONObject()
-                    .put(K8S_NODE_IP, k8sNodeIp)
-                    .put(SERVICE_CIDR, SERVICE_IP_CIDR_DEFAULT)
-                    .put(OS_K8S_EXT_PORT_NAME, osK8sExtPortName)
-                    .toString();
-            log.info("push integration configuration {}", jsonString);
-        } catch (JSONException e) {
-            log.error("Failed to generate JSON string");
-            return;
-        }
+        jsonString = new JsonObject()
+                .set(K8S_NODE_IP, k8sNodeIp)
+                .set(SERVICE_CIDR, SERVICE_IP_CIDR_DEFAULT)
+                .set(OS_K8S_EXT_PORT_NAME, osK8sExtPortName)
+                .toString();
+        log.info("push integration configuration {}", jsonString);
 
         HttpAuthenticationFeature feature =
                 HttpAuthenticationFeature.basic(ONOS_USERNAME, ONOS_PASSWORD);

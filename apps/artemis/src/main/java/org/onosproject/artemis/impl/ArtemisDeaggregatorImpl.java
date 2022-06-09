@@ -23,7 +23,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.CharsetUtil;
-import org.json.JSONObject;
+import com.eclipsesource.json.JsonObject;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.TpPort;
@@ -415,7 +415,7 @@ public class ArtemisDeaggregatorImpl implements ArtemisDeaggregator {
         }
 
         @Override
-        public void processMonitorPacket(JSONObject msg) {
+        public void processMonitorPacket(JsonObject msg) {
 
         }
     }

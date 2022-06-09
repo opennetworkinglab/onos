@@ -286,7 +286,6 @@
     "mibs-net-snmp": "mvn:org.onosproject:mibbler-mibs-net-snmp:1.0-20151221.1",
     "mibs-rfc": "mvn:org.onosproject:mibbler-mibs-rfc:1.0-20151221.1",
     "io.socket-client": "mvn:io.socket:socket.io-client:jar:0.8.3",
-    "json": "mvn:org.json:json:jar:20090211",
     "engine.io-client": "mvn:io.socket:engine.io-client:jar:0.8.3",
     "org_codehaus_mojo_animal_sniffer_annotations": "mvn:org.codehaus.mojo:animal-sniffer-annotations:1.17",
     "dns-java": "mvn:dnsjava:dnsjava:3.3.1",

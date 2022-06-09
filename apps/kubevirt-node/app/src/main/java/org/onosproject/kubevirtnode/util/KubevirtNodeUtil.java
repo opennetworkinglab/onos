@@ -27,9 +27,8 @@ import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.lang.StringUtils;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonObject;
 import org.onlab.packet.IpAddress;
 import org.onosproject.kubevirtnode.api.DefaultKubevirtNode;
 import org.onosproject.kubevirtnode.api.DefaultKubevirtPhyInterface;
@@ -359,17 +358,17 @@ public final class KubevirtNodeUtil {
         String gatewayBridgeName = null;
         try {
             if (physnetConfig != null) {
-                JSONArray configJson = new JSONArray(physnetConfig);
+                JsonArray configJson = JsonArray.readFrom(physnetConfig);
 
-                for (int i = 0; i < configJson.length(); i++) {
-                    JSONObject object = configJson.getJSONObject(i);
-                    String network = object.getString(NETWORK_KEY);
-                    String intf = object.getString(INTERFACE_KEY);
+                for (int i = 0; i < configJson.size(); i++) {
+                    JsonObject object = configJson.get(i).asObject();
+                    String network = object.get(NETWORK_KEY).asString();
+                    String intf = object.get(INTERFACE_KEY).asString();
 
                     if (network != null && intf != null) {
                         String physBridgeId;
-                        if (object.has(PHYS_BRIDGE_ID)) {
-                            physBridgeId = object.getString(PHYS_BRIDGE_ID);
+                        if (object.get(PHYS_BRIDGE_ID) != null) {
+                            physBridgeId = object.get(PHYS_BRIDGE_ID).asString();
                         } else {
                             physBridgeId = genDpidFromName(network + intf + hostname);
                             log.trace("host {} physnet dpid for network {} intf {} is null so generate dpid {}",
@@ -395,7 +394,7 @@ public final class KubevirtNodeUtil {
                 nodeType = GATEWAY;
                 gatewayBridgeName = jsonNode.get(GATEWAY_BRIDGE_NAME).asText();
             }
-        } catch (JSONException | JsonProcessingException e) {
+        } catch (JsonProcessingException e) {
             log.error("Failed to parse physnet config or gateway config object", e);
         }
 
