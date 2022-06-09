@@ -17,7 +17,7 @@ package org.onosproject.artemis.impl;
 
 import com.google.common.collect.Sets;
 import io.netty.channel.ChannelHandlerContext;
-import org.json.JSONObject;
+import com.eclipsesource.json.JsonObject;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.artemis.ArtemisMonitor;
 import org.onosproject.artemis.ArtemisPacketProcessor;
@@ -79,7 +79,7 @@ public class ArtemisMonitorImpl implements ArtemisMonitor {
         }
 
         @Override
-        public void processMonitorPacket(JSONObject msg) {
+        public void processMonitorPacket(JsonObject msg) {
             // TODO: in future maybe store the BGP Update message and propagate it to the cluster instead of Events
             eventDispatcher.post(new ArtemisEvent(ArtemisEvent.Type.BGPUPDATE_ADDED, msg));
         }

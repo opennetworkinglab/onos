@@ -3,7 +3,7 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + NETTY + CLI + [
     "@okio//jar",
     "@commons_net//jar",
     "@io_socket_client//jar",
-    "@json//jar",
+    "@minimal_json//jar",
     "@engine_io_client//jar",
     "@io_netty_netty//jar",
     "@io_netty_netty_transport//jar",
@@ -18,7 +18,7 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + NETTY + CLI + [
 BUNDLES = [
     "@commons_net//jar",
     "@io_socket_client//jar",
-    "@json//jar",
+    "@minimal_json//jar",
     "@engine_io_client//jar",
     "//apps/artemis:onos-apps-artemis",
     "//apps/routing-api:onos-apps-routing-api",

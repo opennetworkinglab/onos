@@ -15,14 +15,13 @@
  */
 package org.onosproject.kubevirtnetworking.impl;
 
+import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonObject;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import org.apache.commons.lang.StringUtils;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.cluster.ClusterService;
@@ -270,46 +269,45 @@ public class NetworkAttachmentDefinitionWatcher {
         }
 
         private KubevirtNetwork parseKubevirtNetwork(String resource) {
-            try {
-                JSONObject json = new JSONObject(resource);
+                JsonObject json = JsonObject.readFrom(resource);
                 String name = parseResourceName(resource);
-                JSONObject annots = json.getJSONObject("metadata").getJSONObject("annotations");
-                if (!annots.has(NETWORK_CONFIG)) {
+                JsonObject annots = json.get("metadata").asObject().get("annotations").asObject();
+                if (annots.get(NETWORK_CONFIG) == null) {
                     // SR-IOV network does not contain network-config field
                     return null;
                 }
-                String networkConfig = annots.getString(NETWORK_CONFIG);
+                String networkConfig = annots.get(NETWORK_CONFIG).asString();
                 if (networkConfig != null) {
                     KubevirtNetwork.Builder builder = DefaultKubevirtNetwork.builder();
 
-                    JSONObject configJson = new JSONObject(networkConfig);
-                    String type = configJson.getString(TYPE).toUpperCase(Locale.ROOT);
-                    Integer mtu = configJson.getInt(MTU);
-                    String gatewayIp = configJson.getString(GATEWAY_IP);
-                    boolean defaultRoute = configJson.getBoolean(DEFAULT_ROUTE);
+                    JsonObject configJson = JsonObject.readFrom(networkConfig);
+                    String type = configJson.get(TYPE).asString().toUpperCase(Locale.ROOT);
+                    Integer mtu = configJson.get(MTU).asInt();
+                    String gatewayIp = configJson.getString(GATEWAY_IP, "");
+                    boolean defaultRoute = configJson.getBoolean(DEFAULT_ROUTE, false);
 
                     if (!type.equalsIgnoreCase(FLAT.name())) {
-                        builder.segmentId(configJson.getString(SEGMENT_ID));
+                        builder.segmentId(configJson.getString(SEGMENT_ID, ""));
                     }
 
-                    String cidr = configJson.getString(CIDR);
+                    String cidr = configJson.getString(CIDR, "");
 
-                    JSONObject poolJson = configJson.getJSONObject(IP_POOL);
+                    JsonObject poolJson = configJson.get(IP_POOL).asObject();
                     if (poolJson != null) {
-                        String start = poolJson.getString(START);
-                        String end = poolJson.getString(END);
+                        String start = poolJson.getString(START, "");
+                        String end = poolJson.getString(END, "");
                         builder.ipPool(new KubevirtIpPool(
                                 IpAddress.valueOf(start), IpAddress.valueOf(end)));
                     }
 
-                    if (configJson.has(HOST_ROUTES)) {
-                        JSONArray routesJson = configJson.getJSONArray(HOST_ROUTES);
+                    if (configJson.get(HOST_ROUTES) != null) {
+                        JsonArray routesJson = configJson.get(HOST_ROUTES).asArray();
                         Set<KubevirtHostRoute> hostRoutes = new HashSet<>();
                         if (routesJson != null) {
-                            for (int i = 0; i < routesJson.length(); i++) {
-                                JSONObject route = routesJson.getJSONObject(i);
-                                String destinationStr = route.getString(DESTINATION);
-                                String nexthopStr = route.getString(NEXTHOP);
+                            for (int i = 0; i < routesJson.size(); i++) {
+                                JsonObject route = routesJson.get(i).asObject();
+                                String destinationStr = route.getString(DESTINATION, "");
+                                String nexthopStr = route.getString(NEXTHOP, "");
 
                                 if (StringUtils.isNotEmpty(destinationStr) &&
                                         StringUtils.isNotEmpty(nexthopStr)) {
@@ -322,12 +320,12 @@ public class NetworkAttachmentDefinitionWatcher {
                         builder.hostRoutes(hostRoutes);
                     }
 
-                    if (configJson.has(DNSES)) {
-                        JSONArray dnsesJson = configJson.getJSONArray(DNSES);
+                    if (configJson.get(DNSES) != null) {
+                        JsonArray dnsesJson = configJson.get(DNSES).asArray();
                         Set<IpAddress> dnses = new HashSet<>();
                         if (dnsesJson != null) {
-                            for (int i = 0; i < dnsesJson.length(); i++) {
-                                String dns = dnsesJson.getString(i);
+                            for (int i = 0; i < dnsesJson.size(); i++) {
+                                String dns = dnsesJson.get(i).asString();
                                 if (StringUtils.isNotEmpty(dns)) {
                                     dnses.add(IpAddress.valueOf(dns));
                                 }
@@ -342,10 +340,6 @@ public class NetworkAttachmentDefinitionWatcher {
 
                     return builder.build();
                 }
-            } catch (JSONException e) {
-                log.error("Failed to parse network attachment definition object", e);
-            }
-
             return null;
         }
     }

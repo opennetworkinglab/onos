@@ -3,7 +3,7 @@ BUNDLES = [
     "//apps/k8s-networking/app:onos-apps-k8s-networking-app",
     "@commons_net//jar",
     "@jersey_client//jar",
-    "@json//jar",
+    "@minimal_json//jar",
     "@k8s_client//jar",
     "@k8s_model//jar",
     "@k8s_model_common//jar",

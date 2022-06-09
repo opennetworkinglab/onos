@@ -15,6 +15,7 @@
  */
 package org.onosproject.kubevirtnetworking.util;
 
+import com.eclipsesource.json.JsonObject;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -25,8 +26,6 @@ import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.net.util.SubnetUtils;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.Ip4Address;
@@ -459,13 +458,9 @@ public final class KubevirtNetworkingUtil {
     }
 
     public static String parseResourceName(String resource) {
-        try {
-            JSONObject json = new JSONObject(resource);
-            return json.getJSONObject("metadata").getString("name");
-        } catch (JSONException e) {
-            log.error("");
-        }
-        return "";
+        JsonObject json = JsonObject.readFrom(resource);
+        JsonObject metadata = json.get("metadata").asObject();
+        return metadata != null ? metadata.get("name").asString() : "";
     }
 
     public static PortNumber portNumber(DeviceService deviceService, DeviceId deviceId, String portName) {

@@ -17,8 +17,7 @@ package org.onosproject.artemis.impl.monitors;
 
 import io.socket.client.IO;
 import io.socket.client.Socket;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.eclipsesource.json.JsonObject;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.artemis.ArtemisPacketProcessor;
 import org.onosproject.artemis.Monitors;
@@ -48,14 +47,10 @@ public class ExaBgpMonitors implements Monitors {
      * socket.io onConnect event handler.
      */
     private void onConnect() {
-        try {
-            JSONObject parameters = new JSONObject();
-            parameters.put("prefix", this.prefix);
+        JsonObject parameters = new JsonObject();
+        parameters.set("prefix", this.prefix.toString());
 
-            socket.emit("exa_subscribe", parameters);
-        } catch (JSONException e) {
-            log.warn("onConenct()", e);
-        }
+        socket.emit("exa_subscribe", parameters);
     }
 
     /**
@@ -64,10 +59,8 @@ public class ExaBgpMonitors implements Monitors {
      * @param args exabgp message
      */
     private void onExaMessage(Object[] args) {
-        JSONObject message = (JSONObject) args[0];
-
-        try {
-            if (message.getString("type").equals("A")) {
+        JsonObject message = (JsonObject) args[0];
+            if (message.get("type").asString().equals("A")) {
                 // Example of BGP Update message:
                 // {
                 //  "path":[65001],
@@ -87,9 +80,6 @@ public class ExaBgpMonitors implements Monitors {
                 // Append synchronized message to message list in memory.
                 packetProcessor.processMonitorPacket(message);
             }
-        } catch (JSONException e) {
-            log.warn("onExaMessage()", e);
-        }
     }
 
     @Override
