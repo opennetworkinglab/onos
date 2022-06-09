@@ -6,7 +6,7 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + CLI + REST + [
     "//apps/k8s-networking/api:onos-apps-k8s-networking-api",
     "@commons_net//jar",
     "@jersey_client//jar",
-    "@json//jar",
+    "@minimal_json//jar",
     "@k8s_client//jar",
     "@k8s_model//jar",
     "@okhttp//jar",

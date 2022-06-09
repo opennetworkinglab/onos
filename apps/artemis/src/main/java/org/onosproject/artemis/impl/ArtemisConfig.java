@@ -19,8 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
-import org.json.JSONArray;
-import org.json.JSONException;
+import com.eclipsesource.json.JsonArray;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.core.ApplicationId;
@@ -392,15 +391,11 @@ public class ArtemisConfig extends Config<ApplicationId> {
          * <code>50</code> friendly anycaster announcing our prefix
          * <code>100+i</code> BGP hijack type i (0 &lt;= i &lt;=2)
          */
-        int checkPath(JSONArray path) {
+        int checkPath(JsonArray path) {
             // TODO add MOAS check
             ArrayList<Integer> asnPath = new ArrayList<>();
-            for (int i = 0; i < path.length(); i++) {
-                try {
-                    asnPath.add(path.getInt(i));
-                } catch (JSONException e) {
-                    log.warn("checkPath", e);
-                }
+            for (int i = 0; i < path.size(); i++) {
+                asnPath.add(path.get(i).asInt());
             }
             // reverse the list to get path starting from origin
             Collections.reverse(asnPath);
