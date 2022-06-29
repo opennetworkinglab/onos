@@ -244,6 +244,9 @@ class OFChannelHandler extends ChannelInboundHandlerAdapter
      * Executor is instantiated as a single thread executor guaranteeing processing
      * of device status messages in order.
      */
+    // TODO With a huge number of ports per device congestion can be created at the runtimeExecutor,
+    //  leading to mastership roles check going into timeout, with issues in multi-instance mastership handling.
+    //  An option is to Experiment with priority tasks - to give priority (under certain conditions) to the ROLE_REPLY
     protected ExecutorService runtimeStatusExecutor;
 
     /**

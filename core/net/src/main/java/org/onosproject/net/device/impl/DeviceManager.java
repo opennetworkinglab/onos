@@ -22,6 +22,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.Futures;
 import org.onlab.util.KryoNamespace;
 import org.onlab.util.Tools;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
@@ -70,21 +71,25 @@ import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.upgrade.UpgradeService;
+import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -97,15 +102,19 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Multimaps.newListMultimap;
 import static com.google.common.collect.Multimaps.synchronizedListMultimap;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.lang.System.currentTimeMillis;
+import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.MastershipRole.MASTER;
 import static org.onosproject.net.MastershipRole.NONE;
 import static org.onosproject.net.MastershipRole.STANDBY;
+import static org.onosproject.net.device.impl.OsgiPropertyConstants.ROLE_TIMEOUT_SECONDS;
+import static org.onosproject.net.device.impl.OsgiPropertyConstants.ROLE_TIMEOUT_SECONDS_DEFAULT;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.DEVICE_READ;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -115,7 +124,10 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true,
            service = {DeviceService.class, DeviceAdminService.class,
-                      DeviceProviderRegistry.class, PortConfigOperatorRegistry.class })
+                      DeviceProviderRegistry.class, PortConfigOperatorRegistry.class },
+           property = {
+                ROLE_TIMEOUT_SECONDS + ":Integer=" + ROLE_TIMEOUT_SECONDS_DEFAULT
+           })
 public class DeviceManager
         extends AbstractListenerProviderRegistry<DeviceEvent, DeviceListener, DeviceProvider, DeviceProviderService>
         implements DeviceService, DeviceAdminService, DeviceProviderRegistry, PortConfigOperatorRegistry {
@@ -161,6 +173,9 @@ public class DeviceManager
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterCommunicationService communicationService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected ComponentConfigService cfgService;
 
     private ExecutorService clusterRequestExecutor;
     /**
@@ -214,14 +229,22 @@ public class DeviceManager
     private final Map<DeviceId, Long> roleToAcknowledge =
             Maps.newConcurrentMap();
     private ScheduledExecutorService backgroundRoleChecker;
-    private static final int ROLE_TIMEOUT_SECONDS = 10;
+
+
+    /**
+     * Timeout for role acknowledgement check.
+     **/
+    protected int roleTimeoutSeconds = ROLE_TIMEOUT_SECONDS_DEFAULT;
 
     // FIXME join this map with roleToAcknowledge and fix the back to back event issue here
     private final Map<DeviceId, MastershipRole> lastAcknowledgedRole =
             Maps.newConcurrentMap();
 
     @Activate
-    public void activate() {
+    public void activate(ComponentContext context) {
+        cfgService.registerProperties(getClass());
+
+        modified(context);
         portAnnotationOp = new PortAnnotationOperator(networkConfigService);
         deviceAnnotationOp = new DeviceAnnotationOperator(networkConfigService);
         portOpsIndex.put(PortAnnotationConfig.class, portAnnotationOp);
@@ -271,8 +294,25 @@ public class DeviceManager
         log.info("Started");
     }
 
+    @Modified
+    public void modified(ComponentContext context) {
+        Dictionary<?, ?> properties = context != null ? context.getProperties() : new Properties();
+        String roleTimeoutSec = get(properties, ROLE_TIMEOUT_SECONDS);
+        int oldRoleTimeoutSeconds = roleTimeoutSeconds;
+        try {
+            roleTimeoutSeconds = isNullOrEmpty(roleTimeoutSec) ?
+                    oldRoleTimeoutSeconds : Integer.parseInt(roleTimeoutSec.trim());
+        } catch (NumberFormatException e) {
+            log.warn("Can't parse {}, setting the old value {}", roleTimeoutSec, oldRoleTimeoutSeconds, e);
+            roleTimeoutSeconds = oldRoleTimeoutSeconds;
+        }
+        log.info("Modified. Values = {}: {}",
+                ROLE_TIMEOUT_SECONDS, roleTimeoutSeconds);
+    }
+
     @Deactivate
-    public void deactivate() {
+    public void deactivate(ComponentContext context) {
+        cfgService.unregisterProperties(getClass(), true);
         backgroundService.shutdown();
         networkConfigService.removeListener(networkConfigListener);
         store.unsetDelegate(delegate);
@@ -613,7 +653,7 @@ public class DeviceManager
                     return null;
                 }
                 exists.set(true);
-                if (currentTimeMillis() - value < (ROLE_TIMEOUT_SECONDS * 1000)) {
+                if (currentTimeMillis() - value < (roleTimeoutSeconds * 1000)) {
                     return value;
                 }
                 return null;
@@ -625,7 +665,7 @@ public class DeviceManager
             }
             // Timeout still on
             if (ts != null) {
-                log.debug("Timeout expires in {} ms", ((ROLE_TIMEOUT_SECONDS * 1000) - currentTimeMillis() + ts));
+                log.debug("Timeout expires in {} ms", ((roleTimeoutSeconds * 1000) - currentTimeMillis() + ts));
                 continue;
             }
             if (myRole != MASTER) {
