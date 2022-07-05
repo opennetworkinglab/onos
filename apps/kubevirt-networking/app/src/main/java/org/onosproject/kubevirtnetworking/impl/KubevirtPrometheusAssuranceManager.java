@@ -221,8 +221,6 @@ public class KubevirtPrometheusAssuranceManager implements KubevirtPrometheusAss
             return;
         }
 
-        String[] fipLabelValues = new String[5];
-
         nodeService.completeNodes(GATEWAY).forEach(node -> {
             flowRuleService.getFlowEntries(node.intgBridge()).forEach(flowEntry -> {
 
@@ -234,6 +232,8 @@ public class KubevirtPrometheusAssuranceManager implements KubevirtPrometheusAss
                     if (floatingIp == null || floatingIp.vmName() == null) {
                         return;
                     }
+
+                    String[] fipLabelValues = new String[5];
 
                     fipLabelValues[0] = floatingIp.id();
                     fipLabelValues[1] = floatingIp.floatingIp().toString();
@@ -250,6 +250,8 @@ public class KubevirtPrometheusAssuranceManager implements KubevirtPrometheusAss
                     if (floatingIp == null || floatingIp.vmName() == null) {
                         return;
                     }
+
+                    String[] fipLabelValues = new String[5];
 
                     fipLabelValues[0] = floatingIp.id();
                     fipLabelValues[1] = floatingIp.floatingIp().toString();
@@ -271,8 +273,6 @@ public class KubevirtPrometheusAssuranceManager implements KubevirtPrometheusAss
             return;
         }
 
-        String[] snatLabelValues = new String[3];
-
         routerService.routers().stream().filter(router -> router.enableSnat() &&
                         router.electedGateway() != null &&
                         router.peerRouter() != null &&
@@ -289,17 +289,25 @@ public class KubevirtPrometheusAssuranceManager implements KubevirtPrometheusAss
                         return;
                     }
 
+
+
                     flowRuleService.getFlowEntries(gateway.intgBridge()).forEach(flowEntry -> {
                         if (((IndexTableId) flowEntry.table()).id() == GW_ENTRY_TABLE &&
                                 flowEntry.priority() == PRIORITY_STATEFUL_SNAT_RULE) {
-                            snatLabelValues[0] = router.name();
-                            snatLabelValues[1] = routerSnatIp;
-                            snatLabelValues[2] = gateway.hostname();
+
                             if (isSnatUpstreamFlorEntryForRouter(router, flowEntry)) {
+                                String[] snatLabelValues = new String[3];
+                                snatLabelValues[0] = router.name();
+                                snatLabelValues[1] = routerSnatIp;
+                                snatLabelValues[2] = gateway.hostname();
                                 pktSNATTx.labels(snatLabelValues).set(flowEntry.packets());
                                 byteSNATTx.labels(snatLabelValues).set(flowEntry.bytes());
 
                             } else if (isSnatDownstreamFlorEntryForRouter(routerSnatIp, flowEntry)) {
+                                String[] snatLabelValues = new String[3];
+                                snatLabelValues[0] = router.name();
+                                snatLabelValues[1] = routerSnatIp;
+                                snatLabelValues[2] = gateway.hostname();
                                 pktSNATRx.labels(snatLabelValues).set(flowEntry.packets());
                                 byteSNATRx.labels(snatLabelValues).set(flowEntry.bytes());
                             }
