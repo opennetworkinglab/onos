@@ -61,10 +61,18 @@ public interface DataModelTree {
     DataModelTree alloc(String path, Nodetype leaftype) throws WorkflowException;
 
     /**
-     * Remove node on the path.
+     * Remove node on the path. This removes the entity.
      * @param path data model tree path
      * @throws WorkflowException workflow exception
      */
     void remove(String path) throws WorkflowException;
+
+    /**
+     * Clear node on the path. This does not remove the entry. This initializes the value to Null.
+     * @param path data model tree path
+     * @throws WorkflowException workflow exception
+     */
+    void clear(String path) throws WorkflowException;
+
 }
 
