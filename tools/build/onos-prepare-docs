@@ -1,0 +1,21 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Uploads ONOS Java API docs.
+# -----------------------------------------------------------------------------
+
+set -e
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+docs="bazel-bin/docs/external.jar"
+docs_path="bazel-bin/docs/tmp"
+mkdir -p ${docs_path}
+
+ONOS_VERSION_STRING=${ONOS_VERSION}
+if echo ${ONOS_VERSION_STRING} | grep -- '-b'; then
+    echo "ONOS version ${ONOS_VERSION_STRING} is a beta. Skipping"
+    exit 0
+fi
+
+unzip ${docs} -d ${docs_path}
