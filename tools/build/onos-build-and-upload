@@ -19,8 +19,8 @@ fi
 onos-release $VERSION $DRY_RUN
 
 if [ $dryRun -eq 0 ]; then
-    # upload docs
-    onos-upload-docs ${WIKI_USER}
+    # prepare docs
+    onos-prepare-docs
 
     # spot check that uploaded artifacts are correct
     # TODO - implement this for bazel
