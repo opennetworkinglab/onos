@@ -577,6 +577,10 @@ public class NetconfControllerImpl implements NetconfController {
             CompletableFuture<CharSequence> future = getNetconfDevice(deviceId).getSession().asyncGet();
             CharSequence reply = Tools.futureGetOrElse(future, NETCONF_REPLY_TIMEOUT_DEFAULT, TimeUnit.SECONDS,
                                   "Unable to read netconf data tree from device");
+            if (reply.equals("Unable to read netconf data tree from device")) {
+                log.error("Failed to get netconf data tree for device : {}", deviceId);
+                return false;
+            }
             log.debug("Netconf data tree for device : {} -> {}", deviceId, reply);
         } catch (NetconfException e) {
             log.error("Error while getting netconf data tree for device : {}", deviceId);
