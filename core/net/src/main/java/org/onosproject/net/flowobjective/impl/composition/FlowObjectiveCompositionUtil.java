@@ -319,6 +319,17 @@ public final class FlowObjectiveCompositionUtil {
                             } else {
                                 break;
                             }
+                        case SRV6_DST_SID:
+                            if (criterionMap.containsKey(Criterion.Type.SRV6_DST_SID)) {
+                                if (((IPCriterion) criterionMap.get(Criterion.Type.SRV6_DST_SID)).ip()
+                                        .contains(((L3ModificationInstruction.ModIPInstruction) l3).ip())) {
+                                    criterionMap.remove(Criterion.Type.SRV6_DST_SID);
+                                } else {
+                                    return null;
+                                }
+                            } else {
+                                break;
+                            }
                         case IPV6_FLABEL:
                             if (criterionMap.containsKey(Criterion.Type.IPV6_FLABEL)) {
                                 if (((IPv6FlowLabelCriterion) criterionMap.get(Criterion.Type.IPV6_FLABEL)).flowLabel()
@@ -391,6 +402,16 @@ public final class FlowObjectiveCompositionUtil {
                     return Criteria.matchIPv6Dst(ipPrefix);
                 }
             }
+
+            case SRV6_DST_SID: {
+                IpPrefix ipPrefix = intersectIpPrefix(((IPCriterion) c1).ip(), ((IPCriterion) c2).ip());
+                if (ipPrefix == null) {
+                    return null;
+                } else {
+                    return Criteria.matchSrv6DstSid(ipPrefix);
+                }
+            }
+
             default:
                 if (!c1.equals(c2)) {
                     return null;

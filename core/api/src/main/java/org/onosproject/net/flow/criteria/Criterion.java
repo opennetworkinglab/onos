@@ -150,6 +150,9 @@ public interface Criterion {
         /** IPv6 destination address. */
         IPV6_DST,
 
+        /** SRV6 destination SID . */
+        SRV6_DST_SID,
+
         /** IPv6 Flow Label. */
         IPV6_FLABEL,
 
