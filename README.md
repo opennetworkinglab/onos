@@ -7,6 +7,7 @@ legacy “brown field” networks to SDN “green field” networks. This enable
 exciting new capabilities, and disruptive deployment and operational cost points
 for network operators.
 
+
 ## Top-Level Features
 
 * High availability through clustering and distributed state management.
